@@ -33,6 +33,26 @@ export interface Ticket {
   id: TicketId;
   uid: UserId;
   status: TicketStatus;
+  walletAddress: WalletAddress; // the address we're expecting the deposit from
   reservedTime: Timestamp;
   activatedTime?: Timestamp; // only once the deposit has been received and verified
+}
+
+export type Username = string;
+
+export type WalletId = string;
+
+export type WalletData = {
+  id: WalletId;
+  address: WalletAddress;
+  preferred: boolean;
+};
+
+export type Wallets = Record<WalletId, WalletData>;
+
+export interface UserProfileData {
+  username: Username;
+  email: string;
+  hasCompletedOnboarding: boolean;
+  wallets: Wallets;
 }

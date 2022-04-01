@@ -1,8 +1,9 @@
 import * as functions from 'firebase-functions';
 import { CallableContext } from 'firebase-functions/v1/https';
-import { LotId, Ticket, TicketStatus } from '../../models';
+import { LotId, Ticket, TicketStatus, WalletId } from '../../models';
 import { firebaseCreateTicket } from '../../services/firebase/firebaseCreateTicket';
 import { firebaseFetchActiveLot } from '../../services/firebase/firebaseFetchActiveLot';
+import { firebaseFetchUserProfile } from '../../services/firebase/firebaseFetchUserProfile';
 import { firebaseGetUser } from '../../services/firebase/firebaseGetUser';
 import { FirebaseCallableFunctionsResponse } from '../../services/firebase/models';
 import { arrayFromNumber } from '../../utils/arrayFromNumber';
@@ -14,26 +15,17 @@ export const reserveTicketsForUid = async ({
   uid,
   lotId,
   ticketCount,
+  userWalletId,
 }: {
   uid: string | undefined;
   lotId: LotId;
   ticketCount: number;
+  userWalletId: WalletId;
 }): Promise<Response> => {
   if (!uid) {
     return {
       error: true,
       message: 'User is not signed in',
-      data: undefined,
-    };
-  }
-
-  // check that the user exists
-  try {
-    await firebaseGetUser(uid);
-  } catch (error) {
-    return {
-      error: true,
-      message: (error as Error).message,
       data: undefined,
     };
   }
@@ -50,6 +42,25 @@ export const reserveTicketsForUid = async ({
     return {
       error: true,
       message: 'Please provide a ticketCount',
+      data: undefined,
+    };
+  }
+
+  if (!userWalletId) {
+    return {
+      error: true,
+      message: 'Please provide a userWalletId',
+      data: undefined,
+    };
+  }
+
+  // check that the user exists
+  try {
+    await firebaseGetUser(uid);
+  } catch (error) {
+    return {
+      error: true,
+      message: (error as Error).message,
       data: undefined,
     };
   }
@@ -92,17 +103,31 @@ export const reserveTicketsForUid = async ({
     };
   }
 
+  const userProfileData = await firebaseFetchUserProfile(uid);
+  const wallet = userProfileData.wallets[userWalletId];
+
+  if (!wallet) {
+    return {
+      error: true,
+      message: 'Could not find this wallet',
+      data: undefined,
+    };
+  }
+
   // iterate over the ticketCount and create individual tickets
   // FIXME: we could optimise this by using Firebase batches if there are a lot of tickets
-  for (const _ of arrayFromNumber(ticketCount)) {
+  const createTicketPromises = arrayFromNumber(ticketCount).map(() => {
     const ticket: Omit<Ticket, 'id'> = {
       uid,
       status: TicketStatus.pendingDeposit,
+      walletAddress: wallet.address,
       reservedTime: getTimeAsISOString(),
     };
 
-    await firebaseCreateTicket(lotId, ticket);
-  }
+    return firebaseCreateTicket(lotId, ticket);
+  });
+
+  await Promise.all(createTicketPromises);
 
   return {
     error: false,
@@ -113,13 +138,22 @@ export const reserveTicketsForUid = async ({
 
 const reserveTickets = functions.https.onCall(
   async (
-    data: { lotId: LotId; ticketCount: number },
+    data: {
+      lotId: LotId;
+      ticketCount: number;
+      userWalletId: WalletId;
+    },
     context: CallableContext,
   ): Promise<Response> => {
     const uid = context.auth?.uid;
-    const { lotId, ticketCount } = data;
+    const { lotId, ticketCount, userWalletId } = data;
 
-    const response = await reserveTicketsForUid({ uid, lotId, ticketCount });
+    const response = await reserveTicketsForUid({
+      uid,
+      lotId,
+      ticketCount,
+      userWalletId,
+    });
 
     return response;
   },
