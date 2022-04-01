@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "isle5-development",
+    "development": "isle5-development",
+    "production": "isle5-production"
+  },
+  "targets": {}
+}
