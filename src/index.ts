@@ -1,1 +1,1 @@
-// export functions from here
+export * from './functions/reserveTickets';

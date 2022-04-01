@@ -1,8 +1,8 @@
 {
   "projects": {
-    "default": "isle5-development",
-    "development": "isle5-development",
-    "production": "isle5-production"
+    "default": "dbl-development",
+    "development": "dbl-development",
+    "production": "dbl-production"
   },
   "targets": {}
 }

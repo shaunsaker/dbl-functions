@@ -12,6 +12,12 @@ Install dependencies
 yarn install
 ```
 
+Run your script, e.g.
+
+```
+yarn dev .testing/reserveTickets ...ARGS
+```
+
 ## Deployment
 
 ```

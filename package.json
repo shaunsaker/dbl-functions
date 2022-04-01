@@ -2,8 +2,8 @@
   "name": "dbl-functions",
   "version": "1.0.0",
   "scripts": {
-    "env:dev": "cp ./config/development/* ./src/firebase && firebase use development",
-    "env:prod": "cp ./config/production/* ./src/firebase && firebase use production",
+    "env:dev": "cp ./config/development/service-account.json ./src/services/firebase/service-account.json && firebase use development",
+    "env:prod": "cp ./config/production/service-account.json ./src/services/firebase/service-account.json && firebase use production",
     "dev": "ts-node-transpile-only",
     "build": "tsc",
     "build:watch": "tsc --watch",
@@ -13,7 +13,7 @@
     "lint:prettier": "prettier -c \"**/*.{ts,tsx}\"",
     "lint:tsc": "tsc",
     "test": "jest",
-    "predeploy": "yarn lint && yarn test && rimraf ./dist && yarn run build",
+    "predeploy": "yarn lint && rimraf ./dist && yarn run build",
     "deploy": "firebase deploy --only functions"
   },
   "main": "dist/index.js",
