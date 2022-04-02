@@ -18,6 +18,7 @@ export interface Lot {
   ticketTimeout: number; // milliseconds
   drawTime: Timestamp;
   walletAddress: WalletAddress;
+  dateCreated: Timestamp;
 }
 
 export type UserId = string;
@@ -25,6 +26,7 @@ export type UserId = string;
 export enum TicketStatus {
   pendingDeposit = 'pendingDeposit',
   active = 'active',
+  timeout = 'timeout',
 }
 
 export type TicketId = string;
@@ -34,7 +36,7 @@ export interface Ticket {
   uid: UserId;
   status: TicketStatus;
   walletAddress: WalletAddress; // the address we're expecting the deposit from
-  reservedTime: Timestamp;
+  dateCreated: Timestamp;
   activatedTime?: Timestamp; // only once the deposit has been received and verified
 }
 

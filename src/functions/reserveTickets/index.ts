@@ -1,13 +1,14 @@
 import * as functions from 'firebase-functions';
 import { CallableContext } from 'firebase-functions/v1/https';
 import { LotId, Ticket, TicketStatus, WalletId } from '../../models';
-import { firebaseCreateTicket } from '../../services/firebase/firebaseCreateTicket';
+import { firebase } from '../../services/firebase';
 import { firebaseFetchActiveLot } from '../../services/firebase/firebaseFetchActiveLot';
 import { firebaseFetchUserProfile } from '../../services/firebase/firebaseFetchUserProfile';
 import { firebaseGetUser } from '../../services/firebase/firebaseGetUser';
 import { FirebaseCallableFunctionsResponse } from '../../services/firebase/models';
 import { arrayFromNumber } from '../../utils/arrayFromNumber';
 import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
+import { getUuid } from '../../utils/getUuid';
 
 type Response = FirebaseCallableFunctionsResponse<void>;
 
@@ -115,19 +116,29 @@ export const reserveTicketsForUid = async ({
   }
 
   // iterate over the ticketCount and create individual tickets
-  // FIXME: we could optimise this by using Firebase batches if there are a lot of tickets
-  const createTicketPromises = arrayFromNumber(ticketCount).map(() => {
+  // using Firebase's batch method
+  const writeBatch = firebase.firestore().batch();
+
+  arrayFromNumber(ticketCount).forEach(() => {
     const ticket: Omit<Ticket, 'id'> = {
       uid,
       status: TicketStatus.pendingDeposit,
       walletAddress: wallet.address,
-      reservedTime: getTimeAsISOString(),
+      dateCreated: getTimeAsISOString(),
     };
 
-    return firebaseCreateTicket(lotId, ticket);
+    writeBatch.set(
+      firebase
+        .firestore()
+        .collection('lots')
+        .doc(lotId)
+        .collection('tickets')
+        .doc(getUuid()),
+      ticket,
+    );
   });
 
-  await Promise.all(createTicketPromises);
+  await writeBatch.commit();
 
   return {
     error: false,
