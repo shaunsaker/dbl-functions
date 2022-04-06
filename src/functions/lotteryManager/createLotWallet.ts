@@ -2,17 +2,11 @@ import { createBlockchainHDWallet } from '../../services/blockCypher/createBlock
 import { createMnemonic } from '../../utils/createMnemonic';
 import { createXPubFromMnemonic } from '../../utils/createXPubFromMnemonic';
 
-export const createHDWallet = async (
-  walletName: string,
-  chainIndexes = [0],
-) => {
+export const createLotWallet = async (walletName: string) => {
   const mnemonic = createMnemonic();
   const xPub = createXPubFromMnemonic(mnemonic);
-  const outputWallet = await createBlockchainHDWallet(
-    walletName,
-    xPub,
-    chainIndexes,
-  );
+  const chains = [0, 1]; // one for the lot address and another for the user addresses
+  const outputWallet = await createBlockchainHDWallet(walletName, xPub, chains);
 
   return {
     mnemonic,

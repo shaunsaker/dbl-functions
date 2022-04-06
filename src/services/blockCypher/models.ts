@@ -1,3 +1,23 @@
+export interface HDAddress {
+  address: string;
+  path: string;
+  public: string;
+}
+
+export interface HDChains {
+  index: 0;
+  chain_addresses: HDAddress[];
+}
+
+export interface HDWallet {
+  token: string;
+  name: string;
+  hd: true;
+  extended_public_key: string;
+  subchain_indexes: number[];
+  chains: HDChains[];
+}
+
 export interface AddressKeychain {
   address: string;
   public: string;
