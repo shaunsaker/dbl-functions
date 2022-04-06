@@ -1,4 +1,4 @@
-import { createLot } from '../functions/lotteryManager/createLot';
+import { createLot } from '../functions/boss/createLot';
 
 require('dotenv').config();
 
