@@ -1,6 +1,7 @@
 import * as functions from 'firebase-functions';
 import { CallableContext } from 'firebase-functions/v1/https';
 import { LotId, Ticket, TicketStatus } from '../../models';
+import { getBlockchainHDWallet } from '../../services/blockCypher/getBlockchainHDWallet';
 import { firebase } from '../../services/firebase';
 import { firebaseFetchActiveLot } from '../../services/firebase/firebaseFetchActiveLot';
 import { firebaseGetUser } from '../../services/firebase/firebaseGetUser';
@@ -8,6 +9,7 @@ import { FirebaseCallableFunctionsResponse } from '../../services/firebase/model
 import { arrayFromNumber } from '../../utils/arrayFromNumber';
 import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import { getUuid } from '../../utils/getUuid';
+import { createUserAddress } from './createUserAddress';
 
 type Response = FirebaseCallableFunctionsResponse<void>;
 
@@ -93,8 +95,21 @@ export const runReserveTickets = async ({
     };
   }
 
-  // TODO: create an address for this user using the lot's hd wallet
-  const address = '';
+  // get the lot's wallet name using the lotId
+  const wallet = await getBlockchainHDWallet(lotId);
+
+  if (!wallet) {
+    return {
+      error: true,
+      message: 'Wallet not found.',
+      data: undefined,
+    };
+  }
+
+  // create an address for this user using the lot's hd wallet
+  // this returns the partial HDWallet only containing the newly created address
+  const partialHDWallet = await createUserAddress(wallet.name);
+  const address = partialHDWallet.chains[0].chain_addresses[0].address;
 
   // iterate over the ticketCount and create individual tickets
   // using Firebase's batch method

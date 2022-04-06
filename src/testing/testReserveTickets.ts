@@ -1,5 +1,7 @@
 import { runReserveTickets } from '../functions/reserveTickets';
 
+require('dotenv').config();
+
 const doAsync = async () => {
   const response = await runReserveTickets({
     uid: process.argv[2],
