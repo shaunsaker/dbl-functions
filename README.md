@@ -22,7 +22,7 @@ yarn install
 4. Run your script, e.g.
 
 ```
-yarn dev .testing/reserveTickets ...ARGS
+yarn dev ./src/testing/testBookie ...ARGS
 ```
 
 ## Deployment

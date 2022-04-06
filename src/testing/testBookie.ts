@@ -1,9 +1,9 @@
-import { runReserveTickets } from '../functions/reserveTickets';
+import { runBookie } from '../functions/bookie';
 
 require('dotenv').config();
 
 const doAsync = async () => {
-  const response = await runReserveTickets({
+  const response = await runBookie({
     uid: process.argv[2],
     lotId: process.argv[3],
     ticketCount: parseInt(process.argv[4]),

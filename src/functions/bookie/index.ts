@@ -13,7 +13,7 @@ import { createUserAddress } from './createUserAddress';
 
 type Response = FirebaseCallableFunctionsResponse<void>;
 
-export const runReserveTickets = async ({
+export const runBookie = async ({
   uid,
   lotId,
   ticketCount,
@@ -143,7 +143,7 @@ export const runReserveTickets = async ({
   };
 };
 
-const reserveTickets = functions.https.onCall(
+const bookie = functions.https.onCall(
   async (
     data: {
       lotId: LotId;
@@ -154,7 +154,7 @@ const reserveTickets = functions.https.onCall(
     const uid = context.auth?.uid;
     const { lotId, ticketCount } = data;
 
-    return await runReserveTickets({
+    return await runBookie({
       uid,
       lotId,
       ticketCount,
@@ -162,4 +162,4 @@ const reserveTickets = functions.https.onCall(
   },
 );
 
-export { reserveTickets };
+export { bookie };

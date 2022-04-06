@@ -1,3 +1,3 @@
 require('dotenv').config();
 
-export * from './functions/reserveTickets';
+export * from './functions/bookie';
