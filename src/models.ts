@@ -1,32 +1,43 @@
+export const PER_USER_TICKET_LIMIT = 250;
+
+export const TICKET_TIMEOUT_MS = 3600000;
+
+export const TARGET_LOT_VALUE_USD = 1000000;
+
+export const TARGET_TICKET_VALUE_USD = 10;
+
+export const TICKET_COMMISSION_PERCENTAGE = 10;
+
 // FIXME: these types (except Ticket types) can be shared with the mobile app somehow
 export type LotId = string;
 
 export type Timestamp = string;
 
-export type WalletAddress = string;
+export type BlockchainAddress = string;
 
 export interface Lot {
-  id: LotId;
+  id: LotId; // it's not present when created but is present when fetched
   active: boolean; // only one lot is active at a time
   ticketPriceInBTC: number;
   BTCPriceInUSD: number;
   ticketCommissionInBTC: number;
   totalInBTC: number;
-  ticketCount: number;
-  ticketsLeft: number;
+  confirmedTicketCount: number;
+  ticketsAvailable: number;
   perUserTicketLimit: number;
-  ticketTimeout: number; // milliseconds
+  ticketTimeoutMs: number;
   drawTime: Timestamp;
-  walletAddress: WalletAddress;
+  lastCallTime: Timestamp;
+  address: BlockchainAddress;
   dateCreated: Timestamp;
 }
 
 export type UserId = string;
 
 export enum TicketStatus {
-  pendingDeposit = 'pendingDeposit',
-  active = 'active',
-  timeout = 'timeout',
+  reserved = 'reserved',
+  confirmed = 'confirmed',
+  timedout = 'timedout',
 }
 
 export type TicketId = string;
@@ -35,26 +46,21 @@ export interface Ticket {
   id: TicketId;
   uid: UserId;
   status: TicketStatus;
-  walletAddress: WalletAddress; // the address we're expecting the deposit from
-  dateCreated: Timestamp;
-  activatedTime?: Timestamp; // only once the deposit has been received and verified
+  address: BlockchainAddress; // the address the user should send their BTC to
+  reservedTime: Timestamp;
+  confirmedTime?: Timestamp; // only once the deposit has been received and confirmed
 }
 
 export type Username = string;
 
-export type WalletId = string;
-
-export type WalletData = {
-  id: WalletId;
-  address: WalletAddress;
-  preferred: boolean;
-};
-
-export type Wallets = Record<WalletId, WalletData>;
-
 export interface UserProfileData {
+  dateJoined: Timestamp;
   username: Username;
   email: string;
   hasCompletedOnboarding: boolean;
-  wallets: Wallets;
+}
+
+export interface Hash {
+  iv: string;
+  content: string;
 }

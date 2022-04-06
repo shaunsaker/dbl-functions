@@ -3,6 +3,7 @@ import * as crypto from 'crypto';
 const algorithm = 'aes-256-ctr';
 const iv = crypto.randomBytes(16);
 
+// secretKey should be 32 characters long
 const encrypt = (text: string, secretKey: string) => {
   const cipher = crypto.createCipheriv(algorithm, secretKey, iv);
 

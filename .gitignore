@@ -7,6 +7,11 @@ typings/
 node_modules/
 
 # Firebase
-src/firebase
 firebase-debug.log
+
+# Secrets
 service-account.json
+.env
+.env.dev
+.env.prod
+

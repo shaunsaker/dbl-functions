@@ -1,18 +1,17 @@
 import { firebase } from '.';
-import { LotId, Ticket } from '../../models';
+import { Hash, LotId } from '../../models';
 
-export const firebaseCreateTicket = (
+export const firebaseSaveLotWalletHash = (
   lotId: LotId,
-  ticket: Omit<Ticket, 'id'>,
+  hash: Hash,
 ): Promise<void> => {
   return new Promise(async (resolve, reject) => {
     try {
       await firebase
         .firestore()
-        .collection('lots')
+        .collection('wallets')
         .doc(lotId)
-        .collection('tickets')
-        .add(ticket);
+        .set({ hash }, { merge: true });
 
       resolve();
     } catch (error) {

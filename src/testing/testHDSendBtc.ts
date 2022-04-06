@@ -40,6 +40,7 @@ const doAsync = async () => {
   // create an address in the HD wallet
   const { chains: outputChains } = await createBlockchainHDWalletAddress(
     walletName,
+    0,
   );
   const outputAddressKeychain = outputChains[0].chain_addresses[0];
   console.log('OUTPUT', { outputAddressKeychain });

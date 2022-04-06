@@ -1,9 +1,8 @@
 import * as functions from 'firebase-functions';
 import { CallableContext } from 'firebase-functions/v1/https';
-import { LotId, Ticket, TicketStatus, WalletId } from '../../models';
+import { LotId, Ticket, TicketStatus } from '../../models';
 import { firebase } from '../../services/firebase';
 import { firebaseFetchActiveLot } from '../../services/firebase/firebaseFetchActiveLot';
-import { firebaseFetchUserProfile } from '../../services/firebase/firebaseFetchUserProfile';
 import { firebaseGetUser } from '../../services/firebase/firebaseGetUser';
 import { FirebaseCallableFunctionsResponse } from '../../services/firebase/models';
 import { arrayFromNumber } from '../../utils/arrayFromNumber';
@@ -12,16 +11,14 @@ import { getUuid } from '../../utils/getUuid';
 
 type Response = FirebaseCallableFunctionsResponse<void>;
 
-export const reserveTicketsForUid = async ({
+export const runReserveTickets = async ({
   uid,
   lotId,
   ticketCount,
-  userWalletId,
 }: {
   uid: string | undefined;
   lotId: LotId;
   ticketCount: number;
-  userWalletId: WalletId;
 }): Promise<Response> => {
   if (!uid) {
     return {
@@ -43,14 +40,6 @@ export const reserveTicketsForUid = async ({
     return {
       error: true,
       message: 'Please provide a ticketCount',
-      data: undefined,
-    };
-  }
-
-  if (!userWalletId) {
-    return {
-      error: true,
-      message: 'Please provide a userWalletId',
       data: undefined,
     };
   }
@@ -86,11 +75,11 @@ export const reserveTicketsForUid = async ({
     };
   }
 
-  // validate against ticketsLeft
-  if (ticketCount > activeLot.ticketsLeft) {
+  // validate against ticketsAvailable
+  if (ticketCount > activeLot.ticketsAvailable) {
     return {
       error: true,
-      message: `There are only ${activeLot.ticketsLeft} and you are attempting to reserve ${ticketCount} tickets. Please try again with ${activeLot.ticketsLeft} tickets.`,
+      message: `There are only ${activeLot.ticketsAvailable} and you are attempting to reserve ${ticketCount} tickets. Please try again with ${activeLot.ticketsAvailable} tickets.`,
       data: undefined,
     };
   }
@@ -104,16 +93,8 @@ export const reserveTicketsForUid = async ({
     };
   }
 
-  const userProfileData = await firebaseFetchUserProfile(uid);
-  const wallet = userProfileData.wallets[userWalletId];
-
-  if (!wallet) {
-    return {
-      error: true,
-      message: 'Could not find this wallet',
-      data: undefined,
-    };
-  }
+  // TODO: create an address for this user using the lot's hd wallet
+  const address = '';
 
   // iterate over the ticketCount and create individual tickets
   // using Firebase's batch method
@@ -122,9 +103,9 @@ export const reserveTicketsForUid = async ({
   arrayFromNumber(ticketCount).forEach(() => {
     const ticket: Omit<Ticket, 'id'> = {
       uid,
-      status: TicketStatus.pendingDeposit,
-      walletAddress: wallet.address,
-      dateCreated: getTimeAsISOString(),
+      status: TicketStatus.reserved,
+      reservedTime: getTimeAsISOString(),
+      address,
     };
 
     writeBatch.set(
@@ -152,21 +133,17 @@ const reserveTickets = functions.https.onCall(
     data: {
       lotId: LotId;
       ticketCount: number;
-      userWalletId: WalletId;
     },
     context: CallableContext,
   ): Promise<Response> => {
     const uid = context.auth?.uid;
-    const { lotId, ticketCount, userWalletId } = data;
+    const { lotId, ticketCount } = data;
 
-    const response = await reserveTicketsForUid({
+    return await runReserveTickets({
       uid,
       lotId,
       ticketCount,
-      userWalletId,
     });
-
-    return response;
   },
 );
 
