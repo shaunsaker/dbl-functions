@@ -9,13 +9,12 @@ import {
   TICKET_TIMEOUT_MS,
 } from '../../models';
 import { getBTCUSDPrice } from '../../services/binance/getBTCUSDPrice';
+import { createBlockchainAddress } from '../../services/blockCypher/createBlockchainAddress';
 import { firebaseCreateLot } from '../../services/firebase/firebaseCreateLot';
-import { firebaseSaveLotWalletHash } from '../../services/firebase/firebaseSaveLotWalletHash';
+import { firebaseSaveLotAddressHash } from '../../services/firebase/firebaseSaveLotAddressHash';
 import { encrypt } from '../../utils/crypto';
 import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import { numberToDigits } from '../../utils/numberToDigits';
-import { createLotAddress, LOT_ADDRESS_CHAIN_INDEX } from './createLotAddress';
-import { createLotWallet } from './createLotWallet';
 
 const makeLot = ({
   id,
@@ -79,28 +78,14 @@ export const createLot = async (): Promise<void> => {
     6,
   );
 
+  const addressKeychain = await createBlockchainAddress();
+
   // create an hd wallet for the lot using the lotId as the wallet name
   const lotId: LotId = getTimeAsISOString(moment().startOf('day')); // the id is the start time of the day
-  const walletName = lotId;
-
-  // TEMPORARY HELPER
-  // try {
-  //   await deleteBlockchainHDWallet(walletName);
-  // } catch (error) {
-  //   // do nothing
-  // }
-
-  // [0, 1] means we will create two address chains
-  const { mnemonic } = await createLotWallet(walletName);
 
   // save the mnemonic as a hash using the secret and lotId (we need to be able to move funds within this wallet later)
-  const hash = encrypt(mnemonic, process.env.LOT_WALLET_SECRET);
-  await firebaseSaveLotWalletHash(lotId, hash);
-
-  // create an address for the lot
-  const HDWallet = await createLotAddress(walletName);
-  const address =
-    HDWallet.chains[LOT_ADDRESS_CHAIN_INDEX].chain_addresses[0].address;
+  const hash = encrypt(addressKeychain.private, process.env.LOT_ADDRESS_SECRET);
+  await firebaseSaveLotAddressHash(lotId, hash);
 
   const lot = makeLot({
     id: lotId,
@@ -108,7 +93,7 @@ export const createLot = async (): Promise<void> => {
     ticketPriceInBTC,
     ticketCommissionInBTC,
     ticketsAvailable,
-    address,
+    address: addressKeychain.address,
   });
 
   await firebaseCreateLot(lot);

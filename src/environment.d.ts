@@ -6,7 +6,7 @@ declare global {
       BLOCK_CYPHER_API: string;
       DEPOSIT_CALLBACK_URL: string;
       WEBHOOK_SIGNING_KEY: string;
-      LOT_WALLET_SECRET: string;
+      LOT_ADDRESS_SECRET: string;
       PORT?: string;
       PWD: string;
     }

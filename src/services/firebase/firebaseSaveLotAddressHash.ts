@@ -1,7 +1,7 @@
 import { firebase } from '.';
 import { Hash, LotId } from '../../models';
 
-export const firebaseSaveLotWalletHash = (
+export const firebaseSaveLotAddressHash = (
   lotId: LotId,
   hash: Hash,
 ): Promise<void> => {
@@ -9,7 +9,7 @@ export const firebaseSaveLotWalletHash = (
     try {
       await firebase
         .firestore()
-        .collection('wallets')
+        .collection('lotAddresses')
         .doc(lotId)
         .set({ hash }, { merge: true });
 
