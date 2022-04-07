@@ -7,6 +7,7 @@ declare global {
       DEPOSIT_CALLBACK_URL: string;
       WEBHOOK_SIGNING_KEY: string;
       LOT_ADDRESS_SECRET: string;
+      USERS_ADDRESS_SECRET: string;
       PORT?: string;
       PWD: string;
     }

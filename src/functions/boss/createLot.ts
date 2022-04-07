@@ -80,11 +80,12 @@ export const createLot = async (): Promise<void> => {
 
   const addressKeychain = await createBlockchainAddress();
 
-  // create an hd wallet for the lot using the lotId as the wallet name
+  // save the private key as a hash using the secret
+  // (we need to be able to move funds from this address later)
+  const hash = encrypt(addressKeychain.private, process.env.LOT_ADDRESS_SECRET);
+
   const lotId: LotId = getTimeAsISOString(moment().startOf('day')); // the id is the start time of the day
 
-  // save the mnemonic as a hash using the secret and lotId (we need to be able to move funds within this wallet later)
-  const hash = encrypt(addressKeychain.private, process.env.LOT_ADDRESS_SECRET);
   await firebaseSaveLotAddressHash(lotId, hash);
 
   const lot = makeLot({

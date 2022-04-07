@@ -1,16 +1,17 @@
 import * as functions from 'firebase-functions';
 import { CallableContext } from 'firebase-functions/v1/https';
 import { LotId, Ticket, TicketStatus } from '../../models';
-import { getBlockchainHDWallet } from '../../services/blockCypher/getBlockchainHDWallet';
+import { createBlockchainAddress } from '../../services/blockCypher/createBlockchainAddress';
 import { firebase } from '../../services/firebase';
 import { firebaseFetchActiveLot } from '../../services/firebase/firebaseFetchActiveLot';
 import { firebaseGetUser } from '../../services/firebase/firebaseGetUser';
+import { firebaseSaveUserAddressHash } from '../../services/firebase/firebaseSaveUserAddressHash';
 import { firebaseWriteBatch } from '../../services/firebase/firebaseWriteBatch';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { arrayFromNumber } from '../../utils/arrayFromNumber';
+import { encrypt } from '../../utils/crypto';
 import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import { getUuid } from '../../utils/getUuid';
-import { createUserAddress } from './createUserAddress';
 
 type Response = FirebaseFunctionResponse<void>;
 
@@ -96,21 +97,17 @@ export const runBookie = async ({
     };
   }
 
-  // get the lot's wallet name using the lotId
-  const wallet = await getBlockchainHDWallet(lotId);
+  // create an address for this user
+  const addressKeychain = await createBlockchainAddress();
 
-  if (!wallet) {
-    return {
-      error: true,
-      message: 'Wallet not found.',
-      data: undefined,
-    };
-  }
+  // save the private key as a hash using the secret
+  // (we need to be able to move funds from this address later)
+  const hash = encrypt(
+    addressKeychain.private,
+    process.env.USERS_ADDRESS_SECRET,
+  );
 
-  // create an address for this user using the lot's hd wallet
-  // this returns the partial HDWallet only containing the newly created address
-  const partialHDWallet = await createUserAddress(wallet.name);
-  const address = partialHDWallet.chains[0].chain_addresses[0].address;
+  await firebaseSaveUserAddressHash(uid, hash);
 
   // iterate over the ticketCount and create individual tickets
   const docs = arrayFromNumber(ticketCount).map(() => {
@@ -120,7 +117,7 @@ export const runBookie = async ({
       uid,
       status: TicketStatus.reserved,
       reservedTime: getTimeAsISOString(),
-      address,
+      address: addressKeychain.address,
     };
 
     return {
