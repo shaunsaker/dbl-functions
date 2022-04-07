@@ -1,1 +1,2 @@
-export const btcToSatoshi = (btc: number): number => btc * 100000000;
+export const btcToSatoshi = (btc: number): number =>
+  Math.round(btc * 100000000);

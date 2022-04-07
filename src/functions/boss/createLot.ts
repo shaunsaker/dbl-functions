@@ -83,7 +83,7 @@ export const createLot = async (): Promise<void> => {
   const lotId: LotId = getTimeAsISOString(moment().startOf('day')); // the id is the start time of the day
   const walletName = lotId;
 
-  // temporary helper
+  // TEMPORARY HELPER
   // try {
   //   await deleteBlockchainHDWallet(walletName);
   // } catch (error) {

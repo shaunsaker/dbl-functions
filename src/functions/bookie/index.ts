@@ -5,13 +5,14 @@ import { getBlockchainHDWallet } from '../../services/blockCypher/getBlockchainH
 import { firebase } from '../../services/firebase';
 import { firebaseFetchActiveLot } from '../../services/firebase/firebaseFetchActiveLot';
 import { firebaseGetUser } from '../../services/firebase/firebaseGetUser';
-import { FirebaseCallableFunctionsResponse } from '../../services/firebase/models';
+import { firebaseWriteBatch } from '../../services/firebase/firebaseWriteBatch';
+import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { arrayFromNumber } from '../../utils/arrayFromNumber';
 import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import { getUuid } from '../../utils/getUuid';
 import { createUserAddress } from './createUserAddress';
 
-type Response = FirebaseCallableFunctionsResponse<void>;
+type Response = FirebaseFunctionResponse<void>;
 
 export const runBookie = async ({
   uid,
@@ -112,29 +113,28 @@ export const runBookie = async ({
   const address = partialHDWallet.chains[0].chain_addresses[0].address;
 
   // iterate over the ticketCount and create individual tickets
-  // using Firebase's batch method
-  const writeBatch = firebase.firestore().batch();
-
-  arrayFromNumber(ticketCount).forEach(() => {
-    const ticket: Omit<Ticket, 'id'> = {
+  const docs = arrayFromNumber(ticketCount).map(() => {
+    const id = getUuid();
+    const ticket: Ticket = {
+      id,
       uid,
       status: TicketStatus.reserved,
       reservedTime: getTimeAsISOString(),
       address,
     };
 
-    writeBatch.set(
-      firebase
+    return {
+      ref: firebase
         .firestore()
         .collection('lots')
         .doc(lotId)
         .collection('tickets')
-        .doc(getUuid()),
-      ticket,
-    );
+        .doc(id),
+      data: ticket,
+    };
   });
 
-  await writeBatch.commit();
+  await firebaseWriteBatch(docs);
 
   return {
     error: false,

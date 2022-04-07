@@ -52,3 +52,13 @@ export interface TXSkeleton {
   tosign_tx: string[];
   // ...other unused fields
 }
+
+export interface AddressData {
+  address: string;
+  total_received: number;
+  total_sent: number;
+  balance: number;
+  unconfirmed_balance: number;
+  final_balance: number;
+  // ...other unused fields
+}

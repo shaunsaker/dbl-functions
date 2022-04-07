@@ -8,6 +8,8 @@ export const TARGET_TICKET_VALUE_USD = 10;
 
 export const TICKET_COMMISSION_PERCENTAGE = 10;
 
+export const AVERAGE_TX_SIZE_BYTES = 250;
+
 // FIXME: these types (except Ticket types) can be shared with the mobile app somehow
 export type LotId = string;
 
@@ -36,8 +38,9 @@ export type UserId = string;
 
 export enum TicketStatus {
   reserved = 'reserved',
+  unconfirmed = 'unconfirmed', // we can see it but it's pending confirmation
   confirmed = 'confirmed',
-  timedout = 'timedout',
+  timedOut = 'timedOut',
 }
 
 export type TicketId = string;
@@ -49,6 +52,13 @@ export interface Ticket {
   address: BlockchainAddress; // the address the user should send their BTC to
   reservedTime: Timestamp;
   confirmedTime?: Timestamp; // only once the deposit has been received and confirmed
+}
+
+export interface TicketGroup {
+  address: BlockchainAddress;
+  unconfirmedBalance: number;
+  confirmedBalance: number;
+  tickets: Ticket[];
 }
 
 export type Username = string;

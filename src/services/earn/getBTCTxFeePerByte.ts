@@ -1,19 +1,16 @@
 // eslint-disable-next-line
 import axios, { AxiosError } from 'axios';
-import { BlockchainAddress } from '../../models';
-import { AddressData } from './models';
+import { Fees } from './models';
 
-export const getBlockchainAddressBalance = async (
-  address: BlockchainAddress,
-): Promise<AddressData> => {
+export const getBTCTxFeePerByte = async (): Promise<Fees> => {
   return new Promise(async (resolve, reject) => {
     try {
       const response = await axios.get(
-        `${process.env.BLOCK_CYPHER_API}/addrs/${address}/balance`,
+        'https://bitcoinfees.earn.com/api/v1/fees/recommended',
       );
-      const addressData = response.data;
+      const fees = response.data;
 
-      resolve(addressData);
+      resolve(fees);
     } catch (error: Error | AxiosError | unknown) {
       if (axios.isAxiosError(error) && error.response) {
         reject(new Error(JSON.stringify(error.response.data)));
