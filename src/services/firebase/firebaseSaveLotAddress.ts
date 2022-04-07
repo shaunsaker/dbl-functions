@@ -1,16 +1,16 @@
 import { firebase } from '.';
-import { Hash, UserId } from '../../models';
+import { Hash, LotId } from '../../models';
 
-export const firebaseSaveUserAddressHash = (
-  uid: UserId,
+export const firebaseSaveLotAddress = (
+  lotId: LotId,
   hash: Hash,
 ): Promise<void> => {
   return new Promise(async (resolve, reject) => {
     try {
       await firebase
         .firestore()
-        .collection('userAddresses')
-        .doc(uid)
+        .collection('lotAddresses')
+        .doc(lotId)
         .set({ hash }, { merge: true });
 
       resolve();

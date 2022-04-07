@@ -1,17 +1,19 @@
 import { createBlockchainAddress } from '../services/blockCypher/createBlockchainAddress';
-import { createBlockchainAddressDepositWebhook } from '../services/blockCypher/createBlockchainAddressDepositWebhook';
 import { createBlockchainTransaction } from '../services/blockCypher/createBlockchainTransaction';
 import { fundTestBlockchainAddress } from '../services/blockCypher/fundTestBlockchainAddress';
+import { btcToSatoshi } from '../utils/btcToSatoshi';
 
 require('dotenv').config();
 
 const doAsync = async () => {
+  const BTCValueToSend = 0.00029 * 5; // 5 tickets ~ 0.00145 BTC
+
   // create an input wallet
   const inputAddressKeychain = await createBlockchainAddress();
   console.log('INPUT', inputAddressKeychain);
 
   // fund the input wallet
-  const satoshiInWallet = 100000000; // one btc
+  const satoshiInWallet = btcToSatoshi(1);
   await fundTestBlockchainAddress(
     inputAddressKeychain.address,
     satoshiInWallet,
@@ -23,18 +25,23 @@ const doAsync = async () => {
 
   const outputAddress = outputAddressKeychain.address;
 
-  // create a webhook at the output address
-  await createBlockchainAddressDepositWebhook(outputAddress);
+  const satoshiToSend = btcToSatoshi(BTCValueToSend);
 
   // send btc from the input wallet to the output wallet
   const tx = await createBlockchainTransaction({
     inputAddress: inputAddressKeychain.address,
     inputAddressPrivateKey: inputAddressKeychain.private,
     outputAddress,
-    value: satoshiInWallet / 2, // send half the funds
+    valueInSatoshi: satoshiToSend,
   });
 
-  console.log('RESULT', `https://live.blockcypher.com/bcy/tx/${tx.hash}`);
+  console.log('RESULT TX:', `https://live.blockcypher.com/bcy/tx/${tx.hash}`);
+
+  // we should have exactly BTCValueToSend at this address
+  console.log(
+    'RESULT ADDRESS:',
+    `https://live.blockcypher.com/bcy/address/${outputAddress}`,
+  );
 };
 
 doAsync();

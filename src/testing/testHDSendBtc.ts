@@ -55,7 +55,7 @@ const doAsync = async () => {
     inputAddress: inputAddressKeychain.address,
     inputAddressPrivateKey: inputAddressKeychain.private,
     outputAddress,
-    value: satoshiInWallet / 2, // send half the funds
+    valueInSatoshi: satoshiInWallet / 2, // send half the funds
   });
 
   console.log('RESULT', `https://live.blockcypher.com/bcy/tx/${tx.hash}`);

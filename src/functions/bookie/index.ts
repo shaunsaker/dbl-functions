@@ -5,7 +5,7 @@ import { createBlockchainAddress } from '../../services/blockCypher/createBlockc
 import { firebase } from '../../services/firebase';
 import { firebaseFetchActiveLot } from '../../services/firebase/firebaseFetchActiveLot';
 import { firebaseGetUser } from '../../services/firebase/firebaseGetUser';
-import { firebaseSaveUserAddressHash } from '../../services/firebase/firebaseSaveUserAddressHash';
+import { firebaseSaveUserLotAddress } from '../../services/firebase/firebaseSaveUserLotAddress';
 import { firebaseWriteBatch } from '../../services/firebase/firebaseWriteBatch';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { arrayFromNumber } from '../../utils/arrayFromNumber';
@@ -107,7 +107,14 @@ export const runBookie = async ({
     process.env.USERS_ADDRESS_SECRET,
   );
 
-  await firebaseSaveUserAddressHash(uid, hash);
+  await firebaseSaveUserLotAddress({
+    lotId,
+    uid,
+    data: {
+      address: addressKeychain.address, // extra data and not really necessary
+      hash,
+    },
+  });
 
   // iterate over the ticketCount and create individual tickets
   const docs = arrayFromNumber(ticketCount).map(() => {

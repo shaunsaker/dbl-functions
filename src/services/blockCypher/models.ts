@@ -1,3 +1,5 @@
+export const BLOCK_CYPHER_TEST_FEE_BYTES = 18200;
+
 export interface HDAddress {
   address: string;
   path: string;

@@ -1,3 +1,4 @@
+// eslint-disable-next-line
 import axios, { AxiosError } from 'axios';
 import { BlockchainAddress } from '../../models';
 import { Tx, TXSkeleton } from './models';
@@ -7,38 +8,45 @@ export const createBlockchainTransaction = async ({
   inputAddress,
   inputAddressPrivateKey,
   outputAddress,
-  value,
+  valueInSatoshi,
 }: {
   inputAddress: BlockchainAddress;
   inputAddressPrivateKey: string;
   outputAddress: BlockchainAddress;
-  value: number; // in satoshi
+  valueInSatoshi: number;
 }): Promise<Tx> => {
-  try {
-    const txSkeleton: TXSkeleton = (
-      await axios.post(`${process.env.BLOCK_CYPHER_API}/txs/new`, {
-        token: process.env.BLOCK_CYPHER_TOKEN,
-        inputs: [{ addresses: [inputAddress] }],
-        outputs: [{ addresses: [outputAddress], value }],
-        includeToSignTx: true,
-      })
-    ).data;
+  return new Promise(async (resolve, reject) => {
+    try {
+      const txSkeleton: TXSkeleton = (
+        await axios.post(`${process.env.BLOCK_CYPHER_API}/txs/new`, {
+          token: process.env.BLOCK_CYPHER_TOKEN,
+          inputs: [{ addresses: [inputAddress] }],
+          outputs: [{ addresses: [outputAddress], value: valueInSatoshi }],
+          includeToSignTx: true,
+        })
+      ).data;
 
-    // FIXME: FYI there is a validation step missing here, BlockCypher does not return the tosign_tx field needed for validation
+      // FIXME: FYI there is a validation step missing here, BlockCypher does not return the tosign_tx field needed for validation
 
-    const signedTxSkeleton = await signBlockchainTransaction({
-      txSkeleton,
-      privateKey: inputAddressPrivateKey,
-    });
+      const signedTxSkeleton = await signBlockchainTransaction({
+        txSkeleton,
+        privateKey: inputAddressPrivateKey,
+      });
 
-    // send the signed transaction
-    return (
-      await axios.post(
+      // send the signed transaction
+      const response = await axios.post(
         `${process.env.BLOCK_CYPHER_API}/txs/send`,
         signedTxSkeleton,
-      )
-    ).data.tx;
-  } catch (error) {
-    return (error as AxiosError).response?.data;
-  }
+      );
+      const tx = response.data.tx;
+
+      resolve(tx);
+    } catch (error: Error | AxiosError | unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        reject(new Error(JSON.stringify(error.response.data)));
+      }
+
+      reject(error);
+    }
+  });
 };

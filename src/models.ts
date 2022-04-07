@@ -58,6 +58,7 @@ export interface TicketGroup {
   address: BlockchainAddress;
   unconfirmedBalance: number;
   confirmedBalance: number;
+  uid: string;
   tickets: Ticket[];
 }
 
@@ -73,4 +74,9 @@ export interface UserProfileData {
 export interface Hash {
   iv: string;
   content: string;
+}
+
+export interface UserLotAddress {
+  address: BlockchainAddress;
+  hash: Hash;
 }

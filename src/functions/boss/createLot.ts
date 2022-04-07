@@ -11,7 +11,7 @@ import {
 import { getBTCUSDPrice } from '../../services/binance/getBTCUSDPrice';
 import { createBlockchainAddress } from '../../services/blockCypher/createBlockchainAddress';
 import { firebaseCreateLot } from '../../services/firebase/firebaseCreateLot';
-import { firebaseSaveLotAddressHash } from '../../services/firebase/firebaseSaveLotAddressHash';
+import { firebaseSaveLotAddress } from '../../services/firebase/firebaseSaveLotAddress';
 import { encrypt } from '../../utils/crypto';
 import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import { numberToDigits } from '../../utils/numberToDigits';
@@ -86,7 +86,7 @@ export const createLot = async (): Promise<void> => {
 
   const lotId: LotId = getTimeAsISOString(moment().startOf('day')); // the id is the start time of the day
 
-  await firebaseSaveLotAddressHash(lotId, hash);
+  await firebaseSaveLotAddress(lotId, hash);
 
   const lot = makeLot({
     id: lotId,
