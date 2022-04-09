@@ -6,7 +6,17 @@ import { btcToSatoshi } from '../utils/btcToSatoshi';
 require('dotenv').config();
 
 const doAsync = async () => {
-  const BTCValueToSend = 0.00029 * 5; // 5 tickets ~ 0.00145 BTC
+  const outputAddress = process.argv[2];
+
+  if (!outputAddress) {
+    console.log('Please supply an output address');
+  }
+
+  const BTCValueToSend = process.argv[3];
+
+  if (!BTCValueToSend) {
+    console.log('Please supply a BTC value to send');
+  }
 
   // create an input wallet
   const inputAddressKeychain = await createBlockchainAddress();
@@ -19,13 +29,7 @@ const doAsync = async () => {
     satoshiInWallet,
   );
 
-  // create an output wallet
-  const outputAddressKeychain = await createBlockchainAddress();
-  console.log('OUTPUT', outputAddressKeychain);
-
-  const outputAddress = outputAddressKeychain.address;
-
-  const satoshiToSend = btcToSatoshi(BTCValueToSend);
+  const satoshiToSend = btcToSatoshi(parseFloat(BTCValueToSend));
 
   // send btc from the input wallet to the output wallet
   const tx = await createBlockchainTransaction({
@@ -34,6 +38,7 @@ const doAsync = async () => {
     outputAddress,
     valueInSatoshi: satoshiToSend,
   });
+  console.log({ outputAddress, BTCValueToSend, tx });
 
   console.log('RESULT TX:', `https://live.blockcypher.com/bcy/tx/${tx.hash}`);
 
