@@ -12,12 +12,18 @@ import {
 import { getBTCUSDPrice } from '../../services/binance/getBTCUSDPrice';
 import { createStore } from '../../services/btcPayServer/createStore';
 import { createStoreWallet } from '../../services/btcPayServer/createStoreWallet';
-import { BtcPayServerStore } from '../../services/btcPayServer/models';
+import { createWebhook } from '../../services/btcPayServer/createWebhook';
+import {
+  BtcPayServerStore,
+  BtcPayServerWebhook,
+  BtcPayServerWebhookEvent,
+} from '../../services/btcPayServer/models';
 import { firebaseCreateLot } from '../../services/firebase/firebaseCreateLot';
 import { firebaseSaveStoreData } from '../../services/firebase/firebaseSaveStoreData';
 import { createMnemonic } from '../../utils/createMnemonic';
 import { encrypt } from '../../utils/crypto';
 import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
+import { getUuid } from '../../utils/getUuid';
 import { numberToDigits } from '../../utils/numberToDigits';
 
 const makeStore = ({
@@ -28,6 +34,20 @@ const makeStore = ({
     website: '', // website is only for the BtcPayServer UI which we don't use
     defaultPaymentMethod: 'BTC',
     speedPolicy: 'LowSpeed', // 6 confirmations
+  };
+};
+
+const makeWebhook = (
+  event: BtcPayServerWebhookEvent,
+  url: string,
+): BtcPayServerWebhook => {
+  return {
+    id: getUuid(),
+    url,
+    authorizedEvents: {
+      specificEvents: [event],
+    },
+    secret: process.env.WEBHOOK_SECRET,
   };
 };
 
@@ -110,9 +130,19 @@ export const createLot = async (): Promise<void> => {
   const hash = encrypt(mnemonic, process.env.STORE_MNEMONIC_SECRET_KEY);
   await firebaseSaveStoreData(storeId, { hash });
 
-  // TODO: SS create an invoice payment webhook
+  // create an invoice payment webhook
+  const invoicePaidWebhook = makeWebhook(
+    'InvoiceReceivedPayment',
+    process.env.INVOICE_PAYMENT_WEBHOOK_URL,
+  );
+  await createWebhook(storeId, invoicePaidWebhook);
 
-  // TODO: SS create an invoice expiry webhook
+  // create an invoice expiry webhook
+  const invoiceExpiredWebhook = makeWebhook(
+    'InvoiceExpired',
+    process.env.INVOICE_EXPIRED_WEBHOOK_URL,
+  );
+  await createWebhook(storeId, invoiceExpiredWebhook);
 
   // create the lot
   const lot = makeLot({

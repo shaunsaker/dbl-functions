@@ -29,3 +29,25 @@ export interface BtcPayServerStore {
   lazyPaymentMethods?: boolean;
   id: string; // returned in response
 }
+
+export type BtcPayServerWebhookId = string;
+
+export type BtcPayServerWebhookEvent =
+  | 'InvoiceCreated'
+  | 'InvoiceReceivedPayment'
+  | 'InvoiceProcessing'
+  | 'InvoiceExpired'
+  | 'InvoiceSettled'
+  | 'InvoiceInvalid';
+
+export interface BtcPayServerWebhook {
+  id: BtcPayServerWebhookId;
+  url: string;
+  authorizedEvents: {
+    everything?: boolean;
+    specificEvents: string[];
+  };
+  secret: string;
+  enabled?: boolean;
+  automaticRedelivery?: boolean;
+}
