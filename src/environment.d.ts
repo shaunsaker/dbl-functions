@@ -4,10 +4,8 @@ declare global {
       NODE_ENV: 'development' | 'production';
       BLOCK_CYPHER_TOKEN: string;
       BLOCK_CYPHER_API: string;
-      DEPOSIT_CALLBACK_URL: string;
-      WEBHOOK_SIGNING_KEY: string;
-      LOT_ADDRESS_SECRET: string;
-      USERS_ADDRESS_SECRET: string;
+      BTC_PAY_SERVER_API_KEY: string;
+      BTC_PAY_INSTANCE_URL: string;
       PORT?: string;
       PWD: string;
     }
