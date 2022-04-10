@@ -1,7 +1,7 @@
-import { createBlockchainHDWallet } from '../services/blockCypher/createBlockchainHDWallet';
-import { deleteBlockchainHDWallet } from '../services/blockCypher/deleteBlockchainHDWallet';
-import { createMnemonic } from '../utils/createMnemonic';
-import { createXPubFromMnemonic } from '../utils/createXPubFromMnemonic';
+import { createBlockchainHDWallet } from './createBlockchainHDWallet';
+import { deleteBlockchainHDWallet } from './deleteBlockchainHDWallet';
+import { createMnemonic } from '../../utils/createMnemonic';
+import { createXPubFromMnemonic } from '../../utils/createXPubFromMnemonic';
 
 require('dotenv').config();
 

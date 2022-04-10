@@ -1,4 +1,4 @@
-import { createBlockchainHDWalletAddress } from '../services/blockCypher/createBlockchainHDWalletAddress';
+import { createBlockchainHDWalletAddress } from './createBlockchainHDWalletAddress';
 
 require('dotenv').config();
 

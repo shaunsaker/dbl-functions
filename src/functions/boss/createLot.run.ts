@@ -1,4 +1,4 @@
-import { createLot } from '../functions/boss/createLot';
+import { createLot } from './createLot';
 
 require('dotenv').config();
 

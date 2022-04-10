@@ -1,4 +1,4 @@
-import { runBagman } from '../functions/bagman';
+import { runBagman } from '.';
 
 require('dotenv').config();
 

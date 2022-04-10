@@ -1,4 +1,4 @@
-import { runBookie } from '../functions/bookie';
+import { runBookie } from '.';
 
 require('dotenv').config();
 

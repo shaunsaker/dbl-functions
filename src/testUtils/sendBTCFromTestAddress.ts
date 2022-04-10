@@ -1,9 +1,9 @@
-import { BlockchainAddress } from '../../models';
-import { createBlockchainAddress } from '../../services/blockCypher/createBlockchainAddress';
-import { createBlockchainTransaction } from '../../services/blockCypher/createBlockchainTransaction';
-import { fundTestBlockchainAddress } from '../../services/blockCypher/fundTestBlockchainAddress';
-import { BLOCK_CYPHER_TEST_FEE_BYTES } from '../../services/blockCypher/models';
-import { btcToSatoshi } from '../../utils/btcToSatoshi';
+import { BlockchainAddress } from '../models';
+import { createBlockchainAddress } from '../services/blockCypher/createBlockchainAddress';
+import { createBlockchainTransaction } from '../services/blockCypher/createBlockchainTransaction';
+import { fundTestBlockchainAddress } from '../services/blockCypher/fundTestBlockchainAddress';
+import { BLOCK_CYPHER_TEST_FEE_BYTES } from '../services/blockCypher/models';
+import { btcToSatoshi } from '../utils/btcToSatoshi';
 
 export const testSendBTCFromTemporaryAddress = async ({
   outputAddress,
