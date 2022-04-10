@@ -1,12 +1,22 @@
+import { LotId, UserId } from '../../models';
+
+export type BtcPayServerStoreId = string;
+
 export enum BtcPayServerEndpoint {
   stores = 'api/v1/stores',
 }
+
+export type BtcPayServerSpeedPolicy =
+  | 'HighSpeed'
+  | 'MediumSpeed'
+  | 'LowSpeed'
+  | 'LowMediumSpeed';
 
 export interface BtcPayServerStore {
   name: string;
   website: string;
   defaultPaymentMethod: 'BTC';
-  speedPolicy: 'HighSpeed' | 'MediumSpeed' | 'LowSpeed' | 'LowMediumSpeed';
+  speedPolicy: BtcPayServerSpeedPolicy;
   defaultCurrency?: 'USD';
   invoiceExpiration?: number;
   monitoringExpiration?: number;
@@ -50,4 +60,47 @@ export interface BtcPayServerWebhook {
   secret: string;
   enabled?: boolean;
   automaticRedelivery?: boolean;
+}
+
+export interface BtcPayServerInvoicePayload {
+  metadata: {
+    orderId?: string;
+    orderUrl?: string;
+    lotId: LotId;
+    uid: UserId;
+  };
+  checkout: {
+    speedPolicy: BtcPayServerSpeedPolicy;
+    paymentMethods?: string; // defaults to all set in store
+    defaultPaymentMethod?: 'BTC';
+    expirationMinutes?: number;
+    monitoringMinutes?: number;
+    paymentTolerance?: number;
+    redirectUrl?: string;
+    redirectAutomatically?: boolean;
+    requiresRefundEmail?: boolean;
+    defaultLanguage?: 'en-US';
+  };
+  amount: number;
+  currency?: string;
+  additionalSearchTerms?: string[];
+}
+
+export type BtcPayServerInvoiceId = string;
+
+export interface BtcPayServerInvoice
+  extends Omit<BtcPayServerInvoicePayload, 'amount'> {
+  id: BtcPayServerInvoiceId;
+  storeId: BtcPayServerStoreId;
+  amount: string;
+  currency: string;
+  type: string;
+  checkoutLink: string;
+  createdTime: number;
+  expirationTime: number;
+  monitoringTime: number;
+  status: string;
+  additionalStatus: string;
+  availableStatusesForManualMarking: string[];
+  archived: boolean;
 }

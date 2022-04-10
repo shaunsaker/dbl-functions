@@ -1,12 +1,15 @@
 import { btcPayServerApi } from '.';
-import { StoreId } from '../../models';
-import { BtcPayServerEndpoint, BtcPayServerWebhook } from './models';
+import {
+  BtcPayServerEndpoint,
+  BtcPayServerStoreId,
+  BtcPayServerWebhook,
+} from './models';
 
 type Payload = BtcPayServerWebhook;
 type Response = void;
 
 export const createWebhook = async (
-  storeId: StoreId,
+  storeId: BtcPayServerStoreId,
   payload: Payload,
 ): Promise<Response> => {
   return new Promise(async (resolve, reject) => {

@@ -3,7 +3,6 @@ import {
   Lot,
   LotId,
   PER_USER_TICKET_LIMIT,
-  StoreId,
   TARGET_LOT_VALUE_USD,
   TARGET_TICKET_VALUE_USD,
   TICKET_COMMISSION_PERCENTAGE,
@@ -15,6 +14,7 @@ import { createStoreWallet } from '../../services/btcPayServer/createStoreWallet
 import { createWebhook } from '../../services/btcPayServer/createWebhook';
 import {
   BtcPayServerStore,
+  BtcPayServerStoreId,
   BtcPayServerWebhook,
   BtcPayServerWebhookEvent,
 } from '../../services/btcPayServer/models';
@@ -60,7 +60,7 @@ const makeLot = ({
   ticketsAvailable,
 }: {
   id: LotId;
-  storeId: StoreId;
+  storeId: BtcPayServerStoreId;
   ticketPriceInBTC: number;
   BTCPriceInUSD: number;
   ticketCommissionInBTC: number;
@@ -83,7 +83,6 @@ const makeLot = ({
     totalInBTC: 0,
     confirmedTicketCount: 0,
     perUserTicketLimit: PER_USER_TICKET_LIMIT,
-    ticketTimeoutMs: TICKET_TIMEOUT_MS,
     ticketPriceInBTC,
     BTCPriceInUSD,
     ticketCommissionInBTC,

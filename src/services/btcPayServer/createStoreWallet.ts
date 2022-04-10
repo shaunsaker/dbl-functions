@@ -1,6 +1,5 @@
 import { btcPayServerApi } from '.';
-import { StoreId } from '../../models';
-import { BtcPayServerEndpoint } from './models';
+import { BtcPayServerEndpoint, BtcPayServerStoreId } from './models';
 
 type Payload = {
   existingMnemonic: string;
@@ -15,7 +14,7 @@ type Payload = {
 type Response = void;
 
 export const createStoreWallet = async (
-  storeId: StoreId,
+  storeId: BtcPayServerStoreId,
   payload: Payload,
 ): Promise<Response> => {
   return new Promise(async (resolve, reject) => {

@@ -1,8 +1,8 @@
 import { firebase } from '.';
-import { StoreId } from '../../models';
+import { BtcPayServerStoreId } from '../btcPayServer/models';
 
 export const firebaseSaveStoreData = (
-  storeId: StoreId,
+  storeId: BtcPayServerStoreId,
   data: Record<string, any>,
 ): Promise<void> => {
   return new Promise(async (resolve, reject) => {

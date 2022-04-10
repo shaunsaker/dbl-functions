@@ -1,19 +1,42 @@
 import * as functions from 'firebase-functions';
 import { CallableContext } from 'firebase-functions/v1/https';
-import { LotId, Ticket, TicketStatus } from '../../models';
-import { createBlockchainAddress } from '../../services/blockCypher/createBlockchainAddress';
+import { LotId, Ticket, TicketStatus, UserId } from '../../models';
+import { createInvoice } from '../../services/btcPayServer/createInvoice';
+import {
+  BtcPayServerInvoice,
+  BtcPayServerInvoicePayload,
+} from '../../services/btcPayServer/models';
 import { firebase } from '../../services/firebase';
 import { firebaseFetchActiveLot } from '../../services/firebase/firebaseFetchActiveLot';
 import { firebaseGetUser } from '../../services/firebase/firebaseGetUser';
-import { firebaseSaveUserLotAddress } from '../../services/firebase/firebaseSaveUserLotAddress';
 import { firebaseWriteBatch } from '../../services/firebase/firebaseWriteBatch';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { arrayFromNumber } from '../../utils/arrayFromNumber';
-import { encrypt } from '../../utils/crypto';
 import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import { getUuid } from '../../utils/getUuid';
 
-type Response = FirebaseFunctionResponse<void>;
+const makeInvoicePayload = ({
+  amount,
+  lotId,
+  uid,
+}: {
+  amount: number;
+  lotId: LotId;
+  uid: UserId;
+}): BtcPayServerInvoicePayload => {
+  return {
+    amount: amount || 0,
+    checkout: {
+      speedPolicy: 'LowSpeed',
+    },
+    metadata: {
+      lotId,
+      uid,
+    },
+  };
+};
+
+type Response = FirebaseFunctionResponse<BtcPayServerInvoice>;
 
 export const runBookie = async ({
   uid,
@@ -97,26 +120,7 @@ export const runBookie = async ({
     };
   }
 
-  // create an address for this user
-  const addressKeychain = await createBlockchainAddress();
-
-  // save the private key as a hash using the secret
-  // (we need to be able to move funds from this address later)
-  const hash = encrypt(
-    addressKeychain.private,
-    process.env.USERS_ADDRESS_SECRET,
-  );
-
-  await firebaseSaveUserLotAddress({
-    lotId,
-    uid,
-    data: {
-      address: addressKeychain.address, // extra data and not really necessary
-      hash,
-    },
-  });
-
-  // iterate over the ticketCount and create individual tickets
+  // create the tickets
   const docs = arrayFromNumber(ticketCount).map(() => {
     const id = getUuid();
     const ticket: Ticket = {
@@ -124,7 +128,6 @@ export const runBookie = async ({
       uid,
       status: TicketStatus.reserved,
       reservedTime: getTimeAsISOString(),
-      address: addressKeychain.address,
     };
 
     return {
@@ -140,10 +143,18 @@ export const runBookie = async ({
 
   await firebaseWriteBatch(docs);
 
+  const ticketValueBTC = ticketCount * activeLot.ticketPriceInBTC;
+  const invoicePayload = makeInvoicePayload({
+    amount: ticketValueBTC,
+    lotId: activeLot.id,
+    uid,
+  });
+  const invoice = await createInvoice(activeLot.storeId, invoicePayload);
+
   return {
     error: false,
     message: 'Success',
-    data: undefined,
+    data: invoice,
   };
 };
 

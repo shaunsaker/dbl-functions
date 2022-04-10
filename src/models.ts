@@ -1,6 +1,8 @@
+import { BtcPayServerStoreId } from './services/btcPayServer/models';
+
 export const PER_USER_TICKET_LIMIT = 250;
 
-export const TICKET_TIMEOUT_MS = 3600000;
+export const TICKET_TIMEOUT_MS = 1000 * 60 * 60; // 60 minutes
 
 export const TARGET_LOT_VALUE_USD = 1000000;
 
@@ -8,12 +10,8 @@ export const TARGET_TICKET_VALUE_USD = 10;
 
 export const TICKET_COMMISSION_PERCENTAGE = 10;
 
-export const AVERAGE_TX_SIZE_BYTES = 250;
-
 // FIXME: these types (except Ticket types) can be shared with the mobile app somehow
 export type LotId = string;
-
-export type StoreId = string;
 
 export type Timestamp = string;
 
@@ -21,7 +19,7 @@ export type BlockchainAddress = string;
 
 export interface Lot {
   id: LotId; // it's not present when created but is present when fetched
-  storeId: StoreId;
+  storeId: BtcPayServerStoreId;
   active: boolean; // only one lot is active at a time
   ticketPriceInBTC: number;
   BTCPriceInUSD: number;
@@ -30,7 +28,6 @@ export interface Lot {
   confirmedTicketCount: number;
   ticketsAvailable: number;
   perUserTicketLimit: number;
-  ticketTimeoutMs: number;
   drawTime: Timestamp;
   lastCallTime: Timestamp;
   dateCreated: Timestamp;
@@ -51,7 +48,6 @@ export interface Ticket {
   id: TicketId;
   uid: UserId;
   status: TicketStatus;
-  address: BlockchainAddress; // the address the user should send their BTC to
   reservedTime: Timestamp;
   confirmedTime?: Timestamp; // only once the deposit has been received and confirmed
 }
