@@ -13,12 +13,15 @@ export const AVERAGE_TX_SIZE_BYTES = 250;
 // FIXME: these types (except Ticket types) can be shared with the mobile app somehow
 export type LotId = string;
 
+export type StoreId = string;
+
 export type Timestamp = string;
 
 export type BlockchainAddress = string;
 
 export interface Lot {
   id: LotId; // it's not present when created but is present when fetched
+  storeId: StoreId;
   active: boolean; // only one lot is active at a time
   ticketPriceInBTC: number;
   BTCPriceInUSD: number;
@@ -30,7 +33,6 @@ export interface Lot {
   ticketTimeoutMs: number;
   drawTime: Timestamp;
   lastCallTime: Timestamp;
-  address: BlockchainAddress;
   dateCreated: Timestamp;
 }
 

@@ -3,33 +3,48 @@ import {
   Lot,
   LotId,
   PER_USER_TICKET_LIMIT,
+  StoreId,
   TARGET_LOT_VALUE_USD,
   TARGET_TICKET_VALUE_USD,
   TICKET_COMMISSION_PERCENTAGE,
   TICKET_TIMEOUT_MS,
 } from '../../models';
 import { getBTCUSDPrice } from '../../services/binance/getBTCUSDPrice';
-import { createBlockchainAddress } from '../../services/blockCypher/createBlockchainAddress';
+import { createStore } from '../../services/btcPayServer/createStore';
+import { createStoreWallet } from '../../services/btcPayServer/createStoreWallet';
+import { BtcPayServerStore } from '../../services/btcPayServer/models';
 import { firebaseCreateLot } from '../../services/firebase/firebaseCreateLot';
-import { firebaseSaveLotAddress } from '../../services/firebase/firebaseSaveLotAddress';
+import { firebaseSaveStoreData } from '../../services/firebase/firebaseSaveStoreData';
+import { createMnemonic } from '../../utils/createMnemonic';
 import { encrypt } from '../../utils/crypto';
 import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import { numberToDigits } from '../../utils/numberToDigits';
 
+const makeStore = ({
+  name = '',
+}: Partial<BtcPayServerStore>): Omit<BtcPayServerStore, 'id'> => {
+  return {
+    name,
+    website: '', // website is only for the BtcPayServer UI which we don't use
+    defaultPaymentMethod: 'BTC',
+    speedPolicy: 'LowSpeed', // 6 confirmations
+  };
+};
+
 const makeLot = ({
   id,
+  storeId,
   ticketPriceInBTC,
   BTCPriceInUSD,
   ticketCommissionInBTC,
   ticketsAvailable,
-  address,
 }: {
   id: LotId;
+  storeId: StoreId;
   ticketPriceInBTC: number;
   BTCPriceInUSD: number;
   ticketCommissionInBTC: number;
   ticketsAvailable: number;
-  address: string;
 }): Lot => {
   const now = moment();
   const drawTime = now.clone().endOf('day').subtract({ minutes: 1 }); // 23h59 today
@@ -40,6 +55,7 @@ const makeLot = ({
 
   return {
     id,
+    storeId,
     dateCreated: getTimeAsISOString(now),
     lastCallTime: getTimeAsISOString(lastCallTime),
     drawTime: getTimeAsISOString(drawTime),
@@ -52,7 +68,6 @@ const makeLot = ({
     BTCPriceInUSD,
     ticketCommissionInBTC,
     ticketsAvailable,
-    address,
   };
 };
 
@@ -78,23 +93,34 @@ export const createLot = async (): Promise<void> => {
     6,
   );
 
-  const addressKeychain = await createBlockchainAddress();
-
-  // save the private key as a hash using the secret
-  // (we need to be able to move funds from this address later)
-  const hash = encrypt(addressKeychain.private, process.env.LOT_ADDRESS_SECRET);
-
+  // TODO: SS test this
+  // create the store
   const lotId: LotId = getTimeAsISOString(moment().startOf('day')); // the id is the start time of the day
+  const store = makeStore({ name: lotId });
+  const { id: storeId } = await createStore(store);
 
-  await firebaseSaveLotAddress(lotId, hash);
+  // TODO: SS test this
+  // create the store wallet
+  const mnemonic = createMnemonic();
 
+  await createStoreWallet(storeId, {
+    existingMnemonic: mnemonic,
+    passphrase: process.env.STORE_WALLET_SECRET_KEY,
+  });
+
+  // TODO: SS test this
+  // save the mnemonic created above in case we need to retrieve it later
+  const hash = encrypt(mnemonic, process.env.STORE_MNEMONIC_SECRET_KEY);
+  await firebaseSaveStoreData(storeId, { hash });
+
+  // create the lot
   const lot = makeLot({
     id: lotId,
+    storeId,
     BTCPriceInUSD,
     ticketPriceInBTC,
     ticketCommissionInBTC,
     ticketsAvailable,
-    address: addressKeychain.address,
   });
 
   await firebaseCreateLot(lot);

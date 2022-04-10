@@ -3,7 +3,7 @@
 import axios, { AxiosError } from 'axios';
 import { BtcPayServerEndpoint } from './models';
 
-const get = <R>(endpoint: BtcPayServerEndpoint): Promise<R> => {
+const get = <R>(endpoint: BtcPayServerEndpoint | string): Promise<R> => {
   return new Promise(async (resolve, reject) => {
     try {
       const { data } = await axios.get(
@@ -27,7 +27,10 @@ const get = <R>(endpoint: BtcPayServerEndpoint): Promise<R> => {
   });
 };
 
-const post = <R>(endpoint: BtcPayServerEndpoint, payload: any): Promise<R> => {
+const post = <R>(
+  endpoint: BtcPayServerEndpoint | string,
+  payload: any,
+): Promise<R> => {
   return new Promise(async (resolve, reject) => {
     try {
       const { data } = await axios.post(
@@ -53,7 +56,7 @@ const post = <R>(endpoint: BtcPayServerEndpoint, payload: any): Promise<R> => {
 };
 
 export const btcPayServerApi = {
-  get: <R>(endpoint: BtcPayServerEndpoint) => get<R>(endpoint),
-  post: <R>(endpoint: BtcPayServerEndpoint, data: any) =>
+  get: <R>(endpoint: BtcPayServerEndpoint | string) => get<R>(endpoint),
+  post: <R>(endpoint: BtcPayServerEndpoint | string, data: any) =>
     post<R>(endpoint, data),
 };

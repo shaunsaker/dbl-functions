@@ -6,6 +6,8 @@ declare global {
       BLOCK_CYPHER_API: string;
       BTC_PAY_SERVER_API_KEY: string;
       BTC_PAY_INSTANCE_URL: string;
+      STORE_WALLET_SECRET_KEY: string;
+      STORE_MNEMONIC_SECRET_KEY: string;
       PORT?: string;
       PWD: string;
     }

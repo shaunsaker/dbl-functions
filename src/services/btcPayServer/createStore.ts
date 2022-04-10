@@ -1,13 +1,15 @@
 import { btcPayServerApi } from '.';
 import { BtcPayServerEndpoint, BtcPayServerStore } from './models';
 
-type Response = BtcPayServerStore[];
+type Payload = Omit<BtcPayServerStore, 'id'>;
+type Response = BtcPayServerStore;
 
-export const getStores = async (): Promise<Response> => {
+export const createStore = async (payload: Payload): Promise<Response> => {
   return new Promise(async (resolve, reject) => {
     try {
-      const data = await btcPayServerApi.get<Response>(
+      const data = await btcPayServerApi.post<Response>(
         BtcPayServerEndpoint.stores,
+        payload,
       );
 
       resolve(data);
