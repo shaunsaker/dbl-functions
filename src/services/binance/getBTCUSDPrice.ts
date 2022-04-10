@@ -5,9 +5,9 @@ export const getBTCUSDPrice = async (): Promise<number> => {
   return new Promise(async (resolve, reject) => {
     try {
       const response = await axios.get(
-        'https://api.binance.com/api/v1/ticker/price?symbol=BTCUSDT',
+        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
       );
-      const price = parseFloat(response.data['price']);
+      const price = parseInt(response.data['bitcoin']['usd']);
 
       resolve(price);
     } catch (error: Error | AxiosError | unknown) {
