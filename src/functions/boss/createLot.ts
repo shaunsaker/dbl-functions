@@ -93,13 +93,11 @@ export const createLot = async (): Promise<void> => {
     6,
   );
 
-  // TODO: SS test this
   // create the store
   const lotId: LotId = getTimeAsISOString(moment().startOf('day')); // the id is the start time of the day
   const store = makeStore({ name: lotId });
   const { id: storeId } = await createStore(store);
 
-  // TODO: SS test this
   // create the store wallet
   const mnemonic = createMnemonic();
 
@@ -108,10 +106,13 @@ export const createLot = async (): Promise<void> => {
     passphrase: process.env.STORE_WALLET_SECRET_KEY,
   });
 
-  // TODO: SS test this
   // save the mnemonic created above in case we need to retrieve it later
   const hash = encrypt(mnemonic, process.env.STORE_MNEMONIC_SECRET_KEY);
   await firebaseSaveStoreData(storeId, { hash });
+
+  // TODO: SS create an invoice payment webhook
+
+  // TODO: SS create an invoice expiry webhook
 
   // create the lot
   const lot = makeLot({
