@@ -126,6 +126,7 @@ export const runBookie = async ({
     const ticket: Ticket = {
       id,
       uid,
+      price: activeLot.ticketPriceInBTC,
       status: TicketStatus.reserved,
       reservedTime: getTimeAsISOString(),
     };

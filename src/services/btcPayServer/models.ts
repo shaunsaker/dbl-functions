@@ -104,3 +104,24 @@ export interface BtcPayServerInvoice
   availableStatusesForManualMarking: string[];
   archived: boolean;
 }
+
+export interface BtcPayServerInvoiceReceivedPaymentEventData {
+  deliveryId: string;
+  webhookId: string;
+  originalDeliveryId: string;
+  isRedelivery: boolean;
+  type: BtcPayServerWebhookEvent;
+  timestamp: number;
+  storeId: BtcPayServerStoreId;
+  invoiceId: string;
+  afterExpiration: boolean;
+  paymentMethod: string;
+  payment: {
+    id: string;
+    receivedDate: number;
+    value: string;
+    fee: string;
+    status: 'Invalid' | 'Processing' | 'Settled';
+    destination: string;
+  };
+}

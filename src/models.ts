@@ -37,9 +37,8 @@ export type UserId = string;
 
 export enum TicketStatus {
   reserved = 'reserved',
-  unconfirmed = 'unconfirmed', // we can see it but it's pending confirmation
   confirmed = 'confirmed',
-  timedOut = 'timedOut',
+  expired = 'expired',
 }
 
 export type TicketId = string;
@@ -47,6 +46,7 @@ export type TicketId = string;
 export interface Ticket {
   id: TicketId;
   uid: UserId;
+  price: number;
   status: TicketStatus;
   reservedTime: Timestamp;
   confirmedTime?: Timestamp; // only once the deposit has been received and confirmed
