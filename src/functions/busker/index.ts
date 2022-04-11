@@ -1,35 +1,26 @@
 import * as functions from 'firebase-functions';
-import { Lot, LotId, Ticket, TicketStatus } from '../../models';
+import { LotId, Ticket, TicketStatus } from '../../models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
 import { BtcPayServerInvoiceReceivedPaymentEventData } from '../../services/btcPayServer/models';
 import { firebase } from '../../services/firebase';
-import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseFetchReservedTickets } from '../../services/firebase/firebaseFetchReservedTickets';
-import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
 import { firebaseWriteBatch } from '../../services/firebase/firebaseWriteBatch';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../utils/verifySignature';
 
-const getConfirmedTickets = (amount: number, tickets: Ticket[]): Ticket[] => {
-  let amountRemaining = amount;
-  const confirmedTickets: Ticket[] = [];
+const expireTickets = (tickets: Ticket[]): Ticket[] => {
+  const expiredTickets: Ticket[] = [];
 
   tickets.forEach((ticket) => {
-    if (amountRemaining > ticket.price) {
-      // remove the ticket price from the amount remaining
-      amountRemaining -= ticket.price;
+    const newTicket: Ticket = {
+      ...ticket,
+      status: TicketStatus.confirmed,
+    };
 
-      // make the ticket status confirmed
-      const newTicket: Ticket = {
-        ...ticket,
-        status: TicketStatus.confirmed,
-      };
-
-      confirmedTickets.push(newTicket);
-    }
+    expiredTickets.push(newTicket);
   });
 
-  return confirmedTickets;
+  return expiredTickets;
 };
 
 const saveTickets = async (lotId: LotId, tickets: Ticket[]): Promise<void> => {
@@ -46,36 +37,9 @@ const saveTickets = async (lotId: LotId, tickets: Ticket[]): Promise<void> => {
   await firebaseWriteBatch(docs);
 };
 
-const updateLotStats = async (
-  lot: Lot,
-  tickets: Ticket[],
-): Promise<Response> => {
-  const { totalInBTC, confirmedTicketCount, ticketsAvailable } = lot;
-  const confirmedTicketsValue = tickets.reduce(
-    (total, next) => (total += next.price),
-    0,
-  );
-  const newTotalInBtc = totalInBTC + confirmedTicketsValue;
-  const newConfirmedTicketCount = confirmedTicketCount + tickets.length;
-  const newTicketsAvailable = ticketsAvailable - tickets.length;
-  const newLot: Partial<Lot> = {
-    totalInBTC: newTotalInBtc,
-    confirmedTicketCount: newConfirmedTicketCount,
-    ticketsAvailable: newTicketsAvailable,
-  };
-
-  await firebaseUpdateLot(lot.id, newLot);
-
-  return {
-    error: false,
-    message: 'Great Success!',
-    data: undefined,
-  };
-};
-
 type Response = FirebaseFunctionResponse<void>;
 
-export const runBagman = async (
+export const runBusker = async (
   data: BtcPayServerInvoiceReceivedPaymentEventData,
 ): Promise<Response> => {
   // we need to get the lotId and uid from the invoice
@@ -115,7 +79,7 @@ export const runBagman = async (
   if (!tickets.length) {
     return {
       error: true,
-      message: 'Free money baby!',
+      message: 'Somethings whack, no reserved tickets left 🤔',
       data: undefined,
     };
   }
@@ -123,28 +87,10 @@ export const runBagman = async (
   // it could be a partial payment so
   // using the value of the payment, mark X tickets as paid
   // and save them to firebase
-  const { amount } = invoice;
-  const confirmedTickets: Ticket[] = getConfirmedTickets(
-    parseFloat(amount),
-    tickets,
-  );
+  const expiredTickets: Ticket[] = expireTickets(tickets);
 
   // write the confirmed tickets to firebase
-  await saveTickets(lotId, confirmedTickets);
-
-  // fetch the lot
-  const lot = await firebaseFetchLot(lotId);
-
-  if (!lot) {
-    return {
-      error: true,
-      message: 'Lot missing fool.',
-      data: undefined,
-    };
-  }
-
-  // update the lot stats
-  await updateLotStats(lot, confirmedTickets);
+  await saveTickets(lotId, expiredTickets);
 
   return {
     error: false,
@@ -153,7 +99,7 @@ export const runBagman = async (
   };
 };
 
-const bagman = functions.https.onRequest(
+const busker = functions.https.onRequest(
   async (request, response): Promise<void> => {
     const signature = request.headers['BTCPay-Sig'];
 
@@ -174,12 +120,12 @@ const bagman = functions.https.onRequest(
 
     const data: BtcPayServerInvoiceReceivedPaymentEventData = JSON.parse(body);
 
-    const bagmanResponse = await runBagman(data);
+    const buskerResponse = await runBusker(data);
 
     response
-      .status(bagmanResponse.error ? 400 : 200)
-      .send(bagmanResponse.message);
+      .status(buskerResponse.error ? 400 : 200)
+      .send(buskerResponse.message);
   },
 );
 
-export { bagman };
+export { busker };

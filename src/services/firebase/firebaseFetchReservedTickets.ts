@@ -1,7 +1,7 @@
 import { firebase } from '.';
 import { LotId, Ticket, TicketStatus, UserId } from '../../models';
 
-export const firebaseFetchReservedLotTickets = async ({
+export const firebaseFetchReservedTickets = async ({
   lotId,
   uid,
 }: {
