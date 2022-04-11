@@ -120,6 +120,16 @@ export const runBookie = async ({
     };
   }
 
+  // create the invoice
+  const ticketValueBTC = ticketCount * lot.ticketPriceInBTC;
+  const ticketValueUSD = ticketValueBTC * lot.BTCPriceInUSD;
+  const invoicePayload = makeInvoicePayload({
+    amount: ticketValueUSD,
+    lotId: lot.id,
+    uid,
+  });
+  const invoice = await createInvoice(lot.storeId, invoicePayload);
+
   // create the tickets
   const docs = arrayFromNumber(ticketCount).map(() => {
     const id = getUuid();
@@ -143,14 +153,6 @@ export const runBookie = async ({
   });
 
   await firebaseWriteBatch(docs);
-
-  const ticketValueBTC = ticketCount * lot.ticketPriceInBTC;
-  const invoicePayload = makeInvoicePayload({
-    amount: ticketValueBTC,
-    lotId: lot.id,
-    uid,
-  });
-  const invoice = await createInvoice(lot.storeId, invoicePayload);
 
   return {
     error: false,
