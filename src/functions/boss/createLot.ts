@@ -34,6 +34,8 @@ const makeStore = ({
     website: '', // website is only for the BtcPayServer UI which we don't use
     defaultPaymentMethod: 'BTC',
     speedPolicy: 'LowSpeed', // 6 confirmations
+    networkFeeMode: 'MultiplePaymentsOnly',
+    payJoinEnabled: true,
   };
 };
 
