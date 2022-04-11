@@ -6,12 +6,12 @@ export const firebaseFetchUserProfile = async (
 ): Promise<UserProfileData> => {
   return new Promise(async (resolve, reject) => {
     try {
-      const userProfileDocument = await firebase
+      const document = await firebase
         .firestore()
         .collection('users')
         .doc(uid)
         .get();
-      const userProfileData = userProfileDocument.data() as UserProfileData;
+      const userProfileData = document.data() as UserProfileData;
 
       resolve(userProfileData);
     } catch (error) {

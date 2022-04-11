@@ -7,7 +7,7 @@ import {
   BtcPayServerInvoicePayload,
 } from '../../services/btcPayServer/models';
 import { firebase } from '../../services/firebase';
-import { firebaseFetchActiveLot } from '../../services/firebase/firebaseFetchActiveLot';
+import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseGetUser } from '../../services/firebase/firebaseGetUser';
 import { firebaseWriteBatch } from '../../services/firebase/firebaseWriteBatch';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
@@ -83,18 +83,18 @@ export const runBookie = async ({
   }
 
   // fetch the active lot
-  const activeLot = await firebaseFetchActiveLot();
+  const lot = await firebaseFetchLot(lotId);
 
-  if (!activeLot) {
+  if (!lot) {
     return {
       error: true,
-      message: 'No lot is currently active.',
+      message: 'Could not find this lot.',
       data: undefined,
     };
   }
 
   // validate the lotId
-  if (lotId !== activeLot.id) {
+  if (lotId !== lot.id) {
     return {
       error: true,
       message: 'lotId is invalid.',
@@ -103,19 +103,19 @@ export const runBookie = async ({
   }
 
   // validate against ticketsAvailable
-  if (ticketCount > activeLot.ticketsAvailable) {
+  if (ticketCount > lot.ticketsAvailable) {
     return {
       error: true,
-      message: `There are only ${activeLot.ticketsAvailable} and you are attempting to reserve ${ticketCount} tickets. Please try again with ${activeLot.ticketsAvailable} tickets.`,
+      message: `There are only ${lot.ticketsAvailable} and you are attempting to reserve ${ticketCount} tickets. Please try again with ${lot.ticketsAvailable} tickets.`,
       data: undefined,
     };
   }
 
   // validate against perUserTicketLimit
-  if (ticketCount > activeLot.perUserTicketLimit) {
+  if (ticketCount > lot.perUserTicketLimit) {
     return {
       error: true,
-      message: `You've reached the ticket limit of ${activeLot.perUserTicketLimit}.`,
+      message: `You've reached the ticket limit of ${lot.perUserTicketLimit}.`,
       data: undefined,
     };
   }
@@ -126,7 +126,7 @@ export const runBookie = async ({
     const ticket: Ticket = {
       id,
       uid,
-      price: activeLot.ticketPriceInBTC,
+      price: lot.ticketPriceInBTC,
       status: TicketStatus.reserved,
       reservedTime: getTimeAsISOString(),
     };
@@ -144,13 +144,13 @@ export const runBookie = async ({
 
   await firebaseWriteBatch(docs);
 
-  const ticketValueBTC = ticketCount * activeLot.ticketPriceInBTC;
+  const ticketValueBTC = ticketCount * lot.ticketPriceInBTC;
   const invoicePayload = makeInvoicePayload({
     amount: ticketValueBTC,
-    lotId: activeLot.id,
+    lotId: lot.id,
     uid,
   });
-  const invoice = await createInvoice(activeLot.storeId, invoicePayload);
+  const invoice = await createInvoice(lot.storeId, invoicePayload);
 
   return {
     error: false,

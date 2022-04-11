@@ -1,9 +1,11 @@
 import * as functions from 'firebase-functions';
-import { LotId, Ticket, TicketStatus } from '../../models';
+import { Lot, LotId, Ticket, TicketStatus } from '../../models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
 import { BtcPayServerInvoiceReceivedPaymentEventData } from '../../services/btcPayServer/models';
 import { firebase } from '../../services/firebase';
+import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseFetchReservedLotTickets } from '../../services/firebase/firebaseFetchReservedLotTickets';
+import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
 import { firebaseWriteBatch } from '../../services/firebase/firebaseWriteBatch';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../utils/verifySignature';
@@ -42,6 +44,33 @@ const saveTickets = async (lotId: LotId, tickets: Ticket[]): Promise<void> => {
   }));
 
   await firebaseWriteBatch(docs);
+};
+
+const updateLotStats = async (
+  lot: Lot,
+  tickets: Ticket[],
+): Promise<Response> => {
+  const { totalInBTC, confirmedTicketCount, ticketsAvailable } = lot;
+  const confirmedTicketsValue = tickets.reduce(
+    (total, next) => (total += next.price),
+    0,
+  );
+  const newTotalInBtc = totalInBTC + confirmedTicketsValue;
+  const newConfirmedTicketCount = confirmedTicketCount + tickets.length;
+  const newTicketsAvailable = ticketsAvailable - tickets.length;
+  const newLot: Partial<Lot> = {
+    totalInBTC: newTotalInBtc,
+    confirmedTicketCount: newConfirmedTicketCount,
+    ticketsAvailable: newTicketsAvailable,
+  };
+
+  await firebaseUpdateLot(lot.id, newLot);
+
+  return {
+    error: false,
+    message: 'Great Success!',
+    data: undefined,
+  };
 };
 
 type Response = FirebaseFunctionResponse<void>;
@@ -93,6 +122,7 @@ export const runBagman = async (
 
   // it could be a partial payment so
   // using the value of the payment, mark X tickets as paid
+  // and save them to firebase
   const { amount } = invoice;
   const confirmedTickets: Ticket[] = getConfirmedTickets(
     parseFloat(amount),
@@ -101,6 +131,20 @@ export const runBagman = async (
 
   // write the confirmed tickets to firebase
   await saveTickets(lotId, confirmedTickets);
+
+  // fetch the lot
+  const lot = await firebaseFetchLot(lotId);
+
+  if (!lot) {
+    return {
+      error: true,
+      message: 'Lot missing fool.',
+      data: undefined,
+    };
+  }
+
+  // update the lot stats
+  await updateLotStats(lot, confirmedTickets);
 
   return {
     error: false,
