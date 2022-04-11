@@ -174,6 +174,13 @@ const bagman = functions.https.onRequest(
 
     const data: BtcPayServerInvoiceReceivedPaymentEventData = JSON.parse(body);
 
+    // ignore all other webhook events
+    // we're currently getting all events for some reason
+    // it's probably a bug in BtcPayServer
+    if (data.type !== 'InvoiceReceivedPayment') {
+      return;
+    }
+
     const bagmanResponse = await runBagman(data);
 
     response
