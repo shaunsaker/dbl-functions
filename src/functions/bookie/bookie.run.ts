@@ -5,7 +5,7 @@ require('dotenv').config();
 const doAsync = async () => {
   const response = await runBookie({
     uid: process.argv[2] || 'ahAMQUnPjjQIMffdqR92rkQ4YEy2',
-    lotId: process.argv[3] || '2022-04-10T22:00:00.000Z',
+    lotId: process.argv[3] || '2022-04-12',
     ticketCount: parseInt(process.argv[4]) || 5,
   });
 
