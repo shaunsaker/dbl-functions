@@ -8,10 +8,14 @@ import { firebaseFetchReservedTickets } from '../../services/firebase/firebaseFe
 import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
 import { firebaseWriteBatch } from '../../services/firebase/firebaseWriteBatch';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
-import { verifySignature } from '../../utils/verifySignature';
+import { verifySignature } from '../../services/btcPayServer/verifySignature';
+import { maybePluralise } from '../../utils/maybePluralise';
 
-const getConfirmedTickets = (amount: number, tickets: Ticket[]): Ticket[] => {
-  let amountRemaining = amount;
+const getConfirmedTickets = (
+  paymentAmountBTC: number,
+  tickets: Ticket[],
+): Ticket[] => {
+  let amountRemaining = paymentAmountBTC;
   const confirmedTickets: Ticket[] = [];
 
   tickets.forEach((ticket) => {
@@ -120,18 +124,6 @@ export const runBagman = async (
     };
   }
 
-  // it could be a partial payment so
-  // using the value of the payment, mark X tickets as paid
-  // and save them to firebase
-  const { amount } = invoice;
-  const confirmedTickets: Ticket[] = getConfirmedTickets(
-    parseFloat(amount),
-    tickets,
-  );
-
-  // write the confirmed tickets to firebase
-  await saveTickets(lotId, confirmedTickets);
-
   // fetch the lot
   const lot = await firebaseFetchLot(lotId);
 
@@ -143,49 +135,72 @@ export const runBagman = async (
     };
   }
 
+  // it could be a partial payment so
+  // using the value of the payment, mark X tickets as paid
+  // and save them to firebase
+  const paymentAmountUSD = parseFloat(data.payment.value);
+  const paymentAmountBTC = paymentAmountUSD / lot.BTCPriceInUSD;
+  const confirmedTickets: Ticket[] = getConfirmedTickets(
+    paymentAmountBTC,
+    tickets,
+  );
+
+  // write the confirmed tickets to firebase
+  await saveTickets(lotId, confirmedTickets);
+
   // update the lot stats
   await updateLotStats(lot, confirmedTickets);
 
   return {
     error: false,
-    message: 'Great Success!',
+    message: `Great Success!  ${maybePluralise(
+      confirmedTickets.length,
+      'ticket',
+    )} were marked as confirmed.`,
     data: undefined,
   };
 };
 
 const bagman = functions.https.onRequest(
   async (request, response): Promise<void> => {
-    const signature = request.headers['BTCPay-Sig'];
+    const signature = request.get('BTCPay-Sig');
 
     if (!signature) {
       response.status(401).send(); // unauthorised
+
+      return;
     }
 
-    const body = request.body;
     const isValidSignature = verifySignature({
       secret: process.env.WEBHOOK_SECRET,
-      body,
-      signature: signature as string,
+      body: request.body,
+      signature,
     });
 
     if (!isValidSignature) {
       response.status(401).send('You fuck on meee!');
-    }
 
-    const data: BtcPayServerInvoiceReceivedPaymentEventData = JSON.parse(body);
-
-    // ignore all other webhook events
-    // we're currently getting all events for some reason
-    // it's probably a bug in BtcPayServer
-    if (data.type !== 'InvoiceReceivedPayment') {
       return;
     }
 
-    const bagmanResponse = await runBagman(data);
+    const data: BtcPayServerInvoiceReceivedPaymentEventData = request.body;
 
-    response
-      .status(bagmanResponse.error ? 400 : 200)
-      .send(bagmanResponse.message);
+    // ignore all other webhook events in case the webhook was not set up correctly
+    if (data.type !== 'InvoiceReceivedPayment') {
+      response.sendStatus(200);
+
+      return;
+    }
+
+    try {
+      const bagmanResponse = await runBagman(data);
+
+      response
+        .status(bagmanResponse.error ? 400 : 200)
+        .send(bagmanResponse.message);
+    } catch (error) {
+      response.status(500).send((error as Error).message);
+    }
   },
 );
 
