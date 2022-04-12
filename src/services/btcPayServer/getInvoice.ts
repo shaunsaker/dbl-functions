@@ -17,7 +17,7 @@ export const getInvoice = async ({
 }): Promise<Response> => {
   return new Promise(async (resolve, reject) => {
     try {
-      const endpoint = `${BtcPayServerEndpoint.stores}/${storeId}/invoice/${invoiceId}`;
+      const endpoint = `${BtcPayServerEndpoint.stores}/${storeId}/invoices/${invoiceId}`;
 
       const data = await btcPayServerApi.get<Response>(endpoint);
 
