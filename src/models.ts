@@ -52,14 +52,6 @@ export interface Ticket {
   confirmedTime?: Timestamp; // only once the deposit has been received and confirmed
 }
 
-export interface TicketGroup {
-  address: BlockchainAddress;
-  unconfirmedBalance: number;
-  confirmedBalance: number;
-  uid: string;
-  tickets: Ticket[];
-}
-
 export type Username = string;
 
 export interface UserProfileData {
@@ -74,9 +66,4 @@ export interface StoreData {
     iv: string;
     content: string;
   };
-}
-
-export interface UserLotAddress {
-  address: BlockchainAddress;
-  hash: Hash;
 }
