@@ -7,11 +7,13 @@ import { signBlockchainTransaction } from './signBlockchainTransaction';
 export const createBlockchainTransaction = async ({
   inputAddress,
   inputAddressPrivateKey,
+  feesInSatoshi,
   outputAddress,
   valueInSatoshi,
 }: {
   inputAddress: BlockchainAddress;
   inputAddressPrivateKey: string;
+  feesInSatoshi: number;
   outputAddress: BlockchainAddress;
   valueInSatoshi: number;
 }): Promise<Tx> => {
@@ -20,6 +22,7 @@ export const createBlockchainTransaction = async ({
       const txSkeleton: TXSkeleton = (
         await axios.post(`${process.env.BLOCK_CYPHER_API}/txs/new`, {
           token: process.env.BLOCK_CYPHER_TOKEN,
+          fees: feesInSatoshi,
           inputs: [{ addresses: [inputAddress] }],
           outputs: [{ addresses: [outputAddress], value: valueInSatoshi }],
           includeToSignTx: true,

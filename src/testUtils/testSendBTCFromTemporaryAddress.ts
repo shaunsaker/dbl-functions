@@ -23,16 +23,18 @@ export const testSendBTCFromTemporaryAddress = async ({
   const valueInSatoshi = btcToSatoshi(BTCValue);
 
   // create the transaction on the blockchain
+  const feesInSatoshi = BLOCK_CYPHER_TEST_FEE_BYTES; // avg amount for a transaction with single input and output
   const tx = await createBlockchainTransaction({
     inputAddress: inputAddressKeychain.address,
     inputAddressPrivateKey: inputAddressKeychain.private,
+    feesInSatoshi,
     outputAddress,
     valueInSatoshi,
   });
 
-  console.log(`Tx: https://live.blockcypher.com/bcy/tx/${tx.hash}`);
+  console.log(`Tx: https://live.blockcypher.com/btc-testnet/tx/${tx.hash}`);
   console.log(
-    `Address: https://live.blockcypher.com/bcy/address/${outputAddress}`,
+    `Address: https://live.blockcypher.com/btc-testnet/address/${outputAddress}`,
   );
 
   return tx;
