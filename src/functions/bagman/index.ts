@@ -10,6 +10,7 @@ import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
 import { numberToDigits } from '../../utils/numberToDigits';
 import { saveTickets } from '../saveTickets';
+import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 
 const getConfirmedTickets = (
   paymentAmountBTC: number,
@@ -27,6 +28,7 @@ const getConfirmedTickets = (
       const newTicket: Ticket = {
         ...ticket,
         status: TicketStatus.confirmed,
+        confirmedTime: getTimeAsISOString(),
       };
 
       confirmedTickets.push(newTicket);
