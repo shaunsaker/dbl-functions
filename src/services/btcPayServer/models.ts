@@ -105,7 +105,7 @@ export interface BtcPayServerInvoice
   archived: boolean;
 }
 
-export interface BtcPayServerInvoiceReceivedPaymentEventData {
+export interface BtcPayServerInvoicePaymentEventData {
   deliveryId: string;
   webhookId: string;
   originalDeliveryId: string;

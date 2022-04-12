@@ -2,11 +2,11 @@ import moment = require('moment');
 import { getUuid } from '../../utils/getUuid';
 import {
   BtcPayServerInvoiceId,
-  BtcPayServerInvoiceReceivedPaymentEventData,
+  BtcPayServerInvoicePaymentEventData,
   BtcPayServerStoreId,
 } from './models';
 
-export const makeBtcPayServerInvoiceReceivedPaymentEventData = ({
+export const makeBtcPayServerInvoicePaymentEventData = ({
   storeId,
   invoiceId,
   value,
@@ -14,7 +14,7 @@ export const makeBtcPayServerInvoiceReceivedPaymentEventData = ({
   storeId: BtcPayServerStoreId;
   invoiceId: BtcPayServerInvoiceId;
   value: string;
-}): BtcPayServerInvoiceReceivedPaymentEventData => {
+}): BtcPayServerInvoicePaymentEventData => {
   const deliveryId = getUuid();
   const now = moment().get('milliseconds');
 

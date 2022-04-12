@@ -1,7 +1,7 @@
 import * as functions from 'firebase-functions';
 import { Lot, LotId, Ticket, TicketStatus } from '../../models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
-import { BtcPayServerInvoiceReceivedPaymentEventData } from '../../services/btcPayServer/models';
+import { BtcPayServerInvoicePaymentEventData } from '../../services/btcPayServer/models';
 import { firebase } from '../../services/firebase';
 import { firebaseFetchReservedTickets } from '../../services/firebase/firebaseFetchReservedTickets';
 import { firebaseWriteBatch } from '../../services/firebase/firebaseWriteBatch';
@@ -59,7 +59,7 @@ const updateLotTicketsAvailable = async (
 type Response = FirebaseFunctionResponse<void>;
 
 export const runBusker = async (
-  data: BtcPayServerInvoiceReceivedPaymentEventData,
+  data: BtcPayServerInvoicePaymentEventData,
 ): Promise<Response> => {
   // we need to get the lotId and uid from the invoice
   // so we need to fetch the invoice
@@ -142,9 +142,7 @@ const busker = functions.https.onRequest(
       response.status(401).send('You fuck on meee!');
     }
 
-    const data: BtcPayServerInvoiceReceivedPaymentEventData = JSON.parse(
-      request.body,
-    );
+    const data: BtcPayServerInvoicePaymentEventData = JSON.parse(request.body);
 
     // ignore all other webhook events in case the webhook was not set up correctly
     if (data.type !== 'InvoiceExpired') {

@@ -1,7 +1,7 @@
 import * as functions from 'firebase-functions';
 import { Lot, LotId, Ticket, TicketStatus } from '../../models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
-import { BtcPayServerInvoiceReceivedPaymentEventData } from '../../services/btcPayServer/models';
+import { BtcPayServerInvoicePaymentEventData } from '../../services/btcPayServer/models';
 import { firebase } from '../../services/firebase';
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseFetchReservedTickets } from '../../services/firebase/firebaseFetchReservedTickets';
@@ -81,7 +81,7 @@ const updateLotStats = async (
 type Response = FirebaseFunctionResponse<void>;
 
 export const runBagman = async (
-  data: BtcPayServerInvoiceReceivedPaymentEventData,
+  data: BtcPayServerInvoicePaymentEventData,
 ): Promise<Response> => {
   // we need to get the lotId and uid from the invoice
   // so we need to fetch the invoice
@@ -167,7 +167,7 @@ const bagman = functions.https.onRequest(
     const signature = request.get('BTCPay-Sig');
 
     if (!signature) {
-      response.status(401).send(); // unauthorised
+      response.status(401).send('You fuck on meee!');
 
       return;
     }
@@ -184,11 +184,11 @@ const bagman = functions.https.onRequest(
       return;
     }
 
-    const data: BtcPayServerInvoiceReceivedPaymentEventData = request.body;
+    const data: BtcPayServerInvoicePaymentEventData = request.body;
 
     // ignore all other webhook events in case the webhook was not set up correctly
     if (data.type !== 'InvoiceSettled') {
-      response.sendStatus(200);
+      response.status(200).send(`Received ${data.type} event.`);
 
       return;
     }
