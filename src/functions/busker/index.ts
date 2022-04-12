@@ -1,12 +1,14 @@
 import * as functions from 'firebase-functions';
-import { LotId, Ticket, TicketStatus } from '../../models';
+import { Lot, LotId, Ticket, TicketStatus } from '../../models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
 import { BtcPayServerInvoiceReceivedPaymentEventData } from '../../services/btcPayServer/models';
 import { firebase } from '../../services/firebase';
 import { firebaseFetchReservedTickets } from '../../services/firebase/firebaseFetchReservedTickets';
 import { firebaseWriteBatch } from '../../services/firebase/firebaseWriteBatch';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
-import { verifySignature } from '../../utils/verifySignature';
+import { verifySignature } from '../../services/btcPayServer/verifySignature';
+import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
+import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 
 const expireTickets = (tickets: Ticket[]): Ticket[] => {
   const expiredTickets: Ticket[] = [];
@@ -35,6 +37,23 @@ const saveTickets = async (lotId: LotId, tickets: Ticket[]): Promise<void> => {
   }));
 
   await firebaseWriteBatch(docs);
+};
+
+const updateLotTicketsAvailable = async (
+  lotId: LotId,
+  newTicketsAvailable: number,
+): Promise<Response> => {
+  const newLot: Partial<Lot> = {
+    ticketsAvailable: newTicketsAvailable,
+  };
+
+  await firebaseUpdateLot(lotId, newLot);
+
+  return {
+    error: false,
+    message: 'Great Success!',
+    data: undefined,
+  };
 };
 
 type Response = FirebaseFunctionResponse<void>;
@@ -89,8 +108,14 @@ export const runBusker = async (
   // and save them to firebase
   const expiredTickets: Ticket[] = expireTickets(tickets);
 
-  // write the confirmed tickets to firebase
+  // write the expired tickets to firebase
   await saveTickets(lotId, expiredTickets);
+
+  // update the lot tickets available
+  const lot = await firebaseFetchLot(lotId);
+
+  const newTicketsAvailable = lot.ticketsAvailable + expiredTickets.length;
+  await updateLotTicketsAvailable(lot.id, newTicketsAvailable);
 
   return {
     error: false,
@@ -101,16 +126,15 @@ export const runBusker = async (
 
 const busker = functions.https.onRequest(
   async (request, response): Promise<void> => {
-    const signature = request.headers['BTCPay-Sig'];
+    const signature = request.get('BTCPay-Sig');
 
     if (!signature) {
       response.status(401).send(); // unauthorised
     }
 
-    const body = request.body;
     const isValidSignature = verifySignature({
       secret: process.env.WEBHOOK_SECRET,
-      body,
+      body: request.body,
       signature: signature as string,
     });
 
@@ -118,11 +142,11 @@ const busker = functions.https.onRequest(
       response.status(401).send('You fuck on meee!');
     }
 
-    const data: BtcPayServerInvoiceReceivedPaymentEventData = JSON.parse(body);
+    const data: BtcPayServerInvoiceReceivedPaymentEventData = JSON.parse(
+      request.body,
+    );
 
-    // ignore all other webhook events
-    // we're currently getting all events for some reason
-    // it's probably a bug in BtcPayServer
+    // ignore all other webhook events in case the webhook was not set up correctly
     if (data.type !== 'InvoiceExpired') {
       return;
     }

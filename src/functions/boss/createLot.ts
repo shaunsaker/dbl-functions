@@ -35,7 +35,6 @@ const makeStore = ({
     defaultPaymentMethod: 'BTC',
     speedPolicy: 'LowSpeed', // 6 confirmations
     networkFeeMode: 'MultiplePaymentsOnly',
-    payJoinEnabled: true,
   };
 };
 
@@ -47,6 +46,7 @@ const makeWebhook = (
     id: getUuid(),
     url,
     authorizedEvents: {
+      everything: false,
       specificEvents: [event],
     },
     secret: process.env.WEBHOOK_SECRET,
@@ -115,7 +115,7 @@ export const createLot = async (): Promise<void> => {
   );
 
   // create the store
-  const lotId: LotId = getTimeAsISOString(moment().startOf('day')); // the id is the start time of the day
+  const lotId: LotId = moment().startOf('day').format('YYYY-MM-DD'); // the id is the day
   const store = makeStore({ name: lotId });
   const { id: storeId } = await createStore(store);
 
