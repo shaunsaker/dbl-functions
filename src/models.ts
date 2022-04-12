@@ -50,6 +50,7 @@ export interface Ticket {
   status: TicketStatus;
   reservedTime: Timestamp;
   confirmedTime?: Timestamp; // only once the deposit has been received and confirmed
+  expiredTime?: Timestamp; // only if expired
 }
 
 export type Username = string;

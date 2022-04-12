@@ -1,4 +1,4 @@
-import { LotId, UserId } from '../../models';
+import { LotId, TicketId, UserId } from '../../models';
 
 export type BtcPayServerStoreId = string;
 
@@ -67,8 +67,9 @@ export interface BtcPayServerInvoicePayload {
   metadata: {
     orderId?: string;
     orderUrl?: string;
-    lotId: LotId;
     uid: UserId;
+    lotId: LotId;
+    ticketIds: TicketId[];
   };
   checkout: {
     speedPolicy: BtcPayServerSpeedPolicy;

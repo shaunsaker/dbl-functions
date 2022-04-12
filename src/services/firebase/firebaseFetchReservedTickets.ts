@@ -1,12 +1,12 @@
 import { firebase } from '.';
-import { LotId, Ticket, TicketStatus, UserId } from '../../models';
+import { LotId, Ticket, TicketId, TicketStatus } from '../../models';
 
 export const firebaseFetchReservedTickets = async ({
   lotId,
-  uid,
+  ticketIds,
 }: {
   lotId: LotId;
-  uid: UserId;
+  ticketIds: TicketId[];
 }): Promise<Ticket[]> => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -16,7 +16,7 @@ export const firebaseFetchReservedTickets = async ({
           .collection('lots')
           .doc(lotId)
           .collection('tickets')
-          .where('uid', '==', uid)
+          .where(firebase.firestore.FieldPath.documentId(), 'in', ticketIds)
           .where('status', '==', TicketStatus.reserved)
           .get()
       ).docs.map((doc) => ({ id: doc.id, ...doc.data() } as Ticket));

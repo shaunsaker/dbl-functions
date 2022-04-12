@@ -10,33 +10,7 @@ import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
 import { numberToDigits } from '../../utils/numberToDigits';
 import { saveTickets } from '../saveTickets';
-import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
-
-const getConfirmedTickets = (
-  paymentAmountBTC: number,
-  tickets: Ticket[],
-): Ticket[] => {
-  let amountRemaining = paymentAmountBTC;
-  const confirmedTickets: Ticket[] = [];
-
-  tickets.forEach((ticket) => {
-    if (amountRemaining > ticket.price) {
-      // remove the ticket price from the amount remaining
-      amountRemaining -= ticket.price;
-
-      // make the ticket status confirmed
-      const newTicket: Ticket = {
-        ...ticket,
-        status: TicketStatus.confirmed,
-        confirmedTime: getTimeAsISOString(),
-      };
-
-      confirmedTickets.push(newTicket);
-    }
-  });
-
-  return confirmedTickets;
-};
+import { markTicketsStatus } from '../markTicketsStatus';
 
 const updateLotStats = async (lot: Lot, tickets: Ticket[]): Promise<void> => {
   const { totalInBTC, confirmedTicketCount, ticketsAvailable } = lot;
@@ -109,8 +83,11 @@ export const runBagman = async (
     };
   }
 
-  // fetch the tickets
-  const tickets = await firebaseFetchReservedTickets({ lotId, uid });
+  // fetch the tickets using the ticketIds in the invoice
+  const tickets = await firebaseFetchReservedTickets({
+    lotId,
+    ticketIds: invoice.metadata.ticketIds,
+  });
 
   if (!tickets.length) {
     return {
@@ -119,6 +96,15 @@ export const runBagman = async (
       data: undefined,
     };
   }
+
+  // mark the remaining reserved tickets as confirmed
+  const confirmedTickets: Ticket[] = markTicketsStatus(
+    tickets,
+    TicketStatus.confirmed,
+  );
+
+  // write the confirmed tickets to firebase
+  await saveTickets(lotId, confirmedTickets);
 
   // fetch the lot
   const lot = await firebaseFetchLot(lotId);
@@ -130,19 +116,6 @@ export const runBagman = async (
       data: undefined,
     };
   }
-
-  // it could be a partial payment so
-  // using the value of the payment, mark X tickets as paid
-  // and save them to firebase
-  const paymentAmountUSD = parseFloat(data.payment.value);
-  const paymentAmountBTC = paymentAmountUSD / lot.BTCPriceInUSD;
-  const confirmedTickets: Ticket[] = getConfirmedTickets(
-    paymentAmountBTC,
-    tickets,
-  );
-
-  // write the confirmed tickets to firebase
-  await saveTickets(lotId, confirmedTickets);
 
   // update the lot stats
   await updateLotStats(lot, confirmedTickets);
@@ -162,7 +135,7 @@ const bagman = functions.https.onRequest(
     const signature = request.get('BTCPay-Sig');
 
     if (!signature) {
-      response.status(401).send('You fuck on meee!');
+      response.status(200).send('You fuck on meee!'); // webhook needs 200 otherwise it will try redeliver continuously
 
       return;
     }
@@ -174,7 +147,7 @@ const bagman = functions.https.onRequest(
     });
 
     if (!isValidSignature) {
-      response.status(401).send('You fuck on meee!');
+      response.status(200).send('You fuck on meee!');
 
       return;
     }
@@ -194,11 +167,9 @@ const bagman = functions.https.onRequest(
     try {
       const bagmanResponse = await runBagman(data);
 
-      response
-        .status(bagmanResponse.error ? 400 : 200)
-        .send(bagmanResponse.message);
+      response.status(200).send(bagmanResponse.message);
     } catch (error) {
-      response.status(500).send((error as Error).message);
+      response.status(200).send((error as Error).message);
     }
   },
 );

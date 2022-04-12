@@ -1,6 +1,13 @@
 import * as functions from 'firebase-functions';
 import { CallableContext } from 'firebase-functions/v1/https';
-import { Lot, LotId, Ticket, TicketStatus, UserId } from '../../models';
+import {
+  Lot,
+  LotId,
+  Ticket,
+  TicketId,
+  TicketStatus,
+  UserId,
+} from '../../models';
 import { createInvoice } from '../../services/btcPayServer/createInvoice';
 import {
   BtcPayServerInvoice,
@@ -18,12 +25,14 @@ import { getUuid } from '../../utils/getUuid';
 
 const makeInvoicePayload = ({
   amount,
-  lotId,
   uid,
+  lotId,
+  ticketIds,
 }: {
   amount: number;
-  lotId: LotId;
   uid: UserId;
+  lotId: LotId;
+  ticketIds: TicketId[];
 }): BtcPayServerInvoicePayload => {
   return {
     amount: amount || 0,
@@ -31,8 +40,9 @@ const makeInvoicePayload = ({
       speedPolicy: 'LowSpeed',
     },
     metadata: {
-      lotId,
       uid,
+      lotId,
+      ticketIds,
     },
   };
 };
@@ -138,18 +148,8 @@ export const runBookie = async ({
     };
   }
 
-  // create the invoice
-  const ticketValueBTC = ticketCount * lot.ticketPriceInBTC;
-  const ticketValueUSD = ticketValueBTC * lot.BTCPriceInUSD;
-  const invoicePayload = makeInvoicePayload({
-    amount: ticketValueUSD,
-    lotId: lot.id,
-    uid,
-  });
-  const invoice = await createInvoice(lot.storeId, invoicePayload);
-
   // create the tickets
-  const docs = arrayFromNumber(ticketCount).map(() => {
+  const ticketDocs = arrayFromNumber(ticketCount).map(() => {
     const id = getUuid();
     const ticket: Ticket = {
       id,
@@ -170,7 +170,18 @@ export const runBookie = async ({
     };
   });
 
-  await firebaseWriteBatch(docs);
+  await firebaseWriteBatch(ticketDocs);
+
+  // create the invoice
+  const ticketValueBTC = ticketCount * lot.ticketPriceInBTC;
+  const ticketValueUSD = ticketValueBTC * lot.BTCPriceInUSD;
+  const invoicePayload = makeInvoicePayload({
+    amount: ticketValueUSD,
+    uid,
+    lotId: lot.id,
+    ticketIds: ticketDocs.map((doc) => doc.data.id),
+  });
+  const invoice = await createInvoice(lot.storeId, invoicePayload);
 
   // update the lot tickets available
   const newTicketsAvailable = lot.ticketsAvailable - ticketCount;

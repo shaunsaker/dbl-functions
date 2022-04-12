@@ -1,39 +1,12 @@
 import * as functions from 'firebase-functions';
-import { Lot, LotId, Ticket, TicketStatus } from '../../models';
+import { Ticket, TicketStatus } from '../../models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
 import { BtcPayServerInvoiceExpiredEventData } from '../../services/btcPayServer/models';
 import { firebaseFetchReservedTickets } from '../../services/firebase/firebaseFetchReservedTickets';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
-import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
-import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { saveTickets } from '../saveTickets';
-
-const expireTickets = (tickets: Ticket[]): Ticket[] => {
-  const expiredTickets: Ticket[] = [];
-
-  tickets.forEach((ticket) => {
-    const newTicket: Ticket = {
-      ...ticket,
-      status: TicketStatus.confirmed,
-    };
-
-    expiredTickets.push(newTicket);
-  });
-
-  return expiredTickets;
-};
-
-const updateLotTicketsAvailable = async (
-  lotId: LotId,
-  newTicketsAvailable: number,
-): Promise<void> => {
-  const newLot: Partial<Lot> = {
-    ticketsAvailable: newTicketsAvailable,
-  };
-
-  await firebaseUpdateLot(lotId, newLot);
-};
+import { markTicketsStatus } from '../markTicketsStatus';
 
 type Response = FirebaseFunctionResponse<void>;
 
@@ -88,8 +61,11 @@ export const runBusker = async (
     };
   }
 
-  // fetch the tickets
-  const tickets = await firebaseFetchReservedTickets({ lotId, uid });
+  // fetch the tickets using the ticketIds in the invoice
+  const tickets = await firebaseFetchReservedTickets({
+    lotId,
+    ticketIds: invoice.metadata.ticketIds,
+  });
 
   if (!tickets.length) {
     return {
@@ -99,28 +75,14 @@ export const runBusker = async (
     };
   }
 
-  // fetch the lot
-  const lot = await firebaseFetchLot(lotId);
-
-  if (!lot) {
-    return {
-      error: true,
-      message: 'Lot missing fool.',
-      data: undefined,
-    };
-  }
-
-  // it could be a partial payment so
-  // using the value of the payment, mark X tickets as paid
-  // and save them to firebase
-  const expiredTickets: Ticket[] = expireTickets(tickets);
+  // mark the remaining reserved tickets as expired
+  const expiredTickets: Ticket[] = markTicketsStatus(
+    tickets,
+    TicketStatus.expired,
+  );
 
   // write the expired tickets to firebase
   await saveTickets(lotId, expiredTickets);
-
-  // update the lot tickets available
-  const newTicketsAvailable = lot.ticketsAvailable + expiredTickets.length;
-  await updateLotTicketsAvailable(lot.id, newTicketsAvailable);
 
   return {
     error: false,
@@ -134,7 +96,7 @@ const busker = functions.https.onRequest(
     const signature = request.get('BTCPay-Sig');
 
     if (!signature) {
-      response.status(401).send('You fuck on meee!');
+      response.status(200).send('You fuck on meee!'); // webhook needs 200 otherwise it will try redeliver continuously
 
       return;
     }
@@ -146,12 +108,12 @@ const busker = functions.https.onRequest(
     });
 
     if (!isValidSignature) {
-      response.status(401).send('You fuck on meee!');
+      response.status(200).send('You fuck on meee!');
 
       return;
     }
 
-    const data: BtcPayServerInvoiceExpiredEventData = JSON.parse(request.body);
+    const data: BtcPayServerInvoiceExpiredEventData = request.body;
 
     // ignore all other webhook events in case the webhook was not set up correctly
     if (data.type !== 'InvoiceExpired' && data.type !== 'InvoiceInvalid') {
@@ -163,11 +125,9 @@ const busker = functions.https.onRequest(
     try {
       const buskerResponse = await runBusker(data);
 
-      response
-        .status(buskerResponse.error ? 400 : 200)
-        .send(buskerResponse.message);
+      response.status(200).send(buskerResponse.message);
     } catch (error) {
-      response.status(500).send((error as Error).message);
+      response.status(200).send((error as Error).message);
     }
   },
 );
