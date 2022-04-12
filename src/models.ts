@@ -69,9 +69,11 @@ export interface UserProfileData {
   hasCompletedOnboarding: boolean;
 }
 
-export interface Hash {
-  iv: string;
-  content: string;
+export interface StoreData {
+  hash: {
+    iv: string;
+    content: string;
+  };
 }
 
 export interface UserLotAddress {

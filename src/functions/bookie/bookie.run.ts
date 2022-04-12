@@ -4,9 +4,9 @@ require('dotenv').config();
 
 const doAsync = async () => {
   const response = await runBookie({
-    uid: process.argv[2] || 'ahAMQUnPjjQIMffdqR92rkQ4YEy2',
-    lotId: process.argv[3] || '2022-04-12',
-    ticketCount: parseInt(process.argv[4]) || 1,
+    uid: process.argv[2],
+    lotId: process.argv[3],
+    ticketCount: parseInt(process.argv[4]),
   });
 
   console.log(JSON.stringify({ response }, undefined, 2));

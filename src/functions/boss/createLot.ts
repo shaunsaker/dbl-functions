@@ -39,7 +39,7 @@ const makeStore = ({
 };
 
 const makeWebhook = (
-  event: BtcPayServerWebhookEvent,
+  specificEvents: BtcPayServerWebhookEvent[],
   url: string,
 ): BtcPayServerWebhook => {
   return {
@@ -47,7 +47,7 @@ const makeWebhook = (
     url,
     authorizedEvents: {
       everything: false,
-      specificEvents: [event],
+      specificEvents: specificEvents,
     },
     secret: process.env.WEBHOOK_SECRET,
   };
@@ -133,14 +133,14 @@ export const createLot = async (): Promise<void> => {
 
   // create an invoice payment webhook
   const invoicePaidWebhook = makeWebhook(
-    'InvoiceSettled', // once the tx is confirmed, we'll receive this webhook
+    ['InvoiceSettled', 'InvoicePaymentSettled'], // once the tx is confirmed or manually settled, we'll receive this webhook
     process.env.INVOICE_PAYMENT_WEBHOOK_URL,
   );
   await createWebhook(storeId, invoicePaidWebhook);
 
   // create an invoice expiry webhook
   const invoiceExpiredWebhook = makeWebhook(
-    'InvoiceExpired',
+    ['InvoiceExpired', 'InvoiceInvalid'], // if invoice expires or manually marked as invalid
     process.env.INVOICE_EXPIRED_WEBHOOK_URL,
   );
   await createWebhook(storeId, invoiceExpiredWebhook);

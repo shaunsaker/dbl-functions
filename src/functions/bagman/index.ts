@@ -1,16 +1,15 @@
 import * as functions from 'firebase-functions';
-import { Lot, LotId, Ticket, TicketStatus } from '../../models';
+import { Lot, Ticket, TicketStatus } from '../../models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
 import { BtcPayServerInvoicePaymentEventData } from '../../services/btcPayServer/models';
-import { firebase } from '../../services/firebase';
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseFetchReservedTickets } from '../../services/firebase/firebaseFetchReservedTickets';
 import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
-import { firebaseWriteBatch } from '../../services/firebase/firebaseWriteBatch';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
 import { numberToDigits } from '../../utils/numberToDigits';
+import { saveTickets } from '../saveTickets';
 
 const getConfirmedTickets = (
   paymentAmountBTC: number,
@@ -37,24 +36,7 @@ const getConfirmedTickets = (
   return confirmedTickets;
 };
 
-const saveTickets = async (lotId: LotId, tickets: Ticket[]): Promise<void> => {
-  const docs = tickets.map((ticket) => ({
-    ref: firebase
-      .firestore()
-      .collection('lots')
-      .doc(lotId)
-      .collection('tickets')
-      .doc(ticket.id),
-    data: ticket,
-  }));
-
-  await firebaseWriteBatch(docs);
-};
-
-const updateLotStats = async (
-  lot: Lot,
-  tickets: Ticket[],
-): Promise<Response> => {
+const updateLotStats = async (lot: Lot, tickets: Ticket[]): Promise<void> => {
   const { totalInBTC, confirmedTicketCount, ticketsAvailable } = lot;
   const confirmedTicketsValue = tickets.reduce(
     (total, next) => (total += next.price),
@@ -70,12 +52,6 @@ const updateLotStats = async (
   };
 
   await firebaseUpdateLot(lot.id, newLot);
-
-  return {
-    error: false,
-    message: 'Great Success!',
-    data: undefined,
-  };
 };
 
 type Response = FirebaseFunctionResponse<void>;
@@ -86,6 +62,23 @@ export const runBagman = async (
   // we need to get the lotId and uid from the invoice
   // so we need to fetch the invoice
   const { storeId, invoiceId } = data;
+
+  if (!storeId) {
+    return {
+      error: true,
+      message: 'storeId missing fool.',
+      data: undefined,
+    };
+  }
+
+  if (!invoiceId) {
+    return {
+      error: true,
+      message: 'invoiceId missing fool.',
+      data: undefined,
+    };
+  }
+
   const invoice = await getInvoice({ storeId, invoiceId });
 
   if (!invoice) {
@@ -187,7 +180,10 @@ const bagman = functions.https.onRequest(
     const data: BtcPayServerInvoicePaymentEventData = request.body;
 
     // ignore all other webhook events in case the webhook was not set up correctly
-    if (data.type !== 'InvoiceSettled') {
+    if (
+      data.type !== 'InvoiceSettled' &&
+      data.type !== 'InvoicePaymentSettled'
+    ) {
       response.status(200).send(`Received ${data.type} event.`);
 
       return;

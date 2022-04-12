@@ -47,8 +47,9 @@ export type BtcPayServerWebhookEvent =
   | 'InvoiceReceivedPayment'
   | 'InvoiceProcessing'
   | 'InvoiceExpired'
-  | 'InvoiceSettled'
-  | 'InvoiceInvalid';
+  | 'InvoiceSettled' // marked as settled
+  | 'InvoiceInvalid' // marked as invalid
+  | 'InvoicePaymentSettled';
 
 export interface BtcPayServerWebhook {
   id: BtcPayServerWebhookId;
@@ -105,7 +106,7 @@ export interface BtcPayServerInvoice
   archived: boolean;
 }
 
-export interface BtcPayServerInvoicePaymentEventData {
+export interface BtcPayServerEventDataBase {
   deliveryId: string;
   webhookId: string;
   originalDeliveryId: string;
@@ -114,6 +115,10 @@ export interface BtcPayServerInvoicePaymentEventData {
   timestamp: number;
   storeId: BtcPayServerStoreId;
   invoiceId: string;
+}
+
+export interface BtcPayServerInvoicePaymentEventData
+  extends BtcPayServerEventDataBase {
   afterExpiration: boolean;
   paymentMethod: string;
   payment: {
@@ -124,4 +129,9 @@ export interface BtcPayServerInvoicePaymentEventData {
     status: 'Invalid' | 'Processing' | 'Settled';
     destination: string;
   };
+}
+
+export interface BtcPayServerInvoiceExpiredEventData
+  extends BtcPayServerEventDataBase {
+  partiallyPaid: boolean;
 }

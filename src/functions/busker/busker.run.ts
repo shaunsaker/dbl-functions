@@ -1,19 +1,18 @@
-import { runBagman } from '.';
-import { makeBtcPayServerInvoicePaymentEventData } from '../../services/btcPayServer/data';
+import { runBusker } from '.';
+import { makeBtcPayServerInvoiceExpiredEventData } from '../../services/btcPayServer/data';
 
 require('dotenv').config();
 
 const doAsync = async () => {
   const storeId = process.argv[2];
   const invoiceId = process.argv[3];
-  const value = process.argv[4];
-  const webhookEvent = makeBtcPayServerInvoicePaymentEventData({
+  const webhookEvent = makeBtcPayServerInvoiceExpiredEventData({
     storeId,
     invoiceId,
-    value,
   });
+
   try {
-    const response = await runBagman(webhookEvent);
+    const response = await runBusker(webhookEvent);
 
     console.log(JSON.stringify({ response }, undefined, 2));
   } catch (error) {

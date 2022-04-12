@@ -1,14 +1,13 @@
 import * as functions from 'firebase-functions';
 import { Lot, LotId, Ticket, TicketStatus } from '../../models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
-import { BtcPayServerInvoicePaymentEventData } from '../../services/btcPayServer/models';
-import { firebase } from '../../services/firebase';
+import { BtcPayServerInvoiceExpiredEventData } from '../../services/btcPayServer/models';
 import { firebaseFetchReservedTickets } from '../../services/firebase/firebaseFetchReservedTickets';
-import { firebaseWriteBatch } from '../../services/firebase/firebaseWriteBatch';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
+import { saveTickets } from '../saveTickets';
 
 const expireTickets = (tickets: Ticket[]): Ticket[] => {
   const expiredTickets: Ticket[] = [];
@@ -25,45 +24,42 @@ const expireTickets = (tickets: Ticket[]): Ticket[] => {
   return expiredTickets;
 };
 
-const saveTickets = async (lotId: LotId, tickets: Ticket[]): Promise<void> => {
-  const docs = tickets.map((ticket) => ({
-    ref: firebase
-      .firestore()
-      .collection('lots')
-      .doc(lotId)
-      .collection('tickets')
-      .doc(ticket.id),
-    data: ticket,
-  }));
-
-  await firebaseWriteBatch(docs);
-};
-
 const updateLotTicketsAvailable = async (
   lotId: LotId,
   newTicketsAvailable: number,
-): Promise<Response> => {
+): Promise<void> => {
   const newLot: Partial<Lot> = {
     ticketsAvailable: newTicketsAvailable,
   };
 
   await firebaseUpdateLot(lotId, newLot);
-
-  return {
-    error: false,
-    message: 'Great Success!',
-    data: undefined,
-  };
 };
 
 type Response = FirebaseFunctionResponse<void>;
 
 export const runBusker = async (
-  data: BtcPayServerInvoicePaymentEventData,
+  data: BtcPayServerInvoiceExpiredEventData,
 ): Promise<Response> => {
   // we need to get the lotId and uid from the invoice
   // so we need to fetch the invoice
   const { storeId, invoiceId } = data;
+
+  if (!storeId) {
+    return {
+      error: true,
+      message: 'storeId missing fool.',
+      data: undefined,
+    };
+  }
+
+  if (!invoiceId) {
+    return {
+      error: true,
+      message: 'invoiceId missing fool.',
+      data: undefined,
+    };
+  }
+
   const invoice = await getInvoice({ storeId, invoiceId });
 
   if (!invoice) {
@@ -103,6 +99,17 @@ export const runBusker = async (
     };
   }
 
+  // fetch the lot
+  const lot = await firebaseFetchLot(lotId);
+
+  if (!lot) {
+    return {
+      error: true,
+      message: 'Lot missing fool.',
+      data: undefined,
+    };
+  }
+
   // it could be a partial payment so
   // using the value of the payment, mark X tickets as paid
   // and save them to firebase
@@ -112,8 +119,6 @@ export const runBusker = async (
   await saveTickets(lotId, expiredTickets);
 
   // update the lot tickets available
-  const lot = await firebaseFetchLot(lotId);
-
   const newTicketsAvailable = lot.ticketsAvailable + expiredTickets.length;
   await updateLotTicketsAvailable(lot.id, newTicketsAvailable);
 
@@ -129,31 +134,41 @@ const busker = functions.https.onRequest(
     const signature = request.get('BTCPay-Sig');
 
     if (!signature) {
-      response.status(401).send(); // unauthorised
+      response.status(401).send('You fuck on meee!');
+
+      return;
     }
 
     const isValidSignature = verifySignature({
       secret: process.env.WEBHOOK_SECRET,
       body: request.body,
-      signature: signature as string,
+      signature,
     });
 
     if (!isValidSignature) {
       response.status(401).send('You fuck on meee!');
-    }
 
-    const data: BtcPayServerInvoicePaymentEventData = JSON.parse(request.body);
-
-    // ignore all other webhook events in case the webhook was not set up correctly
-    if (data.type !== 'InvoiceExpired') {
       return;
     }
 
-    const buskerResponse = await runBusker(data);
+    const data: BtcPayServerInvoiceExpiredEventData = JSON.parse(request.body);
 
-    response
-      .status(buskerResponse.error ? 400 : 200)
-      .send(buskerResponse.message);
+    // ignore all other webhook events in case the webhook was not set up correctly
+    if (data.type !== 'InvoiceExpired' && data.type !== 'InvoiceInvalid') {
+      response.status(200).send(`Received ${data.type} event.`);
+
+      return;
+    }
+
+    try {
+      const buskerResponse = await runBusker(data);
+
+      response
+        .status(buskerResponse.error ? 400 : 200)
+        .send(buskerResponse.message);
+    } catch (error) {
+      response.status(500).send((error as Error).message);
+    }
   },
 );
 

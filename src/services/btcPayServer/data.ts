@@ -1,6 +1,7 @@
 import moment = require('moment');
 import { getUuid } from '../../utils/getUuid';
 import {
+  BtcPayServerInvoiceExpiredEventData,
   BtcPayServerInvoiceId,
   BtcPayServerInvoicePaymentEventData,
   BtcPayServerStoreId,
@@ -37,5 +38,28 @@ export const makeBtcPayServerInvoicePaymentEventData = ({
       status: 'Processing',
       destination: '',
     },
+  };
+};
+
+export const makeBtcPayServerInvoiceExpiredEventData = ({
+  storeId,
+  invoiceId,
+}: {
+  storeId: BtcPayServerStoreId;
+  invoiceId: BtcPayServerInvoiceId;
+}): BtcPayServerInvoiceExpiredEventData => {
+  const deliveryId = getUuid();
+  const now = moment().get('milliseconds');
+
+  return {
+    deliveryId: getUuid(),
+    webhookId: getUuid(),
+    originalDeliveryId: deliveryId,
+    isRedelivery: false,
+    type: 'InvoiceReceivedPayment',
+    timestamp: now,
+    storeId,
+    invoiceId,
+    partiallyPaid: false,
   };
 };
