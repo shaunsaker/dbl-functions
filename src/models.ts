@@ -36,6 +36,7 @@ export interface Lot {
 export type UserId = string;
 
 export enum TicketStatus {
+  awaitingPayment = 'awaitingPayment',
   reserved = 'reserved',
   confirmed = 'confirmed',
   expired = 'expired',
@@ -48,7 +49,7 @@ export interface Ticket {
   uid: UserId;
   price: number;
   status: TicketStatus;
-  reservedTime: Timestamp;
+  dateCreated: Timestamp;
   confirmedTime?: Timestamp; // only once the deposit has been received and confirmed
   expiredTime?: Timestamp; // only if expired
 }

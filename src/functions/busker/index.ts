@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions';
 import { Ticket, TicketStatus } from '../../models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
 import { BtcPayServerInvoiceExpiredEventData } from '../../services/btcPayServer/models';
-import { firebaseFetchReservedTickets } from '../../services/firebase/firebaseFetchReservedTickets';
+import { firebaseFetchTicketsByStatus } from '../../services/firebase/firebaseFetchTicketsByStatus';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { saveTickets } from '../saveTickets';
@@ -62,20 +62,21 @@ export const runBusker = async (
   }
 
   // fetch the tickets using the ticketIds in the invoice
-  const tickets = await firebaseFetchReservedTickets({
+  const tickets = await firebaseFetchTicketsByStatus({
     lotId,
     ticketIds: invoice.metadata.ticketIds,
+    ticketStatus: TicketStatus.awaitingPayment,
   });
 
   if (!tickets.length) {
     return {
       error: true,
-      message: 'Somethings whack, no reserved tickets left 🤔',
+      message: 'No tickets left to expire.',
       data: undefined,
     };
   }
 
-  // mark the remaining reserved tickets as expired
+  // mark the remaining tickets as expired
   const expiredTickets: Ticket[] = markTicketsStatus(
     tickets,
     TicketStatus.expired,

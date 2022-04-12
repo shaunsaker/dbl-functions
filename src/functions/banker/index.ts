@@ -1,39 +1,18 @@
 import * as functions from 'firebase-functions';
-import { Lot, Ticket, TicketStatus } from '../../models';
+import { Ticket, TicketStatus } from '../../models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
-import { BtcPayServerInvoiceReceivedPaymentEventData } from '../../services/btcPayServer/models';
-import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
+import { BtcPayServerInvoiceSettledEventData } from '../../services/btcPayServer/models';
 import { firebaseFetchTicketsByStatus } from '../../services/firebase/firebaseFetchTicketsByStatus';
-import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
-import { numberToDigits } from '../../utils/numberToDigits';
 import { saveTickets } from '../saveTickets';
 import { markTicketsStatus } from '../markTicketsStatus';
 
-const updateLotStats = async (lot: Lot, tickets: Ticket[]): Promise<void> => {
-  const { totalInBTC, confirmedTicketCount, ticketsAvailable } = lot;
-  const confirmedTicketsValue = tickets.reduce(
-    (total, next) => (total += next.price),
-    0,
-  );
-  const newTotalInBtc = numberToDigits(totalInBTC + confirmedTicketsValue, 6);
-  const newConfirmedTicketCount = confirmedTicketCount + tickets.length;
-  const newTicketsAvailable = ticketsAvailable - tickets.length;
-  const newLot: Partial<Lot> = {
-    totalInBTC: newTotalInBtc,
-    confirmedTicketCount: newConfirmedTicketCount,
-    ticketsAvailable: newTicketsAvailable,
-  };
-
-  await firebaseUpdateLot(lot.id, newLot);
-};
-
 type Response = FirebaseFunctionResponse<void>;
 
-export const runBagman = async (
-  data: BtcPayServerInvoiceReceivedPaymentEventData,
+export const runBanker = async (
+  data: BtcPayServerInvoiceSettledEventData,
 ): Promise<Response> => {
   // we need to get the lotId and uid from the invoice
   // so we need to fetch the invoice
@@ -87,7 +66,7 @@ export const runBagman = async (
   const tickets = await firebaseFetchTicketsByStatus({
     lotId,
     ticketIds: invoice.metadata.ticketIds,
-    ticketStatus: TicketStatus.awaitingPayment,
+    ticketStatus: TicketStatus.reserved,
   });
 
   if (!tickets.length) {
@@ -98,40 +77,26 @@ export const runBagman = async (
     };
   }
 
-  // mark the remaining tickets as reserved
-  const reservedTickets: Ticket[] = markTicketsStatus(
+  // mark the remaining tickets as confirmed
+  const confirmedTickets: Ticket[] = markTicketsStatus(
     tickets,
-    TicketStatus.reserved,
+    TicketStatus.confirmed,
   );
 
-  // write the reserved tickets to firebase
-  await saveTickets(lotId, reservedTickets);
-
-  // fetch the lot
-  const lot = await firebaseFetchLot(lotId);
-
-  if (!lot) {
-    return {
-      error: true,
-      message: 'Lot missing fool.',
-      data: undefined,
-    };
-  }
-
-  // update the lot stats
-  await updateLotStats(lot, reservedTickets);
+  // write the confirmed tickets to firebase
+  await saveTickets(lotId, confirmedTickets);
 
   return {
     error: false,
     message: `Great Success!  ${maybePluralise(
-      reservedTickets.length,
+      confirmedTickets.length,
       'ticket',
-    )} were marked as reserved.`,
+    )} were marked as confirmed.`,
     data: undefined,
   };
 };
 
-const bagman = functions.https.onRequest(
+const banker = functions.https.onRequest(
   async (request, response): Promise<void> => {
     const signature = request.get('BTCPay-Sig');
 
@@ -153,23 +118,26 @@ const bagman = functions.https.onRequest(
       return;
     }
 
-    const data: BtcPayServerInvoiceReceivedPaymentEventData = request.body;
+    const data: BtcPayServerInvoiceSettledEventData = request.body;
 
     // ignore all other webhook events in case the webhook was not set up correctly
-    if (data.type !== 'InvoiceReceivedPayment') {
+    if (
+      data.type !== 'InvoiceSettled' &&
+      data.type !== 'InvoicePaymentSettled'
+    ) {
       response.status(200).send(`Received ${data.type} event.`);
 
       return;
     }
 
     try {
-      const bagmanResponse = await runBagman(data);
+      const bankerResponse = await runBanker(data);
 
-      response.status(200).send(bagmanResponse.message);
+      response.status(200).send(bankerResponse.message);
     } catch (error) {
       response.status(200).send((error as Error).message);
     }
   },
 );
 
-export { bagman };
+export { banker };

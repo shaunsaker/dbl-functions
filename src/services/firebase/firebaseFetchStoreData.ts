@@ -1,4 +1,4 @@
-import { firebase } from './';
+import { firebase } from '.';
 import { StoreData } from '../../models';
 import { BtcPayServerStoreId } from '../btcPayServer/models';
 

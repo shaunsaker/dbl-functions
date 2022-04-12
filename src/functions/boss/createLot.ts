@@ -132,11 +132,18 @@ export const createLot = async (): Promise<void> => {
   await firebaseSaveStoreData(storeId, { hash });
 
   // create an invoice payment webhook
-  const invoicePaidWebhook = makeWebhook(
-    ['InvoiceSettled', 'InvoicePaymentSettled'], // once the tx is confirmed or manually settled, we'll receive this webhook
-    process.env.INVOICE_PAYMENT_WEBHOOK_URL,
+  const invoicePaymentReceivedWebhook = makeWebhook(
+    ['InvoiceReceivedPayment'], // once the tx is broadcasted on the blockchain
+    process.env.INVOICE_RECEIVED_PAYMENT_WEBHOOK_URL,
   );
-  await createWebhook(storeId, invoicePaidWebhook);
+  await createWebhook(storeId, invoicePaymentReceivedWebhook);
+
+  // create an invoice settled webhook
+  const invoiceSettledWebhook = makeWebhook(
+    ['InvoiceSettled', 'InvoicePaymentSettled'], // once the tx is confirmed or manually settled, we'll receive this webhook
+    process.env.INVOICE_SETTLED_WEBHOOK_URL,
+  );
+  await createWebhook(storeId, invoiceSettledWebhook);
 
   // create an invoice expiry webhook
   const invoiceExpiredWebhook = makeWebhook(

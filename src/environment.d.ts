@@ -9,7 +9,8 @@ declare global {
       STORE_WALLET_SECRET_KEY: string;
       STORE_MNEMONIC_SECRET_KEY: string;
       WEBHOOK_SECRET: string;
-      INVOICE_PAYMENT_WEBHOOK_URL: string;
+      INVOICE_RECEIVED_PAYMENT_WEBHOOK_URL: string;
+      INVOICE_SETTLED_WEBHOOK_URL: string;
       INVOICE_EXPIRED_WEBHOOK_URL: string;
       PORT?: string;
       PWD: string;

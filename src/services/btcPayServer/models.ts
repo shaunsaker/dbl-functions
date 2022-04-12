@@ -98,7 +98,7 @@ export interface BtcPayServerInvoice
   currency: string;
   type: string;
   checkoutLink: string;
-  createdTime: number;
+  dateCreated: number;
   expirationTime: number;
   monitoringTime: number;
   status: string;
@@ -118,7 +118,7 @@ export interface BtcPayServerEventDataBase {
   invoiceId: string;
 }
 
-export interface BtcPayServerInvoicePaymentEventData
+export interface BtcPayServerInvoiceReceivedPaymentEventData
   extends BtcPayServerEventDataBase {
   afterExpiration: boolean;
   paymentMethod: string;
@@ -131,6 +131,9 @@ export interface BtcPayServerInvoicePaymentEventData
     destination: string;
   };
 }
+
+export type BtcPayServerInvoiceSettledEventData =
+  BtcPayServerInvoiceReceivedPaymentEventData;
 
 export interface BtcPayServerInvoiceExpiredEventData
   extends BtcPayServerEventDataBase {

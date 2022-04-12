@@ -3,11 +3,12 @@ import { getUuid } from '../../utils/getUuid';
 import {
   BtcPayServerInvoiceExpiredEventData,
   BtcPayServerInvoiceId,
-  BtcPayServerInvoicePaymentEventData,
+  BtcPayServerInvoiceReceivedPaymentEventData,
+  BtcPayServerInvoiceSettledEventData,
   BtcPayServerStoreId,
 } from './models';
 
-export const makeBtcPayServerInvoicePaymentEventData = ({
+export const makeBtcPayServerInvoiceReceivedPaymentEventData = ({
   storeId,
   invoiceId,
   value,
@@ -15,7 +16,7 @@ export const makeBtcPayServerInvoicePaymentEventData = ({
   storeId: BtcPayServerStoreId;
   invoiceId: BtcPayServerInvoiceId;
   value: string;
-}): BtcPayServerInvoicePaymentEventData => {
+}): BtcPayServerInvoiceReceivedPaymentEventData => {
   const deliveryId = getUuid();
   const now = moment().get('milliseconds');
 
@@ -39,6 +40,22 @@ export const makeBtcPayServerInvoicePaymentEventData = ({
       destination: '',
     },
   };
+};
+
+export const makeBtcPayServerInvoiceSettledEventData = ({
+  storeId,
+  invoiceId,
+  value,
+}: {
+  storeId: BtcPayServerStoreId;
+  invoiceId: BtcPayServerInvoiceId;
+  value: string;
+}): BtcPayServerInvoiceSettledEventData => {
+  return makeBtcPayServerInvoiceReceivedPaymentEventData({
+    storeId,
+    invoiceId,
+    value,
+  });
 };
 
 export const makeBtcPayServerInvoiceExpiredEventData = ({
