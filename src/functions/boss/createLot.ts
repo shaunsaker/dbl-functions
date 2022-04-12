@@ -133,7 +133,7 @@ export const createLot = async (): Promise<void> => {
 
   // create an invoice payment webhook
   const invoicePaidWebhook = makeWebhook(
-    'InvoiceReceivedPayment',
+    'InvoiceSettled', // once the tx is confirmed, we'll receive this webhook
     process.env.INVOICE_PAYMENT_WEBHOOK_URL,
   );
   await createWebhook(storeId, invoicePaidWebhook);

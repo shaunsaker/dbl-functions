@@ -187,7 +187,7 @@ const bagman = functions.https.onRequest(
     const data: BtcPayServerInvoiceReceivedPaymentEventData = request.body;
 
     // ignore all other webhook events in case the webhook was not set up correctly
-    if (data.type !== 'InvoiceReceivedPayment') {
+    if (data.type !== 'InvoiceSettled') {
       response.sendStatus(200);
 
       return;
