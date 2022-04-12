@@ -10,6 +10,7 @@ import { firebaseWriteBatch } from '../../services/firebase/firebaseWriteBatch';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
+import { numberToDigits } from '../../utils/numberToDigits';
 
 const getConfirmedTickets = (
   paymentAmountBTC: number,
@@ -59,7 +60,7 @@ const updateLotStats = async (
     (total, next) => (total += next.price),
     0,
   );
-  const newTotalInBtc = totalInBTC + confirmedTicketsValue;
+  const newTotalInBtc = numberToDigits(totalInBTC + confirmedTicketsValue, 6);
   const newConfirmedTicketCount = confirmedTicketCount + tickets.length;
   const newTicketsAvailable = ticketsAvailable - tickets.length;
   const newLot: Partial<Lot> = {
