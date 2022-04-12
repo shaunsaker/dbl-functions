@@ -1,6 +1,6 @@
 import * as functions from 'firebase-functions';
 import { CallableContext } from 'firebase-functions/v1/https';
-import { LotId, Ticket, TicketStatus, UserId } from '../../models';
+import { Lot, LotId, Ticket, TicketStatus, UserId } from '../../models';
 import { createInvoice } from '../../services/btcPayServer/createInvoice';
 import {
   BtcPayServerInvoice,
@@ -9,6 +9,7 @@ import {
 import { firebase } from '../../services/firebase';
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseGetUser } from '../../services/firebase/firebaseGetUser';
+import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
 import { firebaseWriteBatch } from '../../services/firebase/firebaseWriteBatch';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { arrayFromNumber } from '../../utils/arrayFromNumber';
@@ -33,6 +34,23 @@ const makeInvoicePayload = ({
       lotId,
       uid,
     },
+  };
+};
+
+const updateLotTicketsAvailable = async (
+  lotId: LotId,
+  newTicketsAvailable: number,
+): Promise<Response> => {
+  const newLot: Partial<Lot> = {
+    ticketsAvailable: newTicketsAvailable,
+  };
+
+  await firebaseUpdateLot(lotId, newLot);
+
+  return {
+    error: false,
+    message: 'Great Success!',
+    data: undefined,
   };
 };
 
@@ -82,7 +100,7 @@ export const runBookie = async ({
     };
   }
 
-  // fetch the active lot
+  // fetch the lot
   const lot = await firebaseFetchLot(lotId);
 
   if (!lot) {
@@ -153,6 +171,10 @@ export const runBookie = async ({
   });
 
   await firebaseWriteBatch(docs);
+
+  // update the lot tickets available
+  const newTicketsAvailable = lot.ticketsAvailable - ticketCount;
+  await updateLotTicketsAvailable(lot.id, newTicketsAvailable);
 
   return {
     error: false,
