@@ -77,6 +77,7 @@ export const runBusker = async (
   }
 
   // mark the remaining tickets as expired
+  // NOTE: here we can mark all the tickets as expired because ? (my kids are distracting me)
   const expiredTickets: Ticket[] = markTicketsStatus(
     tickets,
     TicketStatus.expired,

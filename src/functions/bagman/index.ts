@@ -11,6 +11,33 @@ import { maybePluralise } from '../../utils/maybePluralise';
 import { saveTickets } from '../saveTickets';
 import { markTicketsStatus } from '../markTicketsStatus';
 
+const getTicketsToValueOfPayment = ({
+  paymentAmountUSD,
+  BTCPriceInUSD,
+  ticketPriceInBTC,
+  tickets,
+}: {
+  paymentAmountUSD: number;
+  BTCPriceInUSD: number;
+  ticketPriceInBTC: number;
+  tickets: Ticket[];
+}): Ticket[] => {
+  const paymentAmountBTC = paymentAmountUSD / BTCPriceInUSD;
+  const remainingAmount = paymentAmountBTC;
+  const ticketsToValueOfPayment = tickets.reduce(
+    (accummulated: Ticket[], ticket) => {
+      if (remainingAmount - ticketPriceInBTC > 0) {
+        accummulated.push(ticket);
+      }
+
+      return accummulated;
+    },
+    [],
+  );
+
+  return ticketsToValueOfPayment;
+};
+
 // update the remainining tickets available so that users
 // don't purchase tickets over our limit
 const updateLotStats = async (lot: Lot, tickets: Ticket[]): Promise<void> => {
@@ -91,15 +118,6 @@ export const runBagman = async (
     };
   }
 
-  // mark the remaining tickets as reserved
-  const reservedTickets: Ticket[] = markTicketsStatus(
-    tickets,
-    TicketStatus.reserved,
-  );
-
-  // write the reserved tickets to firebase
-  await saveTickets(lotId, reservedTickets);
-
   // fetch the lot
   const lot = await firebaseFetchLot(lotId);
 
@@ -110,6 +128,23 @@ export const runBagman = async (
       data: undefined,
     };
   }
+
+  // mark the remaining tickets to the value of the payment (in case it was a partial payment)
+  // as reserved
+  const paymentAmountUSD = parseFloat(data.payment.value);
+  const ticketsToValueOfPayment = getTicketsToValueOfPayment({
+    paymentAmountUSD,
+    BTCPriceInUSD: lot.BTCPriceInUSD,
+    ticketPriceInBTC: lot.ticketPriceInBTC,
+    tickets,
+  });
+  const reservedTickets: Ticket[] = markTicketsStatus(
+    ticketsToValueOfPayment,
+    TicketStatus.reserved,
+  );
+
+  // write the reserved tickets to firebase
+  await saveTickets(lotId, reservedTickets);
 
   // update the lot stats
   await updateLotStats(lot, reservedTickets);
