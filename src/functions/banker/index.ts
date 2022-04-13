@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import { Ticket, TicketStatus } from '../../models';
+import { Lot, Ticket, TicketStatus } from '../../models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
 import { BtcPayServerInvoiceSettledEventData } from '../../services/btcPayServer/models';
 import { firebaseFetchTicketsByStatus } from '../../services/firebase/firebaseFetchTicketsByStatus';
@@ -8,6 +8,26 @@ import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
 import { saveTickets } from '../saveTickets';
 import { markTicketsStatus } from '../markTicketsStatus';
+import { numberToDigits } from '../../utils/numberToDigits';
+import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
+import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
+
+// update the confirmed ticket count and total value in BTC
+const updateLotStats = async (lot: Lot, tickets: Ticket[]): Promise<void> => {
+  const { totalInBTC, confirmedTicketCount } = lot;
+  const confirmedTicketsValue = tickets.reduce(
+    (total, next) => (total += next.price),
+    0,
+  );
+  const newTotalInBtc = numberToDigits(totalInBTC + confirmedTicketsValue, 6);
+  const newConfirmedTicketCount = confirmedTicketCount + tickets.length;
+  const newLot: Partial<Lot> = {
+    totalInBTC: newTotalInBtc,
+    confirmedTicketCount: newConfirmedTicketCount,
+  };
+
+  await firebaseUpdateLot(lot.id, newLot);
+};
 
 type Response = FirebaseFunctionResponse<void>;
 
@@ -85,6 +105,20 @@ export const runBanker = async (
 
   // write the confirmed tickets to firebase
   await saveTickets(lotId, confirmedTickets);
+
+  // fetch the lot
+  const lot = await firebaseFetchLot(lotId);
+
+  if (!lot) {
+    return {
+      error: true,
+      message: 'Lot missing fool.',
+      data: undefined,
+    };
+  }
+
+  // update the lot stats
+  await updateLotStats(lot, confirmedTickets);
 
   return {
     error: false,

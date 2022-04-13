@@ -8,22 +8,15 @@ import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
-import { numberToDigits } from '../../utils/numberToDigits';
 import { saveTickets } from '../saveTickets';
 import { markTicketsStatus } from '../markTicketsStatus';
 
+// update the remainining tickets available so that users
+// don't purchase tickets over our limit
 const updateLotStats = async (lot: Lot, tickets: Ticket[]): Promise<void> => {
-  const { totalInBTC, confirmedTicketCount, ticketsAvailable } = lot;
-  const confirmedTicketsValue = tickets.reduce(
-    (total, next) => (total += next.price),
-    0,
-  );
-  const newTotalInBtc = numberToDigits(totalInBTC + confirmedTicketsValue, 6);
-  const newConfirmedTicketCount = confirmedTicketCount + tickets.length;
+  const { ticketsAvailable } = lot;
   const newTicketsAvailable = ticketsAvailable - tickets.length;
   const newLot: Partial<Lot> = {
-    totalInBTC: newTotalInBtc,
-    confirmedTicketCount: newConfirmedTicketCount,
     ticketsAvailable: newTicketsAvailable,
   };
 
