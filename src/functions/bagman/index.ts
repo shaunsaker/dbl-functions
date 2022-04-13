@@ -1,42 +1,20 @@
 import * as functions from 'firebase-functions';
 import { Lot, Ticket, TicketStatus } from '../../models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
-import { BtcPayServerInvoiceReceivedPaymentEventData } from '../../services/btcPayServer/models';
+import {
+  BtcPayServerInvoiceMetadata,
+  BtcPayServerInvoiceReceivedPaymentEventData,
+} from '../../services/btcPayServer/models';
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
-import { firebaseFetchTicketsByStatus } from '../../services/firebase/firebaseFetchTicketsByStatus';
+import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTickets';
 import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
 import { saveTickets } from '../saveTickets';
 import { markTicketsStatus } from '../markTicketsStatus';
-
-const getTicketsToValueOfPayment = ({
-  paymentAmountUSD,
-  BTCPriceInUSD,
-  ticketPriceInBTC,
-  tickets,
-}: {
-  paymentAmountUSD: number;
-  BTCPriceInUSD: number;
-  ticketPriceInBTC: number;
-  tickets: Ticket[];
-}): Ticket[] => {
-  const paymentAmountBTC = paymentAmountUSD / BTCPriceInUSD;
-  const remainingAmount = paymentAmountBTC;
-  const ticketsToValueOfPayment = tickets.reduce(
-    (accummulated: Ticket[], ticket) => {
-      if (remainingAmount - ticketPriceInBTC > 0) {
-        accummulated.push(ticket);
-      }
-
-      return accummulated;
-    },
-    [],
-  );
-
-  return ticketsToValueOfPayment;
-};
+import { createTickets } from '../createTickets';
+import { updateInvoice } from '../../services/btcPayServer/updateInvoice';
 
 // update the remainining tickets available so that users
 // don't purchase tickets over our limit
@@ -104,19 +82,12 @@ export const runBagman = async (
   }
 
   // fetch the tickets using the ticketIds in the invoice
-  const tickets = await firebaseFetchTicketsByStatus({
+  const tickets = await firebaseFetchTickets({
     lotId,
+    uid,
     ticketIds: invoice.metadata.ticketIds,
-    ticketStatus: TicketStatus.awaitingPayment,
+    ticketStatuses: [TicketStatus.awaitingPayment],
   });
-
-  if (!tickets.length) {
-    return {
-      error: true,
-      message: 'Free money baby!',
-      data: undefined,
-    };
-  }
 
   // fetch the lot
   const lot = await firebaseFetchLot(lotId);
@@ -129,17 +100,22 @@ export const runBagman = async (
     };
   }
 
-  // mark the remaining tickets to the value of the payment (in case it was a partial payment)
-  // as reserved
   const paymentAmountUSD = parseFloat(data.payment.value);
-  const ticketsToValueOfPayment = getTicketsToValueOfPayment({
-    paymentAmountUSD,
-    BTCPriceInUSD: lot.BTCPriceInUSD,
-    ticketPriceInBTC: lot.ticketPriceInBTC,
-    tickets,
-  });
+  const paymentAmountBTC = paymentAmountUSD / lot.BTCPriceInUSD;
+  const ticketPriceInBTC = lot.ticketPriceInBTC;
+
+  // handle partial payments by only reserving the tickets to the value of the payment
+  // e.g. if I reserved 5 tickets but only paid for 3, only reserve 3
+  // NOTE: keep in mind that this could also be an over payment
+  const quantityTicketsReservable = Math.floor(
+    paymentAmountBTC / ticketPriceInBTC,
+  );
+  const hasUserOverpaid = quantityTicketsReservable > tickets.length;
+  const reservableTickets = hasUserOverpaid
+    ? tickets
+    : tickets.slice(0, quantityTicketsReservable - 1);
   const reservedTickets: Ticket[] = markTicketsStatus(
-    ticketsToValueOfPayment,
+    reservableTickets,
     TicketStatus.reserved,
   );
 
@@ -147,7 +123,49 @@ export const runBagman = async (
   await saveTickets(lotId, reservedTickets);
 
   // update the lot stats
+  // TODO: SS this will be a new function based on ticket changes
   await updateLotStats(lot, reservedTickets);
+
+  // handle over payments by creating new reserved tickets
+  if (hasUserOverpaid) {
+    // check how much they overpaid by create new reserved tickets based on that
+    // as well as adding the new ticketIds to the existing invoice
+    const quantityNewTicketsToReserve =
+      quantityTicketsReservable - tickets.length;
+
+    // create the tickets
+    const createTicketsResponse = await createTickets({
+      lot,
+      uid,
+      ticketCount: quantityNewTicketsToReserve,
+      ticketPriceInBTC: lot.ticketPriceInBTC,
+      ticketStatus: TicketStatus.reserved, // we already received the payment so mark them as reserved
+    });
+
+    if (createTicketsResponse.error) {
+      return {
+        error: true,
+        message: createTicketsResponse.message,
+        data: undefined,
+      };
+    }
+
+    if (!createTicketsResponse.data) {
+      return {
+        error: true,
+        message: 'No ticketIds 🤔',
+        data: undefined,
+      };
+    }
+
+    //  update the existing invoice with the new ticket ids
+    const newInvoiceMetadata: BtcPayServerInvoiceMetadata = {
+      ...invoice.metadata,
+      ticketIds: [...invoice.metadata.ticketIds, ...createTicketsResponse.data],
+    };
+
+    await updateInvoice(storeId, invoiceId, { metadata: newInvoiceMetadata });
+  }
 
   return {
     error: false,

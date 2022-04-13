@@ -63,14 +63,16 @@ export interface BtcPayServerWebhook {
   automaticRedelivery?: boolean;
 }
 
+export interface BtcPayServerInvoiceMetadata {
+  orderId?: string;
+  orderUrl?: string;
+  uid: UserId;
+  lotId: LotId;
+  ticketIds: TicketId[];
+}
+
 export interface BtcPayServerInvoicePayload {
-  metadata: {
-    orderId?: string;
-    orderUrl?: string;
-    uid: UserId;
-    lotId: LotId;
-    ticketIds: TicketId[];
-  };
+  metadata: BtcPayServerInvoiceMetadata;
   checkout: {
     speedPolicy: BtcPayServerSpeedPolicy;
     paymentMethods?: string; // defaults to all set in store

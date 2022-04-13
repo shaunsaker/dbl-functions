@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions';
 import { Ticket, TicketStatus } from '../../models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
 import { BtcPayServerInvoiceExpiredEventData } from '../../services/btcPayServer/models';
-import { firebaseFetchTicketsByStatus } from '../../services/firebase/firebaseFetchTicketsByStatus';
+import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTickets';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { saveTickets } from '../saveTickets';
@@ -62,10 +62,11 @@ export const runBusker = async (
   }
 
   // fetch the tickets using the ticketIds in the invoice
-  const tickets = await firebaseFetchTicketsByStatus({
+  const tickets = await firebaseFetchTickets({
     lotId,
+    uid,
     ticketIds: invoice.metadata.ticketIds,
-    ticketStatus: TicketStatus.awaitingPayment,
+    ticketStatuses: [TicketStatus.awaitingPayment],
   });
 
   if (!tickets.length) {

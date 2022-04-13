@@ -1,27 +1,16 @@
 import * as functions from 'firebase-functions';
 import { CallableContext } from 'firebase-functions/v1/https';
-import {
-  Lot,
-  LotId,
-  Ticket,
-  TicketId,
-  TicketStatus,
-  UserId,
-} from '../../models';
+import { Lot, LotId, TicketId, TicketStatus, UserId } from '../../models';
 import { createInvoice } from '../../services/btcPayServer/createInvoice';
 import {
   BtcPayServerInvoice,
   BtcPayServerInvoicePayload,
 } from '../../services/btcPayServer/models';
-import { firebase } from '../../services/firebase';
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseGetUser } from '../../services/firebase/firebaseGetUser';
 import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
-import { firebaseWriteBatch } from '../../services/firebase/firebaseWriteBatch';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
-import { arrayFromNumber } from '../../utils/arrayFromNumber';
-import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
-import { getUuid } from '../../utils/getUuid';
+import { createTickets } from '../createTickets';
 
 const makeInvoicePayload = ({
   amount,
@@ -121,56 +110,30 @@ export const runBookie = async ({
     };
   }
 
-  // validate the lotId
-  if (lotId !== lot.id) {
-    return {
-      error: true,
-      message: 'lotId is invalid.',
-      data: undefined,
-    };
-  }
-
-  // validate against ticketsAvailable
-  if (ticketCount > lot.ticketsAvailable) {
-    return {
-      error: true,
-      message: `There are only ${lot.ticketsAvailable} and you are attempting to reserve ${ticketCount} tickets. Please try again with ${lot.ticketsAvailable} tickets.`,
-      data: undefined,
-    };
-  }
-
-  // validate against perUserTicketLimit
-  if (ticketCount > lot.perUserTicketLimit) {
-    return {
-      error: true,
-      message: `You've reached the ticket limit of ${lot.perUserTicketLimit}.`,
-      data: undefined,
-    };
-  }
-
   // create the tickets
-  const ticketDocs = arrayFromNumber(ticketCount).map(() => {
-    const id = getUuid();
-    const ticket: Ticket = {
-      id,
-      uid,
-      price: lot.ticketPriceInBTC,
-      status: TicketStatus.awaitingPayment,
-      dateCreated: getTimeAsISOString(),
-    };
-
-    return {
-      ref: firebase
-        .firestore()
-        .collection('lots')
-        .doc(lotId)
-        .collection('tickets')
-        .doc(id),
-      data: ticket,
-    };
+  const createTicketsResponse = await createTickets({
+    lot,
+    uid,
+    ticketCount,
+    ticketPriceInBTC: lot.ticketPriceInBTC,
+    ticketStatus: TicketStatus.awaitingPayment,
   });
 
-  await firebaseWriteBatch(ticketDocs);
+  if (createTicketsResponse.error) {
+    return {
+      error: true,
+      message: createTicketsResponse.message,
+      data: undefined,
+    };
+  }
+
+  if (!createTicketsResponse.data) {
+    return {
+      error: true,
+      message: 'No ticketIds 🤔',
+      data: undefined,
+    };
+  }
 
   // create the invoice
   const ticketValueBTC = ticketCount * lot.ticketPriceInBTC;
@@ -179,11 +142,12 @@ export const runBookie = async ({
     amount: ticketValueUSD,
     uid,
     lotId: lot.id,
-    ticketIds: ticketDocs.map((doc) => doc.data.id),
+    ticketIds: createTicketsResponse.data,
   });
   const invoice = await createInvoice(lot.storeId, invoicePayload);
 
   // update the lot tickets available
+  // TODO: SS this will be a new function based on ticket changes
   const newTicketsAvailable = lot.ticketsAvailable - ticketCount;
   await updateLotTicketsAvailable(lot.id, newTicketsAvailable);
 

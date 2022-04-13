@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions';
 import { Lot, Ticket, TicketStatus } from '../../models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
 import { BtcPayServerInvoiceSettledEventData } from '../../services/btcPayServer/models';
-import { firebaseFetchTicketsByStatus } from '../../services/firebase/firebaseFetchTicketsByStatus';
+import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTickets';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
@@ -83,10 +83,11 @@ export const runBanker = async (
   }
 
   // fetch the tickets using the ticketIds in the invoice
-  const tickets = await firebaseFetchTicketsByStatus({
+  const tickets = await firebaseFetchTickets({
     lotId,
+    uid,
     ticketIds: invoice.metadata.ticketIds,
-    ticketStatus: TicketStatus.reserved,
+    ticketStatuses: [TicketStatus.reserved],
   });
 
   if (!tickets.length) {
@@ -98,6 +99,10 @@ export const runBanker = async (
   }
 
   // mark the remaining tickets as confirmed
+  // NOTE: we mark all tickets as confirmed because it's not possible to get the InvoiceSettled
+  // event for partial payments
+  // NOTE: it should also not be possible to get an over payment at this stage
+  // that will be handled in the InvoiceReceivedPayment webhook
   const confirmedTickets: Ticket[] = markTicketsStatus(
     tickets,
     TicketStatus.confirmed,
