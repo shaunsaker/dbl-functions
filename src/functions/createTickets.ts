@@ -21,6 +21,7 @@ export const createTickets = async ({
   ticketStatus: TicketStatus;
 }): Promise<FirebaseFunctionResponse<TicketId[]>> => {
   // validate against ticketsAvailable
+  // TODO: SS if tickets in today's lot are not available, we should buy in tomorrow's lot
   if (ticketCount > lot.ticketsAvailable) {
     return {
       error: true,

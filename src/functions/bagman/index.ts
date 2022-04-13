@@ -110,8 +110,8 @@ export const runBagman = async (
   const quantityTicketsReservable = Math.floor(
     paymentAmountBTC / ticketPriceInBTC,
   );
-  const hasUserOverpaid = quantityTicketsReservable > tickets.length;
-  const reservableTickets = hasUserOverpaid
+  const hasUserOverpaidOrPaidLate = quantityTicketsReservable > tickets.length;
+  const reservableTickets = hasUserOverpaidOrPaidLate
     ? tickets
     : tickets.slice(0, quantityTicketsReservable - 1);
   const reservedTickets: Ticket[] = markTicketsStatus(
@@ -127,7 +127,7 @@ export const runBagman = async (
   await updateLotStats(lot, reservedTickets);
 
   // handle over payments by creating new reserved tickets
-  if (hasUserOverpaid) {
+  if (hasUserOverpaidOrPaidLate) {
     // check how much they overpaid by create new reserved tickets based on that
     // as well as adding the new ticketIds to the existing invoice
     const quantityNewTicketsToReserve =
