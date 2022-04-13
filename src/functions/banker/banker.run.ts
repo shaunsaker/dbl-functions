@@ -10,7 +10,7 @@ const doAsync = async () => {
   const webhookEvent = makeBtcPayServerInvoiceSettledEventData({
     storeId,
     invoiceId,
-    value,
+    value: parseFloat(value),
   });
   try {
     const response = await runBanker(webhookEvent);

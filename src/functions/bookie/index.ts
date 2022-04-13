@@ -50,7 +50,6 @@ export const runBookie = async ({
     return {
       error: true,
       message: 'User is not signed in',
-      data: undefined,
     };
   }
 
@@ -58,7 +57,6 @@ export const runBookie = async ({
     return {
       error: true,
       message: 'Please provide a lotId',
-      data: undefined,
     };
   }
 
@@ -66,7 +64,6 @@ export const runBookie = async ({
     return {
       error: true,
       message: 'Please provide a ticketCount',
-      data: undefined,
     };
   }
 
@@ -77,7 +74,6 @@ export const runBookie = async ({
     return {
       error: true,
       message: (error as Error).message,
-      data: undefined,
     };
   }
 
@@ -88,7 +84,6 @@ export const runBookie = async ({
     return {
       error: true,
       message: 'Could not find this lot.',
-      data: undefined,
     };
   }
 
@@ -105,7 +100,6 @@ export const runBookie = async ({
     return {
       error: true,
       message: createTicketsResponse.message,
-      data: undefined,
     };
   }
 
@@ -113,7 +107,6 @@ export const runBookie = async ({
     return {
       error: true,
       message: 'No ticketIds 🤔',
-      data: undefined,
     };
   }
 

@@ -21,7 +21,6 @@ export const runBusker = async (
     return {
       error: true,
       message: 'storeId missing fool.',
-      data: undefined,
     };
   }
 
@@ -29,7 +28,6 @@ export const runBusker = async (
     return {
       error: true,
       message: 'invoiceId missing fool.',
-      data: undefined,
     };
   }
 
@@ -39,7 +37,6 @@ export const runBusker = async (
     return {
       error: true,
       message: 'Invoice missing fool.',
-      data: undefined,
     };
   }
 
@@ -49,7 +46,6 @@ export const runBusker = async (
     return {
       error: true,
       message: 'lotId missing from invoice fool.',
-      data: undefined,
     };
   }
 
@@ -57,7 +53,6 @@ export const runBusker = async (
     return {
       error: true,
       message: 'uid missing from invoice fool.',
-      data: undefined,
     };
   }
 
@@ -73,7 +68,6 @@ export const runBusker = async (
     return {
       error: true,
       message: 'No reservedTickets left to expire 🤔',
-      data: undefined,
     };
   }
 
@@ -90,7 +84,6 @@ export const runBusker = async (
   return {
     error: false,
     message: 'Great Success!',
-    data: undefined,
   };
 };
 

@@ -15,11 +15,14 @@ import { markTicketsStatus } from '../markTicketsStatus';
 import { createTickets } from '../createTickets';
 import { updateInvoice } from '../../services/btcPayServer/updateInvoice';
 
-type Response = FirebaseFunctionResponse<void>;
+export type BagmanResponse = FirebaseFunctionResponse<void>;
 
+// bagman is a webhook for the InvoiceReceivedPaymentEvent
+// he'll mark an invoices ticket statuses as Payment Received
+// he also handles partial payments and over payments
 export const runBagman = async (
   data: BtcPayServerInvoiceReceivedPaymentEventData,
-): Promise<Response> => {
+): Promise<BagmanResponse> => {
   // we need to get the lotId and uid from the invoice
   // so we need to fetch the invoice
   const { storeId, invoiceId } = data;
@@ -28,7 +31,6 @@ export const runBagman = async (
     return {
       error: true,
       message: 'storeId missing fool.',
-      data: undefined,
     };
   }
 
@@ -36,7 +38,6 @@ export const runBagman = async (
     return {
       error: true,
       message: 'invoiceId missing fool.',
-      data: undefined,
     };
   }
 
@@ -46,7 +47,6 @@ export const runBagman = async (
     return {
       error: true,
       message: 'Invoice missing fool.',
-      data: undefined,
     };
   }
 
@@ -56,7 +56,6 @@ export const runBagman = async (
     return {
       error: true,
       message: 'lotId missing from invoice fool.',
-      data: undefined,
     };
   }
 
@@ -64,7 +63,16 @@ export const runBagman = async (
     return {
       error: true,
       message: 'uid missing from invoice fool.',
-      data: undefined,
+    };
+  }
+
+  // fetch the lot
+  const lot = await firebaseFetchLot(lotId);
+
+  if (!lot) {
+    return {
+      error: true,
+      message: 'Lot missing fool.',
     };
   }
 
@@ -76,17 +84,6 @@ export const runBagman = async (
     ticketStatuses: [TicketStatus.reserved],
   });
 
-  // fetch the lot
-  const lot = await firebaseFetchLot(lotId);
-
-  if (!lot) {
-    return {
-      error: true,
-      message: 'Lot missing fool.',
-      data: undefined,
-    };
-  }
-
   const paymentAmountUSD = parseFloat(data.payment.value);
   const paymentAmountBTC = paymentAmountUSD / lot.BTCPriceInUSD;
   const ticketPriceInBTC = lot.ticketPriceInBTC;
@@ -94,28 +91,34 @@ export const runBagman = async (
   // handle partial payments by only reserving the tickets to the value of the payment
   // e.g. if I reserved 5 tickets but only paid for 3, only reserve 3
   // NOTE: keep in mind that this could also be an over payment
+
+  // the user can afford X amount of tickets
   const quantityTicketsReservable = Math.floor(
     paymentAmountBTC / ticketPriceInBTC,
   );
+
+  // the user has overpaid if they can afford more tickets than they reserved
   const hasUserOverpaidOrPaidLate =
     quantityTicketsReservable > reservedTickets.length;
+
+  // for partial payments, we should only mark a certain amounts of the tickets as paid
   const reservableTickets = hasUserOverpaidOrPaidLate
     ? reservedTickets
     : reservedTickets.slice(0, quantityTicketsReservable - 1);
-  const paymentReceivedTickets: Ticket[] = markTicketsStatus(
+
+  // mark the ticket's statuses
+  const paidTickets: Ticket[] = markTicketsStatus(
     reservableTickets,
     TicketStatus.paymentReceived,
   );
 
-  // write the reserved tickets to firebase
-  await saveTickets(lotId, paymentReceivedTickets);
+  // update the tickets in firebase
+  await saveTickets(lotId, paidTickets);
 
   // handle over payments by creating new reserved tickets
   if (hasUserOverpaidOrPaidLate) {
-    // check how much they overpaid by create new reserved tickets based on that
-    // as well as adding the new ticketIds to the existing invoice
-    const quantityNewTickets =
-      quantityTicketsReservable - paymentReceivedTickets.length;
+    // the user can afford X new tickets over and above the tickets they have paid already
+    const quantityNewTickets = quantityTicketsReservable - paidTickets.length;
 
     // create the tickets
     const createTicketsResponse = await createTickets({
@@ -130,7 +133,6 @@ export const runBagman = async (
       return {
         error: true,
         message: createTicketsResponse.message,
-        data: undefined,
       };
     }
 
@@ -138,7 +140,6 @@ export const runBagman = async (
       return {
         error: true,
         message: 'No ticketIds 🤔',
-        data: undefined,
       };
     }
 
@@ -154,10 +155,9 @@ export const runBagman = async (
   return {
     error: false,
     message: `Great Success!  ${maybePluralise(
-      paymentReceivedTickets.length,
+      paidTickets.length,
       'ticket',
     )} were marked as reserved.`,
-    data: undefined,
   };
 };
 

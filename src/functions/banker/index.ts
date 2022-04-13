@@ -22,7 +22,6 @@ export const runBanker = async (
     return {
       error: true,
       message: 'storeId missing fool.',
-      data: undefined,
     };
   }
 
@@ -30,7 +29,6 @@ export const runBanker = async (
     return {
       error: true,
       message: 'invoiceId missing fool.',
-      data: undefined,
     };
   }
 
@@ -40,7 +38,6 @@ export const runBanker = async (
     return {
       error: true,
       message: 'Invoice missing fool.',
-      data: undefined,
     };
   }
 
@@ -50,7 +47,6 @@ export const runBanker = async (
     return {
       error: true,
       message: 'lotId missing from invoice fool.',
-      data: undefined,
     };
   }
 
@@ -58,7 +54,6 @@ export const runBanker = async (
     return {
       error: true,
       message: 'uid missing from invoice fool.',
-      data: undefined,
     };
   }
 
@@ -75,7 +70,6 @@ export const runBanker = async (
     return {
       error: true,
       message: 'Free money baby!',
-      data: undefined,
     };
   }
 
@@ -98,7 +92,6 @@ export const runBanker = async (
       confirmedTickets.length,
       'ticket',
     )} were marked as confirmed.`,
-    data: undefined,
   };
 };
 

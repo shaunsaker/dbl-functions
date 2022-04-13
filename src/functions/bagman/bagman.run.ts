@@ -10,7 +10,7 @@ const doAsync = async () => {
   const webhookEvent = makeBtcPayServerInvoiceReceivedPaymentEventData({
     storeId,
     invoiceId,
-    value,
+    value: parseFloat(value),
   });
   try {
     const response = await runBagman(webhookEvent);

@@ -15,7 +15,7 @@ export const makeBtcPayServerInvoiceReceivedPaymentEventData = ({
 }: {
   storeId: BtcPayServerStoreId;
   invoiceId: BtcPayServerInvoiceId;
-  value: string;
+  value: number;
 }): BtcPayServerInvoiceReceivedPaymentEventData => {
   const deliveryId = getUuid();
   const now = moment().get('milliseconds');
@@ -34,7 +34,7 @@ export const makeBtcPayServerInvoiceReceivedPaymentEventData = ({
     payment: {
       id: getUuid(),
       receivedDate: now,
-      value,
+      value: value.toString(),
       fee: '0.00',
       status: 'Processing',
       destination: '',
@@ -49,7 +49,7 @@ export const makeBtcPayServerInvoiceSettledEventData = ({
 }: {
   storeId: BtcPayServerStoreId;
   invoiceId: BtcPayServerInvoiceId;
-  value: string;
+  value: number;
 }): BtcPayServerInvoiceSettledEventData => {
   return makeBtcPayServerInvoiceReceivedPaymentEventData({
     storeId,
