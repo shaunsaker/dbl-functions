@@ -21,7 +21,7 @@ export const createTickets = async ({
   ticketStatus: TicketStatus;
 }): Promise<FirebaseFunctionResponse<TicketId[]>> => {
   // validate against ticketsAvailable
-  // TODO: SS if tickets in today's lot are not available, we should buy in tomorrow's lot
+  // TODO: SS if tickets in today's lot are not available, we should create another lot and buy there
   if (ticketCount > lot.ticketsAvailable) {
     return {
       error: true,
@@ -40,7 +40,9 @@ export const createTickets = async ({
   if (ticketCount > remainingUserTicketLimit) {
     return {
       error: true,
-      message: `By reserving these tickets you'll reach the user ticket limit of ${lot.perUserTicketLimit}. Please try again using your remaininig ticket limit of ${remainingUserTicketLimit}.`,
+      message: remainingUserTicketLimit
+        ? `By reserving these tickets you'll reach the user ticket limit of ${lot.perUserTicketLimit}. Please try again using your remaininig ticket limit of ${remainingUserTicketLimit}.`
+        : "You've reached the maximum number of tickets that you can purchase today.",
       data: undefined,
     };
   }

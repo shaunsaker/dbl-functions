@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import { Lot, Ticket, TicketStatus } from '../../models';
+import { Ticket, TicketStatus } from '../../models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
 import {
   BtcPayServerInvoiceMetadata,
@@ -7,7 +7,6 @@ import {
 } from '../../services/btcPayServer/models';
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTickets';
-import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
@@ -15,18 +14,6 @@ import { saveTickets } from '../saveTickets';
 import { markTicketsStatus } from '../markTicketsStatus';
 import { createTickets } from '../createTickets';
 import { updateInvoice } from '../../services/btcPayServer/updateInvoice';
-
-// update the remainining tickets available so that users
-// don't purchase tickets over our limit
-const updateLotStats = async (lot: Lot, tickets: Ticket[]): Promise<void> => {
-  const { ticketsAvailable } = lot;
-  const newTicketsAvailable = ticketsAvailable - tickets.length;
-  const newLot: Partial<Lot> = {
-    ticketsAvailable: newTicketsAvailable,
-  };
-
-  await firebaseUpdateLot(lot.id, newLot);
-};
 
 type Response = FirebaseFunctionResponse<void>;
 
@@ -82,11 +69,11 @@ export const runBagman = async (
   }
 
   // fetch the tickets using the ticketIds in the invoice
-  const tickets = await firebaseFetchTickets({
+  const reservedTickets = await firebaseFetchTickets({
     lotId,
     uid,
     ticketIds: invoice.metadata.ticketIds,
-    ticketStatuses: [TicketStatus.awaitingPayment],
+    ticketStatuses: [TicketStatus.reserved],
   });
 
   // fetch the lot
@@ -110,36 +97,33 @@ export const runBagman = async (
   const quantityTicketsReservable = Math.floor(
     paymentAmountBTC / ticketPriceInBTC,
   );
-  const hasUserOverpaidOrPaidLate = quantityTicketsReservable > tickets.length;
+  const hasUserOverpaidOrPaidLate =
+    quantityTicketsReservable > reservedTickets.length;
   const reservableTickets = hasUserOverpaidOrPaidLate
-    ? tickets
-    : tickets.slice(0, quantityTicketsReservable - 1);
-  const reservedTickets: Ticket[] = markTicketsStatus(
+    ? reservedTickets
+    : reservedTickets.slice(0, quantityTicketsReservable - 1);
+  const paymentReceivedTickets: Ticket[] = markTicketsStatus(
     reservableTickets,
-    TicketStatus.reserved,
+    TicketStatus.paymentReceived,
   );
 
   // write the reserved tickets to firebase
-  await saveTickets(lotId, reservedTickets);
-
-  // update the lot stats
-  // TODO: SS this will be a new function based on ticket changes
-  await updateLotStats(lot, reservedTickets);
+  await saveTickets(lotId, paymentReceivedTickets);
 
   // handle over payments by creating new reserved tickets
   if (hasUserOverpaidOrPaidLate) {
     // check how much they overpaid by create new reserved tickets based on that
     // as well as adding the new ticketIds to the existing invoice
-    const quantityNewTicketsToReserve =
-      quantityTicketsReservable - tickets.length;
+    const quantityNewTickets =
+      quantityTicketsReservable - paymentReceivedTickets.length;
 
     // create the tickets
     const createTicketsResponse = await createTickets({
       lot,
       uid,
-      ticketCount: quantityNewTicketsToReserve,
+      ticketCount: quantityNewTickets,
       ticketPriceInBTC: lot.ticketPriceInBTC,
-      ticketStatus: TicketStatus.reserved, // we already received the payment so mark them as reserved
+      ticketStatus: TicketStatus.paymentReceived, // no need to first reserve them
     });
 
     if (createTicketsResponse.error) {
@@ -170,7 +154,7 @@ export const runBagman = async (
   return {
     error: false,
     message: `Great Success!  ${maybePluralise(
-      reservedTickets.length,
+      paymentReceivedTickets.length,
       'ticket',
     )} were marked as reserved.`,
     data: undefined,

@@ -61,26 +61,26 @@ export const runBusker = async (
     };
   }
 
-  // fetch the tickets using the ticketIds in the invoice
-  const tickets = await firebaseFetchTickets({
+  // fetch the reserved tickets using the ticketIds in the invoice
+  const reservedTickets = await firebaseFetchTickets({
     lotId,
     uid,
     ticketIds: invoice.metadata.ticketIds,
-    ticketStatuses: [TicketStatus.awaitingPayment],
+    ticketStatuses: [TicketStatus.reserved],
   });
 
-  if (!tickets.length) {
+  if (!reservedTickets.length) {
     return {
       error: true,
-      message: 'No tickets left to expire.',
+      message: 'No reservedTickets left to expire 🤔',
       data: undefined,
     };
   }
 
-  // mark the remaining tickets as expired
-  // NOTE: here we can mark all the tickets as expired because ? (my kids are distracting me)
+  // mark the remaining reserved tickets as expired
+  // NOTE: here we can mark all the reserved tickets as expired
   const expiredTickets: Ticket[] = markTicketsStatus(
-    tickets,
+    reservedTickets,
     TicketStatus.expired,
   );
 

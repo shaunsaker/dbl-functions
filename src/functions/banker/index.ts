@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import { Lot, Ticket, TicketStatus } from '../../models';
+import { Ticket, TicketStatus } from '../../models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
 import { BtcPayServerInvoiceSettledEventData } from '../../services/btcPayServer/models';
 import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTickets';
@@ -8,26 +8,6 @@ import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
 import { saveTickets } from '../saveTickets';
 import { markTicketsStatus } from '../markTicketsStatus';
-import { numberToDigits } from '../../utils/numberToDigits';
-import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
-import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
-
-// update the confirmed ticket count and total value in BTC
-const updateLotStats = async (lot: Lot, tickets: Ticket[]): Promise<void> => {
-  const { totalInBTC, confirmedTicketCount } = lot;
-  const confirmedTicketsValue = tickets.reduce(
-    (total, next) => (total += next.price),
-    0,
-  );
-  const newTotalInBtc = numberToDigits(totalInBTC + confirmedTicketsValue, 6);
-  const newConfirmedTicketCount = confirmedTicketCount + tickets.length;
-  const newLot: Partial<Lot> = {
-    totalInBTC: newTotalInBtc,
-    confirmedTicketCount: newConfirmedTicketCount,
-  };
-
-  await firebaseUpdateLot(lot.id, newLot);
-};
 
 type Response = FirebaseFunctionResponse<void>;
 
@@ -83,14 +63,15 @@ export const runBanker = async (
   }
 
   // fetch the tickets using the ticketIds in the invoice
-  const tickets = await firebaseFetchTickets({
+  const paymentReceivedTickets = await firebaseFetchTickets({
     lotId,
     uid,
     ticketIds: invoice.metadata.ticketIds,
-    ticketStatuses: [TicketStatus.reserved],
+    ticketStatuses: [TicketStatus.paymentReceived],
   });
 
-  if (!tickets.length) {
+  if (!paymentReceivedTickets.length) {
+    // should not be possible
     return {
       error: true,
       message: 'Free money baby!',
@@ -104,26 +85,12 @@ export const runBanker = async (
   // NOTE: it should also not be possible to get an over payment at this stage
   // that will be handled in the InvoiceReceivedPayment webhook
   const confirmedTickets: Ticket[] = markTicketsStatus(
-    tickets,
+    paymentReceivedTickets,
     TicketStatus.confirmed,
   );
 
   // write the confirmed tickets to firebase
   await saveTickets(lotId, confirmedTickets);
-
-  // fetch the lot
-  const lot = await firebaseFetchLot(lotId);
-
-  if (!lot) {
-    return {
-      error: true,
-      message: 'Lot missing fool.',
-      data: undefined,
-    };
-  }
-
-  // update the lot stats
-  await updateLotStats(lot, confirmedTickets);
 
   return {
     error: false,

@@ -36,8 +36,8 @@ export interface Lot {
 export type UserId = string;
 
 export enum TicketStatus {
-  awaitingPayment = 'awaitingPayment',
   reserved = 'reserved',
+  paymentReceived = 'paymentReceived',
   confirmed = 'confirmed',
   expired = 'expired',
 }

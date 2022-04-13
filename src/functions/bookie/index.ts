@@ -1,6 +1,6 @@
 import * as functions from 'firebase-functions';
 import { CallableContext } from 'firebase-functions/v1/https';
-import { Lot, LotId, TicketId, TicketStatus, UserId } from '../../models';
+import { LotId, TicketId, TicketStatus, UserId } from '../../models';
 import { createInvoice } from '../../services/btcPayServer/createInvoice';
 import {
   BtcPayServerInvoice,
@@ -8,7 +8,6 @@ import {
 } from '../../services/btcPayServer/models';
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseGetUser } from '../../services/firebase/firebaseGetUser';
-import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { createTickets } from '../createTickets';
 
@@ -33,23 +32,6 @@ const makeInvoicePayload = ({
       lotId,
       ticketIds,
     },
-  };
-};
-
-const updateLotTicketsAvailable = async (
-  lotId: LotId,
-  newTicketsAvailable: number,
-): Promise<Response> => {
-  const newLot: Partial<Lot> = {
-    ticketsAvailable: newTicketsAvailable,
-  };
-
-  await firebaseUpdateLot(lotId, newLot);
-
-  return {
-    error: false,
-    message: 'Great Success!',
-    data: undefined,
   };
 };
 
@@ -116,7 +98,7 @@ export const runBookie = async ({
     uid,
     ticketCount,
     ticketPriceInBTC: lot.ticketPriceInBTC,
-    ticketStatus: TicketStatus.awaitingPayment,
+    ticketStatus: TicketStatus.reserved,
   });
 
   if (createTicketsResponse.error) {
@@ -145,11 +127,6 @@ export const runBookie = async ({
     ticketIds: createTicketsResponse.data,
   });
   const invoice = await createInvoice(lot.storeId, invoicePayload);
-
-  // update the lot tickets available
-  // TODO: SS this will be a new function based on ticket changes
-  const newTicketsAvailable = lot.ticketsAvailable - ticketCount;
-  await updateLotTicketsAvailable(lot.id, newTicketsAvailable);
 
   return {
     error: false,
