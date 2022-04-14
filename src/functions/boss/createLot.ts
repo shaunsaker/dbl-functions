@@ -15,6 +15,7 @@ import { createMnemonic } from '../../utils/createMnemonic';
 import { encrypt } from '../../utils/crypto';
 import { numberToDigits } from '../../utils/numberToDigits';
 import { makeStore, makeWebhook } from '../../stores/data';
+import { makeLot } from '../../lots/data';
 
 export const createLot = async (): Promise<void> => {
   // fetch the btc price in usd

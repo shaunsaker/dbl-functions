@@ -1,43 +1,73 @@
 import moment = require('moment');
-import { BtcPayServerStoreId } from '../services/btcPayServer/models';
 import { getTimeAsISOString } from '../utils/getTimeAsISOString';
-import { Lot, LotId, PER_USER_TICKET_LIMIT, TICKET_TIMEOUT_MS } from './models';
+import { getUuid } from '../utils/getUuid';
+import {
+  Lot,
+  PER_USER_TICKET_LIMIT,
+  Ticket,
+  TicketStatus,
+  TICKET_TIMEOUT_MS,
+} from './models';
 
 export const makeLot = ({
   id,
   storeId,
+  dateCreated,
+  lastCallTime,
+  drawTime,
+  active,
+  totalInBTC,
+  confirmedTicketCount,
+  perUserTicketLimit,
   ticketPriceInBTC,
   BTCPriceInUSD,
   ticketCommissionInBTC,
   ticketsAvailable,
-}: {
-  id: LotId;
-  storeId: BtcPayServerStoreId;
-  ticketPriceInBTC: number;
-  BTCPriceInUSD: number;
-  ticketCommissionInBTC: number;
-  ticketsAvailable: number;
-}): Lot => {
+}: Partial<Lot>): Lot => {
+  // get the draw time, ie. 00h00 tonight
   const now = moment();
-  const drawTime = now.clone().endOf('day').subtract({ minutes: 1 }); // 23h59 today // TODO: SS just make this midnight
+  const drawTimeMoment = now.clone().endOf('day');
+  const drawTimeString = drawTime || getTimeAsISOString(drawTimeMoment);
+
+  // get the last call time, ie. ticketTimeoutMs before 00h00 tonight
   const ticketTimeoutMs = TICKET_TIMEOUT_MS;
-  const lastCallTime = drawTime
-    .clone()
-    .subtract({ milliseconds: ticketTimeoutMs });
+  const lastCallTimeString =
+    lastCallTime ||
+    getTimeAsISOString(
+      drawTimeMoment.clone().subtract({ milliseconds: ticketTimeoutMs }),
+    );
 
   return {
-    id,
-    storeId,
-    dateCreated: getTimeAsISOString(now),
-    lastCallTime: getTimeAsISOString(lastCallTime),
-    drawTime: getTimeAsISOString(drawTime),
-    active: true,
-    totalInBTC: 0,
-    confirmedTicketCount: 0,
-    perUserTicketLimit: PER_USER_TICKET_LIMIT,
-    ticketPriceInBTC,
-    BTCPriceInUSD,
-    ticketCommissionInBTC,
-    ticketsAvailable,
+    id: id || getUuid(),
+    storeId: storeId || getUuid(),
+    dateCreated: dateCreated || getTimeAsISOString(now),
+    lastCallTime: lastCallTimeString,
+    drawTime: drawTimeString,
+    active: active || true,
+    totalInBTC: totalInBTC || 0,
+    confirmedTicketCount: confirmedTicketCount || 0,
+    perUserTicketLimit: perUserTicketLimit || PER_USER_TICKET_LIMIT,
+    ticketPriceInBTC: ticketPriceInBTC || 0.00025,
+    BTCPriceInUSD: BTCPriceInUSD || 40000,
+    ticketCommissionInBTC: ticketCommissionInBTC || 0.000025,
+    ticketsAvailable: ticketsAvailable || 100000,
   };
 };
+
+export const makeTicket = ({
+  id,
+  uid,
+  price,
+  status,
+  dateCreated,
+  confirmedTime,
+  expiredTime,
+}: Partial<Ticket>): Ticket => ({
+  id: id || getUuid(),
+  uid: uid || getUuid(),
+  price: price || 0.00025,
+  status: status || TicketStatus.reserved,
+  dateCreated: dateCreated || getTimeAsISOString(),
+  confirmedTime: confirmedTime || getTimeAsISOString(),
+  expiredTime: expiredTime || getTimeAsISOString(),
+});
