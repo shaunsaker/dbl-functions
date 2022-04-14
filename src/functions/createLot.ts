@@ -4,18 +4,18 @@ import {
   TARGET_LOT_VALUE_USD,
   TARGET_TICKET_VALUE_USD,
   TICKET_COMMISSION_PERCENTAGE,
-} from '../../lots/models';
-import { getBTCUSDPrice } from '../../services/coinGecko/getBTCUSDPrice';
-import { createStore } from '../../services/btcPayServer/createStore';
-import { createStoreWallet } from '../../services/btcPayServer/createStoreWallet';
-import { createWebhook } from '../../services/btcPayServer/createWebhook';
-import { firebaseCreateLot } from '../../services/firebase/firebaseCreateLot';
-import { firebaseSaveStoreData } from '../../services/firebase/firebaseSaveStoreData';
-import { createMnemonic } from '../../utils/createMnemonic';
-import { encrypt } from '../../utils/crypto';
-import { numberToDigits } from '../../utils/numberToDigits';
-import { makeStore, makeWebhook } from '../../stores/data';
-import { makeLot } from '../../lots/data';
+} from '../lots/models';
+import { getBTCUSDPrice } from '../services/coinGecko/getBTCUSDPrice';
+import { createStore } from '../services/btcPayServer/createStore';
+import { createStoreWallet } from '../services/btcPayServer/createStoreWallet';
+import { createWebhook } from '../services/btcPayServer/createWebhook';
+import { firebaseCreateLot } from '../services/firebase/firebaseCreateLot';
+import { firebaseSaveStoreData } from '../services/firebase/firebaseSaveStoreData';
+import { createMnemonic } from '../utils/createMnemonic';
+import { encrypt } from '../utils/crypto';
+import { numberToDigits } from '../utils/numberToDigits';
+import { makeStore, makeWebhook } from '../stores/data';
+import { makeLot } from '../lots/data';
 
 export const createLot = async (): Promise<void> => {
   // fetch the btc price in usd
