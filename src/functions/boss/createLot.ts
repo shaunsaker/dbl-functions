@@ -8,7 +8,7 @@ import {
   TICKET_COMMISSION_PERCENTAGE,
   TICKET_TIMEOUT_MS,
 } from '../../models';
-import { getBTCUSDPrice } from '../../services/binance/getBTCUSDPrice';
+import { getBTCUSDPrice } from '../../services/coinGecko/getBTCUSDPrice';
 import { createStore } from '../../services/btcPayServer/createStore';
 import { createStoreWallet } from '../../services/btcPayServer/createStoreWallet';
 import { createWebhook } from '../../services/btcPayServer/createWebhook';
