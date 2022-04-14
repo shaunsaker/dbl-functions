@@ -1,4 +1,4 @@
-import { LotId, Ticket } from '../models';
+import { LotId, Ticket } from '../lots/models';
 import { firebase } from '../services/firebase';
 import { firebaseWriteBatch } from '../services/firebase/firebaseWriteBatch';
 

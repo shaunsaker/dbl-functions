@@ -1,4 +1,4 @@
-import { Ticket, TicketStatus } from '../models';
+import { Ticket, TicketStatus } from '../lots/models';
 import { getTimeAsISOString } from '../utils/getTimeAsISOString';
 
 export const markTicketsStatus = (

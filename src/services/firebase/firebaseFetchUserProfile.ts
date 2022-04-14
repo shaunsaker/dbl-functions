@@ -1,5 +1,5 @@
 import { firebase } from '.';
-import { UserId, UserProfileData } from '../../models';
+import { UserId, UserProfileData } from '../../userProfile/models';
 
 export const firebaseFetchUserProfile = async (
   uid: UserId,

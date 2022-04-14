@@ -1,4 +1,3 @@
-import { BlockchainAddress } from '../models';
 import { createBlockchainAddress } from '../services/blockCypher/createBlockchainAddress';
 import { createBlockchainTransaction } from '../services/blockCypher/createBlockchainTransaction';
 import { fundTestBlockchainAddress } from '../services/blockCypher/fundTestBlockchainAddress';
@@ -9,7 +8,7 @@ export const testSendBTCFromTemporaryAddress = async ({
   outputAddress,
   BTCValue,
 }: {
-  outputAddress: BlockchainAddress;
+  outputAddress: string;
   BTCValue: number;
 }) => {
   // create an input address

@@ -1,5 +1,5 @@
 import { firebase } from '.';
-import { StoreData } from '../../models';
+import { StoreData } from '../../stores/models';
 import { BtcPayServerStoreId } from '../btcPayServer/models';
 
 export const firebaseSaveStoreData = (

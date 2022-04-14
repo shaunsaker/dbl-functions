@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import { Ticket, TicketStatus } from '../../models';
+import { Ticket, TicketStatus } from '../../lots/models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
 import { BtcPayServerInvoiceSettledEventData } from '../../services/btcPayServer/models';
 import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTickets';

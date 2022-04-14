@@ -1,8 +1,9 @@
-import { Lot, Ticket, TicketId, TicketStatus, UserId } from '../models';
+import { Lot, Ticket, TicketId, TicketStatus } from '../lots/models';
 import { firebase } from '../services/firebase';
 import { firebaseFetchTickets } from '../services/firebase/firebaseFetchTickets';
 import { firebaseWriteBatch } from '../services/firebase/firebaseWriteBatch';
 import { FirebaseFunctionResponse } from '../services/firebase/models';
+import { UserId } from '../userProfile/models';
 import { arrayFromNumber } from '../utils/arrayFromNumber';
 import { getTimeAsISOString } from '../utils/getTimeAsISOString';
 import { getUuid } from '../utils/getUuid';

@@ -1,8 +1,7 @@
 import axios from 'axios';
-import { BlockchainAddress } from '../../models';
 
 export const createBlockchainAddressDepositWebhook = async (
-  address: BlockchainAddress,
+  address: string,
 ): Promise<{ id: string }> => {
   return await axios.post(`${process.env.BLOCK_CYPHER_API}/hooks`, {
     token: process.env.BLOCK_CYPHER_TOKEN,

@@ -1,5 +1,5 @@
 import { firebase } from '.';
-import { Lot, LotId } from '../../models';
+import { Lot, LotId } from '../../lots/models';
 
 export const firebaseUpdateLot = (
   lotId: LotId,

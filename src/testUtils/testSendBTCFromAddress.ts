@@ -1,4 +1,3 @@
-import { BlockchainAddress } from '../models';
 import { createBlockchainTransaction } from '../services/blockCypher/createBlockchainTransaction';
 import { BLOCK_CYPHER_TEST_FEE_BYTES } from '../services/blockCypher/models';
 import { btcToSatoshi } from '../utils/btcToSatoshi';
@@ -9,9 +8,9 @@ export const testSendBTCFromAddress = async ({
   outputAddress,
   BTCValue,
 }: {
-  inputAddress: BlockchainAddress;
+  inputAddress: string;
   inputAddressPrivateKey: string;
-  outputAddress: BlockchainAddress;
+  outputAddress: string;
   BTCValue: number;
 }) => {
   // convert the btc to satoshi

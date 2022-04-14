@@ -1,9 +1,8 @@
 // eslint-disable-next-line
 import axios, { AxiosError } from 'axios';
-import { BlockchainAddress } from '../../models';
 
 export const fundTestBlockchainAddress = async (
-  address: BlockchainAddress,
+  address: string,
   amount: number,
 ): Promise<void> => {
   return new Promise(async (resolve, reject) => {

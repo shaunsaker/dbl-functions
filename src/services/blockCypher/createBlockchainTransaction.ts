@@ -1,6 +1,5 @@
 // eslint-disable-next-line
 import axios, { AxiosError } from 'axios';
-import { BlockchainAddress } from '../../models';
 import { Tx, TXSkeleton } from './models';
 import { signBlockchainTransaction } from './signBlockchainTransaction';
 
@@ -11,10 +10,10 @@ export const createBlockchainTransaction = async ({
   outputAddress,
   valueInSatoshi,
 }: {
-  inputAddress: BlockchainAddress;
+  inputAddress: string;
   inputAddressPrivateKey: string;
   feesInSatoshi: number;
-  outputAddress: BlockchainAddress;
+  outputAddress: string;
   valueInSatoshi: number;
 }): Promise<Tx> => {
   return new Promise(async (resolve, reject) => {

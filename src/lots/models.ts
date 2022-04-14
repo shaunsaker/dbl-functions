@@ -1,4 +1,4 @@
-import { BtcPayServerStoreId } from './services/btcPayServer/models';
+import { UserId } from '../userProfile/models';
 
 export const PER_USER_TICKET_LIMIT = 250;
 
@@ -13,13 +13,9 @@ export const TICKET_COMMISSION_PERCENTAGE = 10;
 // FIXME: these types (except Ticket types) can be shared with the mobile app somehow
 export type LotId = string;
 
-export type Timestamp = string;
-
-export type BlockchainAddress = string;
-
 export interface Lot {
   id: LotId; // it's not present when created but is present when fetched
-  storeId: BtcPayServerStoreId;
+  storeId: string;
   active: boolean; // only one lot is active at a time
   ticketPriceInBTC: number;
   BTCPriceInUSD: number;
@@ -28,12 +24,10 @@ export interface Lot {
   confirmedTicketCount: number;
   ticketsAvailable: number;
   perUserTicketLimit: number;
-  drawTime: Timestamp;
-  lastCallTime: Timestamp;
-  dateCreated: Timestamp;
+  drawTime: string;
+  lastCallTime: string;
+  dateCreated: string;
 }
-
-export type UserId = string;
 
 export enum TicketStatus {
   reserved = 'Reserved',
@@ -49,23 +43,7 @@ export interface Ticket {
   uid: UserId;
   price: number;
   status: TicketStatus;
-  dateCreated: Timestamp;
-  confirmedTime?: Timestamp; // only once the deposit has been received and confirmed
-  expiredTime?: Timestamp; // only if expired
-}
-
-export type Username = string;
-
-export interface UserProfileData {
-  dateJoined: Timestamp;
-  username: Username;
-  email: string;
-  hasCompletedOnboarding: boolean;
-}
-
-export interface StoreData {
-  hash: {
-    iv: string;
-    content: string;
-  };
+  dateCreated: string;
+  confirmedTime?: string; // only once the deposit has been received and confirmed
+  expiredTime?: string; // only if expired
 }

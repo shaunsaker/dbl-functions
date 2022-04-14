@@ -1,5 +1,5 @@
 import { firebase } from '.';
-import { Lot } from '../../models';
+import { Lot } from '../../lots/models';
 
 export const firebaseCreateLot = (lot: Lot): Promise<void> => {
   return new Promise(async (resolve, reject) => {

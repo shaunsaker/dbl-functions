@@ -1,14 +1,13 @@
 import { btcPayServerApi } from '.';
+import { Invoice, InvoiceMetadata } from '../../stores/models';
 import {
   BtcPayServerEndpoint,
-  BtcPayServerInvoice,
   BtcPayServerInvoiceId,
-  BtcPayServerInvoiceMetadata,
   BtcPayServerStoreId,
 } from './models';
 
-type Payload = { metadata: BtcPayServerInvoiceMetadata };
-type Response = BtcPayServerInvoice;
+type Payload = { metadata: InvoiceMetadata };
+type Response = Invoice;
 
 export const updateInvoice = async (
   storeId: BtcPayServerStoreId,

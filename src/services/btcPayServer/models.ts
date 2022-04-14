@@ -1,5 +1,3 @@
-import { LotId, TicketId, UserId } from '../../models';
-
 export type BtcPayServerStoreId = string;
 
 export enum BtcPayServerEndpoint {
@@ -63,51 +61,7 @@ export interface BtcPayServerWebhook {
   automaticRedelivery?: boolean;
 }
 
-export interface BtcPayServerInvoiceMetadata {
-  orderId?: string;
-  orderUrl?: string;
-  uid: UserId;
-  lotId: LotId;
-  ticketIds: TicketId[];
-}
-
-export interface BtcPayServerInvoicePayload {
-  metadata: BtcPayServerInvoiceMetadata;
-  checkout: {
-    speedPolicy: BtcPayServerSpeedPolicy;
-    paymentMethods?: string; // defaults to all set in store
-    defaultPaymentMethod?: 'BTC';
-    expirationMinutes?: number;
-    monitoringMinutes?: number;
-    paymentTolerance?: number;
-    redirectUrl?: string;
-    redirectAutomatically?: boolean;
-    requiresRefundEmail?: boolean;
-    defaultLanguage?: 'en-US';
-  };
-  amount: number;
-  currency?: string;
-  additionalSearchTerms?: string[];
-}
-
 export type BtcPayServerInvoiceId = string;
-
-export interface BtcPayServerInvoice
-  extends Omit<BtcPayServerInvoicePayload, 'amount'> {
-  id: BtcPayServerInvoiceId;
-  storeId: BtcPayServerStoreId;
-  amount: string;
-  currency: string;
-  type: string;
-  checkoutLink: string;
-  dateCreated: number;
-  expirationTime: number;
-  monitoringTime: number;
-  status: string;
-  additionalStatus: string;
-  availableStatusesForManualMarking: string[];
-  archived: boolean;
-}
 
 export interface BtcPayServerEventDataBase {
   deliveryId: string;
