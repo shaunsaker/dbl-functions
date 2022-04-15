@@ -6,6 +6,7 @@ import {
   TICKET_COMMISSION_PERCENTAGE,
 } from '../../lots/models';
 import { createPullPayment } from '../../services/btcPayServer/createPullPayment';
+import { getStoreByStoreName } from '../../services/btcPayServer/getStoreByStoreName';
 import { getStoreWalletBalance } from '../../services/btcPayServer/getStoreWalletBalance';
 import {
   BtcPayServerPullPayment,
@@ -104,8 +105,18 @@ export const runBoss = async (): Promise<Response> => {
     };
   }
 
+  // get the store
+  const store = await getStoreByStoreName(activeLot.id);
+
+  if (!store) {
+    return {
+      error: true,
+      message: 'Oh shit son, no store!',
+    };
+  }
+
   // validate that activeLot.totalInBTC at least matches our wallet balance
-  const storeWalletBalance = await getStoreWalletBalance(activeLot.storeId);
+  const storeWalletBalance = await getStoreWalletBalance(store.id);
   const isLotTotalValid =
     parseFloat(storeWalletBalance.confirmedBalance) >= activeLot.totalInBTC;
 
@@ -138,7 +149,7 @@ export const runBoss = async (): Promise<Response> => {
 
   // send winner and commission BTC
   const winnerPullPayment = await createWinnerPullPayment({
-    storeId: activeLot.storeId,
+    storeId: store.id,
     user: {
       uid: userId,
       username: userProfileData.username,
@@ -166,7 +177,7 @@ export const runBoss = async (): Promise<Response> => {
   });
 
   await createAdminPullPayment({
-    storeId: activeLot.storeId,
+    storeId: store.id,
     lot: activeLot,
   });
 

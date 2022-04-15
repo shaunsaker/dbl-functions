@@ -11,7 +11,6 @@ import {
 
 export const makeLot = ({
   id,
-  storeId,
   dateCreated,
   lastCallTime,
   drawTime,
@@ -39,7 +38,6 @@ export const makeLot = ({
 
   return {
     id: id || getUuid(),
-    storeId: storeId || getUuid(),
     dateCreated: dateCreated || getTimeAsISOString(now),
     lastCallTime: lastCallTimeString,
     drawTime: drawTimeString,

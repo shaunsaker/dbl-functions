@@ -15,7 +15,6 @@ export type LotId = string;
 
 export interface Lot {
   id: LotId; // it's not present when created but is present when fetched
-  storeId: string;
   active: boolean; // only one lot is active at a time
   ticketPriceInBTC: number;
   BTCPriceInUSD: number;

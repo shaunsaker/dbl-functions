@@ -82,7 +82,6 @@ export const createLot = async (): Promise<void> => {
   // create the lot
   const lot = makeLot({
     id: lotId,
-    storeId,
     BTCPriceInUSD,
     ticketPriceInBTC,
     ticketCommissionInBTC,

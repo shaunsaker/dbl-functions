@@ -3,6 +3,7 @@ import { CallableContext } from 'firebase-functions/v1/https';
 import { LotId, TicketStatus } from '../../lots/models';
 import { createInvoice } from '../../services/btcPayServer/createInvoice';
 import { makeInvoicePayload } from '../../services/btcPayServer/data';
+import { getStoreByStoreName } from '../../services/btcPayServer/getStoreByStoreName';
 import { BtcPayServerInvoice } from '../../services/btcPayServer/models';
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseGetUser } from '../../services/firebase/firebaseGetUser';
@@ -84,6 +85,16 @@ export const runBookie = async ({
     };
   }
 
+  // get the store
+  const store = await getStoreByStoreName(lotId);
+
+  if (!store) {
+    return {
+      error: true,
+      message: 'We could not find this store 🤔',
+    };
+  }
+
   // create the invoice
   const ticketValueBTC = ticketCount * lot.ticketPriceInBTC;
   const ticketValueUSD = ticketValueBTC * lot.BTCPriceInUSD;
@@ -93,7 +104,7 @@ export const runBookie = async ({
     lotId: lot.id,
     ticketIds: createTicketsResponse.data,
   });
-  const invoice = await createInvoice(lot.storeId, invoicePayload);
+  const invoice = await createInvoice(store.id, invoicePayload);
 
   return {
     error: false,
