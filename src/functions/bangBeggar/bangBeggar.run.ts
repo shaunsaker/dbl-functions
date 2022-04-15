@@ -1,4 +1,4 @@
-import { runBusker } from '.';
+import { runBangBeggar } from '.';
 import { makeBtcPayServerInvoiceExpiredEventData } from '../../services/btcPayServer/data';
 
 require('dotenv').config();
@@ -12,7 +12,7 @@ const doAsync = async () => {
   });
 
   try {
-    const response = await runBusker(webhookEvent);
+    const response = await runBangBeggar(webhookEvent);
 
     console.log(JSON.stringify({ response }, undefined, 2));
   } catch (error) {

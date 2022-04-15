@@ -2,7 +2,7 @@ import { getLotStats } from '.';
 import { makeLot, makeTicket } from '../../lots/data';
 import { TicketStatus } from '../../lots/models';
 
-describe('billboarder', () => {
+describe('busker', () => {
   describe('getLotStats', () => {
     const lot = makeLot({
       ticketsAvailable: 100000,

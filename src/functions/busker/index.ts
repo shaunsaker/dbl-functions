@@ -1,131 +1,169 @@
 import * as functions from 'firebase-functions';
-import { Ticket, TicketStatus } from '../../lots/models';
-import { getInvoice } from '../../services/btcPayServer/getInvoice';
-import { BtcPayServerInvoiceExpiredEventData } from '../../services/btcPayServer/models';
-import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTickets';
+import { Lot, LotId, Ticket, TicketStatus } from '../../lots/models';
+import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
+import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
-import { verifySignature } from '../../services/btcPayServer/verifySignature';
-import { saveTickets } from '../saveTickets';
-import { markTicketsStatus } from '../markTicketsStatus';
+
+// NOTE: this covers a lot of scenarios and looks complicated, see tests for clarity
+export const getLotStats = ({
+  lot,
+  ticketBefore,
+  ticketAfter,
+}: {
+  lot: Lot;
+  ticketBefore: Ticket | undefined;
+  ticketAfter: Ticket | undefined;
+}) => {
+  let newTicketsAvailable = lot.ticketsAvailable;
+  let newConfirmedTicketCount = lot.confirmedTicketCount;
+  let newTotalInBTC = lot.totalInBTC;
+
+  const ticketWasAdded = !ticketBefore;
+  const ticketWasDeleted = !ticketAfter;
+  const ticketChanged = !ticketWasAdded && !ticketWasDeleted;
+
+  if (ticketWasAdded) {
+    // reserved ✅
+    // paymentReceived ✅
+    // confirmed ✅
+    // expired ⛔
+    const newTicketIsNotExpired = ticketAfter?.status !== TicketStatus.expired;
+    const newTicketIsConfirmed = ticketAfter?.status === TicketStatus.confirmed;
+
+    // if any ticket besides an expired one was added
+    if (newTicketIsNotExpired) {
+      newTicketsAvailable -= 1;
+
+      // if a confirmed ticket was added also do the following
+      if (newTicketIsConfirmed) {
+        newConfirmedTicketCount += 1;
+        newTotalInBTC += lot.ticketPriceInBTC;
+      }
+    }
+  } else if (ticketWasDeleted) {
+    // reserved ✅
+    // paymentReceived ✅
+    // confirmed ✅
+    // expired ⛔
+    const ticketWasNotExpired = ticketBefore?.status !== TicketStatus.expired;
+    const ticketWasConfirmed = ticketBefore?.status === TicketStatus.confirmed;
+
+    if (ticketWasNotExpired) {
+      newTicketsAvailable += 1;
+
+      if (ticketWasConfirmed) {
+        newConfirmedTicketCount -= 1;
+        newTotalInBTC -= lot.ticketPriceInBTC;
+      }
+    }
+  } else if (ticketChanged) {
+    // SUMMARY: we only act if:
+    // a ticket became confirmed/expired
+    // a ticket changed from confirmed/expired
+    //
+    // reserved => reserved ⛔
+    // reserved => paymentReceived ⛔
+    // reserved => confirmed ✅
+    // reserved => expired ✅
+    // paymentReceived => reserved ⛔
+    // paymentReceived => paymentReceived ⛔
+    // paymentReceived => confirmed ✅
+    // paymentReceived => expired ✅
+    // confirmed => reserved ✅
+    // confirmed => paymentReceived ✅
+    // confirmed => confirmed ⛔
+    // confirmed => expired ✅
+    // expired => reserved  ✅
+    // expired => paymentReceived  ✅
+    // expired => confirmed ✅
+    // expired => expired ⛔
+
+    const ticketWasConfirmed = ticketBefore.status === TicketStatus.confirmed;
+    const ticketWasExpired = ticketBefore.status === TicketStatus.expired;
+    const ticketIsConfirmed = ticketAfter.status === TicketStatus.confirmed;
+    const ticketIsExpired = ticketAfter.status === TicketStatus.expired;
+    const ticketBecameConfirmed = !ticketWasConfirmed && ticketIsConfirmed;
+    const ticketBecameExpired =
+      !ticketWasExpired && ticketAfter.status === TicketStatus.expired;
+
+    if (ticketBecameConfirmed) {
+      newConfirmedTicketCount += 1;
+      newTotalInBTC += lot.ticketPriceInBTC;
+
+      if (ticketWasExpired) {
+        newTicketsAvailable -= 1;
+      }
+    } else if (ticketBecameExpired) {
+      newTicketsAvailable += 1;
+
+      if (ticketWasConfirmed) {
+        newConfirmedTicketCount -= 1;
+        newTotalInBTC -= lot.ticketPriceInBTC;
+      }
+    } else if (ticketWasConfirmed && !ticketIsConfirmed) {
+      newConfirmedTicketCount -= 1;
+      newTotalInBTC -= lot.ticketPriceInBTC;
+    } else if (ticketWasExpired && !ticketIsExpired) {
+      newTicketsAvailable -= 1;
+    }
+  }
+
+  const newLotStats = {
+    ticketsAvailable: newTicketsAvailable,
+    confirmedTicketCount: newConfirmedTicketCount,
+    totalInBTC: newTotalInBTC,
+  };
+
+  return newLotStats;
+};
 
 type Response = FirebaseFunctionResponse<void>;
 
-export const runBusker = async (
-  data: BtcPayServerInvoiceExpiredEventData,
-): Promise<Response> => {
-  // we need to get the lotId and uid from the invoice
-  // so we need to fetch the invoice
-  const { storeId, invoiceId } = data;
+// when a lot's tickets change, ie. status change, it's added, it's removed
+// we need to update that lot's stats, ie. ticketsAvailable, confirmedTicketCount, totalInBTC
+export const runBusker = async ({
+  lotId,
+  ticketBefore,
+  ticketAfter,
+}: {
+  lotId: LotId;
+  ticketBefore: Ticket | undefined;
+  ticketAfter: Ticket | undefined;
+}): Promise<Response> => {
+  // fetch the lot
+  const lot = await firebaseFetchLot(lotId);
 
-  if (!storeId) {
+  if (!lot) {
     return {
       error: true,
-      message: 'storeId missing fool.',
+      message: 'Lot missing fool.',
+      data: undefined,
     };
   }
 
-  if (!invoiceId) {
-    return {
-      error: true,
-      message: 'invoiceId missing fool.',
-    };
-  }
+  const newLotStats = getLotStats({ lot, ticketBefore, ticketAfter });
 
-  const invoice = await getInvoice({ storeId, invoiceId });
+  // TODO:  we should verify the totalInBTC and notify admin of any discrepencies
 
-  if (!invoice) {
-    return {
-      error: true,
-      message: 'Invoice missing fool.',
-    };
-  }
-
-  const { lotId, uid } = invoice.metadata;
-
-  if (!lotId) {
-    return {
-      error: true,
-      message: 'lotId missing from invoice fool.',
-    };
-  }
-
-  if (!uid) {
-    return {
-      error: true,
-      message: 'uid missing from invoice fool.',
-    };
-  }
-
-  // fetch the reserved tickets using the ticketIds in the invoice
-  const reservedTickets = await firebaseFetchTickets({
-    lotId,
-    uid,
-    ticketIds: invoice.metadata.ticketIds,
-    ticketStatuses: [TicketStatus.reserved],
-  });
-
-  if (!reservedTickets.length) {
-    return {
-      error: true,
-      message: 'No reservedTickets left to expire 🤔',
-    };
-  }
-
-  // mark the remaining reserved tickets as expired
-  // NOTE: here we can mark all the reserved tickets as expired
-  const expiredTickets: Ticket[] = markTicketsStatus(
-    reservedTickets,
-    TicketStatus.expired,
-  );
-
-  // write the expired tickets to firebase
-  await saveTickets(lotId, expiredTickets);
+  await firebaseUpdateLot(lotId, newLotStats);
 
   return {
     error: false,
     message: 'Great Success!',
+    data: undefined,
   };
 };
 
-const busker = functions.https.onRequest(
-  async (request, response): Promise<void> => {
-    const signature = request.get('BTCPay-Sig');
+const busker = functions.firestore
+  .document('lots/{lotId}/tickets/{ticketId}')
+  .onWrite(async (change, context): Promise<Response> => {
+    const { lotId } = context.params;
 
-    if (!signature) {
-      response.status(200).send('You fuck on meee!'); // webhook needs 200 otherwise it will try redeliver continuously
-
-      return;
-    }
-
-    const isValidSignature = verifySignature({
-      secret: process.env.WEBHOOK_SECRET,
-      body: request.body,
-      signature,
+    return await runBusker({
+      lotId,
+      ticketBefore: change.before.data() as Ticket | undefined,
+      ticketAfter: change.after.data() as Ticket | undefined,
     });
-
-    if (!isValidSignature) {
-      response.status(200).send('You fuck on meee!');
-
-      return;
-    }
-
-    const data: BtcPayServerInvoiceExpiredEventData = request.body;
-
-    // ignore all other webhook events in case the webhook was not set up correctly
-    if (data.type !== 'InvoiceExpired' && data.type !== 'InvoiceInvalid') {
-      response.status(200).send(`Received ${data.type} event.`);
-
-      return;
-    }
-
-    try {
-      const buskerResponse = await runBusker(data);
-
-      response.status(200).send(buskerResponse.message);
-    } catch (error) {
-      response.status(200).send((error as Error).message);
-    }
-  },
-);
+  });
 
 export { busker };
