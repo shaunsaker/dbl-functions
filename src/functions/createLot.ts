@@ -28,8 +28,10 @@ export const createLot = async (): Promise<void> => {
 
   // calculate the ticket price
   const targetLotValueBTC = TARGET_LOT_VALUE_USD / BTCPriceInUSD;
+  const ticketPriceWithoutCommissionInBTC =
+    targetLotValueBTC / ticketsAvailable;
   const ticketPriceInBTC = numberToDigits(
-    targetLotValueBTC / ticketsAvailable,
+    ticketPriceWithoutCommissionInBTC * (100 + TICKET_COMMISSION_PERCENTAGE),
     6,
   );
 
