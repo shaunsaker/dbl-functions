@@ -143,6 +143,8 @@ export const runBillboarder = async ({
 
   const newLotStats = getLotStats({ lot, ticketBefore, ticketAfter });
 
+  // TODO:  we should verify the totalInBTC and notify admin of any discrepencies
+
   await firebaseUpdateLot(lotId, newLotStats);
 
   return {

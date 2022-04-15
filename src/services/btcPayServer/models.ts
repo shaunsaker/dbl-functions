@@ -95,3 +95,108 @@ export interface BtcPayServerInvoiceExpiredEventData
   extends BtcPayServerEventDataBase {
   partiallyPaid: boolean;
 }
+
+export interface BtcPayServerTransactionPayload {
+  destinations: {
+    destination: string;
+    amount: string;
+    subtractFromAmount: boolean;
+  }[];
+  feeRate: number;
+  proceedWithPayjoin?: boolean;
+  proceedWithBroadcast?: boolean;
+  noChange?: boolean;
+  rbf?: boolean;
+  selectedInputs?: string[];
+}
+
+export interface BtcPayServerTransaction {
+  transactionHash: string;
+  comment: string;
+  amount: string;
+  blockHash: string;
+  blockHeight: string;
+  confirmations: number;
+  timestamp: number;
+  status: string;
+  labels: {
+    [key: string]: {
+      type: string;
+      text: string;
+    };
+  };
+}
+
+export interface BtcPayServerPullPaymentPayload {
+  name: string;
+  description: string;
+  amount: string;
+  currency: 'BTC'; // NOTE: update this when we handle more coins/lightning
+  period?: number;
+  BOLT11Expiration?: string;
+  startsAt?: number;
+  expiresAt?: number;
+  paymentMethods: ['BTC']; // NOTE: update this when we handle more coins/lightning
+}
+
+export interface BtcPayServerPullPayment {
+  id: string;
+  name: string;
+  description: string;
+  currency: string;
+  amount: string;
+  period: number;
+  BOLT11Expiration: number;
+  archived: boolean;
+  viewLink: string;
+}
+
+export interface BtcPayServerInvoiceMetadata {
+  orderId?: string;
+  orderUrl?: string;
+  uid: string;
+  lotId: string;
+  ticketIds: string[];
+}
+
+export interface BtcPayServerInvoicePayload {
+  metadata: BtcPayServerInvoiceMetadata;
+  checkout: {
+    speedPolicy: BtcPayServerSpeedPolicy;
+    paymentMethods?: string; // defaults to all set in store
+    defaultPaymentMethod?: 'BTC';
+    expirationMinutes?: number;
+    monitoringMinutes?: number;
+    paymentTolerance?: number;
+    redirectUrl?: string;
+    redirectAutomatically?: boolean;
+    requiresRefundEmail?: boolean;
+    defaultLanguage?: 'en-US';
+  };
+  amount: number;
+  currency?: string;
+  additionalSearchTerms?: string[];
+}
+
+export interface BtcPayServerInvoice
+  extends Omit<BtcPayServerInvoicePayload, 'amount'> {
+  id: BtcPayServerInvoiceId;
+  storeId: BtcPayServerStoreId;
+  amount: string;
+  currency: string;
+  type: string;
+  checkoutLink: string;
+  dateCreated: number;
+  expirationTime: number;
+  monitoringTime: number;
+  status: string;
+  additionalStatus: string;
+  availableStatusesForManualMarking: string[];
+  archived: boolean;
+}
+
+export interface BtcPayServerStoreWalletBalance {
+  balance: string;
+  unconfirmedBalance: string;
+  confirmedBalance: string;
+}

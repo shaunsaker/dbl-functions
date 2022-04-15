@@ -3,3 +3,7 @@ export interface FirebaseFunctionResponse<T> {
   message: string;
   data?: T | undefined;
 }
+
+export enum FirebaseMessagingTopics {
+  winner = 'winner',
+}

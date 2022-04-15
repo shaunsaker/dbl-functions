@@ -9,18 +9,22 @@ export const firebaseFetchTickets = async ({
   ticketIds,
 }: {
   lotId: LotId;
-  uid: UserId;
+  uid?: UserId;
   ticketStatuses?: TicketStatus[];
   ticketIds?: TicketId[];
 }): Promise<Ticket[]> => {
   return new Promise(async (resolve, reject) => {
     try {
-      let ref = firebase
-        .firestore()
-        .collection('lots')
-        .doc(lotId)
-        .collection('tickets')
-        .where('uid', '==', uid);
+      let ref: firebase.firestore.Query<firebase.firestore.DocumentData> =
+        firebase
+          .firestore()
+          .collection('lots')
+          .doc(lotId)
+          .collection('tickets');
+
+      if (uid) {
+        ref = ref.where('uid', '==', uid);
+      }
 
       if (ticketStatuses) {
         ref = ref.where('status', 'in', ticketStatuses);

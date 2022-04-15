@@ -1,12 +1,12 @@
 import { btcPayServerApi } from '.';
-import { Invoice } from '../../stores/models';
 import {
   BtcPayServerEndpoint,
+  BtcPayServerInvoice,
   BtcPayServerInvoiceId,
   BtcPayServerStoreId,
 } from './models';
 
-type Response = Invoice;
+type Response = BtcPayServerInvoice;
 
 export const getInvoice = async ({
   storeId,

@@ -2,14 +2,14 @@ import * as functions from 'firebase-functions';
 import { CallableContext } from 'firebase-functions/v1/https';
 import { LotId, TicketStatus } from '../../lots/models';
 import { createInvoice } from '../../services/btcPayServer/createInvoice';
+import { makeInvoicePayload } from '../../services/btcPayServer/data';
+import { BtcPayServerInvoice } from '../../services/btcPayServer/models';
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseGetUser } from '../../services/firebase/firebaseGetUser';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
-import { makeInvoicePayload } from '../../stores/data';
-import { Invoice } from '../../stores/models';
 import { createTickets } from '../createTickets';
 
-type Response = FirebaseFunctionResponse<Invoice>;
+type Response = FirebaseFunctionResponse<BtcPayServerInvoice>;
 
 export const runBookie = async ({
   uid,

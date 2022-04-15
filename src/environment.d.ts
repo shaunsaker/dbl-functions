@@ -12,6 +12,9 @@ declare global {
       INVOICE_RECEIVED_PAYMENT_WEBHOOK_URL: string;
       INVOICE_SETTLED_WEBHOOK_URL: string;
       INVOICE_EXPIRED_WEBHOOK_URL: string;
+      EMAIL_USERNAME: string;
+      EMAIL_PASSWORD: string;
+      APP_NAME: string;
       PORT?: string;
       PWD: string;
     }

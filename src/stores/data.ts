@@ -1,12 +1,9 @@
-import { LotId, TicketId } from '../lots/models';
 import {
   BtcPayServerStore,
   BtcPayServerWebhook,
   BtcPayServerWebhookEvent,
 } from '../services/btcPayServer/models';
-import { UserId } from '../userProfile/models';
 import { getUuid } from '../utils/getUuid';
-import { InvoicePayload } from './models';
 
 export const makeStore = ({
   name = '',
@@ -32,29 +29,5 @@ export const makeWebhook = (
       specificEvents: specificEvents,
     },
     secret: process.env.WEBHOOK_SECRET,
-  };
-};
-
-export const makeInvoicePayload = ({
-  amount,
-  uid,
-  lotId,
-  ticketIds,
-}: {
-  amount: number;
-  uid: UserId;
-  lotId: LotId;
-  ticketIds: TicketId[];
-}): InvoicePayload => {
-  return {
-    amount: amount || 0,
-    checkout: {
-      speedPolicy: 'LowSpeed',
-    },
-    metadata: {
-      uid,
-      lotId,
-      ticketIds,
-    },
   };
 };

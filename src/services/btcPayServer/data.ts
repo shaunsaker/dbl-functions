@@ -3,6 +3,7 @@ import { getUuid } from '../../utils/getUuid';
 import {
   BtcPayServerInvoiceExpiredEventData,
   BtcPayServerInvoiceId,
+  BtcPayServerInvoicePayload,
   BtcPayServerInvoiceReceivedPaymentEventData,
   BtcPayServerInvoiceSettledEventData,
   BtcPayServerStoreId,
@@ -78,5 +79,29 @@ export const makeBtcPayServerInvoiceExpiredEventData = ({
     storeId,
     invoiceId,
     partiallyPaid: false,
+  };
+};
+
+export const makeInvoicePayload = ({
+  amount,
+  uid,
+  lotId,
+  ticketIds,
+}: {
+  amount: number;
+  uid: string;
+  lotId: string;
+  ticketIds: string[];
+}): BtcPayServerInvoicePayload => {
+  return {
+    amount: amount || 0,
+    checkout: {
+      speedPolicy: 'LowSpeed',
+    },
+    metadata: {
+      uid,
+      lotId,
+      ticketIds,
+    },
   };
 };

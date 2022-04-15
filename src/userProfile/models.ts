@@ -7,4 +7,5 @@ export interface UserProfileData {
   username: Username;
   email: string;
   hasCompletedOnboarding: boolean;
+  withdrawWinningsLink?: string;
 }

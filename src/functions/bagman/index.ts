@@ -1,7 +1,10 @@
 import * as functions from 'firebase-functions';
 import { Ticket, TicketStatus } from '../../lots/models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
-import { BtcPayServerInvoiceReceivedPaymentEventData } from '../../services/btcPayServer/models';
+import {
+  BtcPayServerInvoiceMetadata,
+  BtcPayServerInvoiceReceivedPaymentEventData,
+} from '../../services/btcPayServer/models';
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTickets';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
@@ -11,7 +14,6 @@ import { saveTickets } from '../saveTickets';
 import { markTicketsStatus } from '../markTicketsStatus';
 import { createTickets } from '../createTickets';
 import { updateInvoice } from '../../services/btcPayServer/updateInvoice';
-import { InvoiceMetadata } from '../../stores/models';
 
 export type BagmanResponse = FirebaseFunctionResponse<void>;
 
@@ -142,7 +144,7 @@ export const runBagman = async (
     }
 
     //  update the existing invoice with the new ticket ids
-    const newInvoiceMetadata: InvoiceMetadata = {
+    const newInvoiceMetadata: BtcPayServerInvoiceMetadata = {
       ...invoice.metadata,
       ticketIds: [...invoice.metadata.ticketIds, ...createTicketsResponse.data],
     };

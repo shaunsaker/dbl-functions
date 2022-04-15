@@ -1,4 +1,4 @@
-import { UserId } from '../userProfile/models';
+import { UserId, Username } from '../userProfile/models';
 
 export const PER_USER_TICKET_LIMIT = 250;
 
@@ -27,6 +27,7 @@ export interface Lot {
   drawTime: string;
   lastCallTime: string;
   dateCreated: string;
+  winnerUsername?: Username;
 }
 
 export enum TicketStatus {
