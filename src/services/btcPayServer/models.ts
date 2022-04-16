@@ -40,14 +40,15 @@ export interface BtcPayServerStore {
 
 export type BtcPayServerWebhookId = string;
 
-export type BtcPayServerWebhookEvent =
-  | 'InvoiceCreated'
-  | 'InvoiceReceivedPayment'
-  | 'InvoiceProcessing'
-  | 'InvoiceExpired'
-  | 'InvoiceSettled' // marked as settled
-  | 'InvoiceInvalid' // marked as invalid
-  | 'InvoicePaymentSettled';
+export enum BtcPayServerWebhookEvent {
+  invoiceCreated = 'InvoiceCreated',
+  invoiceReceivedPayment = 'InvoiceReceivedPayment',
+  invoiceProcessing = 'InvoiceProcessing',
+  invoiceExpired = 'InvoiceExpired',
+  invoiceSettled = 'InvoiceSettled', // marked as settled
+  invoiceInvalid = 'InvoiceInvalid', // marked as invalid
+  invoicePaymentSettled = 'InvoicePaymentSettled',
+}
 
 export interface BtcPayServerWebhook {
   id: BtcPayServerWebhookId;

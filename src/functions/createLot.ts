@@ -16,6 +16,7 @@ import { encrypt } from '../utils/crypto';
 import { numberToDigits } from '../utils/numberToDigits';
 import { makeStore, makeWebhook } from '../stores/data';
 import { makeLot } from '../lots/data';
+import { BtcPayServerWebhookEvent } from '../services/btcPayServer/models';
 
 export const createLot = async (): Promise<void> => {
   // fetch the btc price in usd
@@ -60,21 +61,27 @@ export const createLot = async (): Promise<void> => {
 
   // create an invoice payment webhook
   const invoicePaymentReceivedWebhook = makeWebhook(
-    ['InvoiceReceivedPayment'], // once the tx is broadcasted on the blockchain
+    [BtcPayServerWebhookEvent.invoiceReceivedPayment], // once the tx is broadcasted on the blockchain
     process.env.INVOICE_RECEIVED_PAYMENT_WEBHOOK_URL,
   );
   await createWebhook(storeId, invoicePaymentReceivedWebhook);
 
   // create an invoice settled webhook
   const invoiceSettledWebhook = makeWebhook(
-    ['InvoiceSettled', 'InvoicePaymentSettled'], // once the tx is confirmed or manually settled, we'll receive this webhook
+    [
+      BtcPayServerWebhookEvent.invoiceSettled,
+      BtcPayServerWebhookEvent.invoicePaymentSettled,
+    ], // once the tx is confirmed or manually settled, we'll receive this webhook
     process.env.INVOICE_SETTLED_WEBHOOK_URL,
   );
   await createWebhook(storeId, invoiceSettledWebhook);
 
   // create an invoice expiry webhook
   const invoiceExpiredWebhook = makeWebhook(
-    ['InvoiceExpired', 'InvoiceInvalid'], // if invoice expires or manually marked as invalid
+    [
+      BtcPayServerWebhookEvent.invoiceExpired,
+      BtcPayServerWebhookEvent.invoiceInvalid,
+    ], // if invoice expires or manually marked as invalid
     process.env.INVOICE_EXPIRED_WEBHOOK_URL,
   );
   await createWebhook(storeId, invoiceExpiredWebhook);

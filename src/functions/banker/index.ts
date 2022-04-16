@@ -1,7 +1,10 @@
 import * as functions from 'firebase-functions';
 import { Ticket, TicketStatus } from '../../lots/models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
-import { BtcPayServerInvoiceSettledEventData } from '../../services/btcPayServer/models';
+import {
+  BtcPayServerInvoiceSettledEventData,
+  BtcPayServerWebhookEvent,
+} from '../../services/btcPayServer/models';
 import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTickets';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
@@ -121,8 +124,8 @@ const banker = functions.https.onRequest(
 
     // ignore all other webhook events in case the webhook was not set up correctly
     if (
-      data.type !== 'InvoiceSettled' &&
-      data.type !== 'InvoicePaymentSettled'
+      data.type !== BtcPayServerWebhookEvent.invoiceSettled &&
+      data.type !== BtcPayServerWebhookEvent.invoicePaymentSettled
     ) {
       response.status(200).send(`Received ${data.type} event.`);
 

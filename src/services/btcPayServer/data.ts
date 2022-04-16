@@ -7,6 +7,7 @@ import {
   BtcPayServerInvoiceReceivedPaymentEventData,
   BtcPayServerInvoiceSettledEventData,
   BtcPayServerStoreId,
+  BtcPayServerWebhookEvent,
 } from './models';
 
 export const makeBtcPayServerInvoiceReceivedPaymentEventData = ({
@@ -26,7 +27,7 @@ export const makeBtcPayServerInvoiceReceivedPaymentEventData = ({
     webhookId: getUuid(),
     originalDeliveryId: deliveryId,
     isRedelivery: false,
-    type: 'InvoiceReceivedPayment',
+    type: BtcPayServerWebhookEvent.invoiceReceivedPayment,
     timestamp: now,
     storeId,
     invoiceId,
@@ -74,7 +75,7 @@ export const makeBtcPayServerInvoiceExpiredEventData = ({
     webhookId: getUuid(),
     originalDeliveryId: deliveryId,
     isRedelivery: false,
-    type: 'InvoiceReceivedPayment',
+    type: BtcPayServerWebhookEvent.invoiceReceivedPayment,
     timestamp: now,
     storeId,
     invoiceId,

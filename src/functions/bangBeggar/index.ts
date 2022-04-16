@@ -1,7 +1,10 @@
 import * as functions from 'firebase-functions';
 import { Ticket, TicketStatus } from '../../lots/models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
-import { BtcPayServerInvoiceExpiredEventData } from '../../services/btcPayServer/models';
+import {
+  BtcPayServerInvoiceExpiredEventData,
+  BtcPayServerWebhookEvent,
+} from '../../services/btcPayServer/models';
 import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTickets';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
@@ -112,7 +115,10 @@ const bangBeggar = functions.https.onRequest(
     const data: BtcPayServerInvoiceExpiredEventData = request.body;
 
     // ignore all other webhook events in case the webhook was not set up correctly
-    if (data.type !== 'InvoiceExpired' && data.type !== 'InvoiceInvalid') {
+    if (
+      data.type !== BtcPayServerWebhookEvent.invoiceExpired &&
+      data.type !== BtcPayServerWebhookEvent.invoiceInvalid
+    ) {
       response.status(200).send(`Received ${data.type} event.`);
 
       return;
