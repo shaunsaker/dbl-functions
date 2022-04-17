@@ -2,8 +2,8 @@ import * as functions from 'firebase-functions';
 import { Ticket, TicketStatus } from '../../lots/models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
 import {
-  BtcPayServerInvoiceMetadata,
   BtcPayServerInvoiceReceivedPaymentEventData,
+  BtcPayServerWebhookEvent,
 } from '../../services/btcPayServer/models';
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTickets';
@@ -22,6 +22,23 @@ export type BagmanResponse = FirebaseFunctionResponse<void>;
 // he also handles partial payments and over payments
 export const runBagman = async (
   data: BtcPayServerInvoiceReceivedPaymentEventData,
+  dependencies: {
+    getInvoice: typeof getInvoice;
+    firebaseFetchLot: typeof firebaseFetchLot;
+    firebaseFetchTickets: typeof firebaseFetchTickets;
+    markTicketsStatus: typeof markTicketsStatus;
+    saveTickets: typeof saveTickets;
+    createTickets: typeof createTickets;
+    updateInvoice: typeof updateInvoice;
+  } = {
+    getInvoice,
+    firebaseFetchLot,
+    firebaseFetchTickets,
+    markTicketsStatus,
+    saveTickets,
+    createTickets,
+    updateInvoice,
+  },
 ): Promise<BagmanResponse> => {
   // we need to get the lotId and uid from the invoice
   // so we need to fetch the invoice
@@ -41,7 +58,10 @@ export const runBagman = async (
     };
   }
 
-  const invoice = await getInvoice({ storeId, invoiceId });
+  const invoice = await dependencies.getInvoice({
+    storeId,
+    invoiceId,
+  });
 
   if (!invoice) {
     return {
@@ -50,7 +70,7 @@ export const runBagman = async (
     };
   }
 
-  const { lotId, uid } = invoice.metadata;
+  const { lotId, uid, ticketIds } = invoice.metadata;
 
   if (!lotId) {
     return {
@@ -66,8 +86,22 @@ export const runBagman = async (
     };
   }
 
+  if (!ticketIds) {
+    return {
+      error: true,
+      message: 'ticketIds missing from invoice fool.',
+    };
+  }
+
+  if (!ticketIds.length) {
+    return {
+      error: true,
+      message: 'ticketIds in invoice are empty fool.',
+    };
+  }
+
   // fetch the lot
-  const lot = await firebaseFetchLot(lotId);
+  const lot = await dependencies.firebaseFetchLot(lotId);
 
   if (!lot) {
     return {
@@ -77,12 +111,19 @@ export const runBagman = async (
   }
 
   // fetch the tickets using the ticketIds in the invoice
-  const reservedTickets = await firebaseFetchTickets({
+  const reservedTickets = await dependencies.firebaseFetchTickets({
     lotId,
     uid,
     ticketIds: invoice.metadata.ticketIds,
     ticketStatuses: [TicketStatus.reserved],
   });
+
+  if (!reservedTickets.length) {
+    return {
+      error: true,
+      message: 'Tickets missing fool.',
+    };
+  }
 
   const paymentAmountUSD = parseFloat(data.payment.value);
   const paymentAmountBTC = paymentAmountUSD / lot.BTCPriceInUSD;
@@ -107,50 +148,17 @@ export const runBagman = async (
     : reservedTickets.slice(0, quantityTicketsReservable - 1);
 
   // mark the ticket's statuses
-  const paidTickets: Ticket[] = markTicketsStatus(
+  const paidTickets: Ticket[] = dependencies.markTicketsStatus(
     reservableTickets,
     TicketStatus.paymentReceived,
   );
 
   // update the tickets in firebase
-  await saveTickets(lotId, paidTickets);
+  await dependencies.saveTickets(lotId, paidTickets);
 
-  // handle over payments by creating new reserved tickets
-  if (hasUserOverpaidOrPaidLate) {
-    // the user can afford X new tickets over and above the tickets they have paid already
-    const quantityNewTickets = quantityTicketsReservable - paidTickets.length;
+  // TODO: SS handle late payment
 
-    // create the tickets
-    const createTicketsResponse = await createTickets({
-      lot,
-      uid,
-      ticketCount: quantityNewTickets,
-      ticketPriceInBTC: lot.ticketPriceInBTC,
-      ticketStatus: TicketStatus.paymentReceived, // no need to first reserve them
-    });
-
-    if (createTicketsResponse.error) {
-      return {
-        error: true,
-        message: createTicketsResponse.message,
-      };
-    }
-
-    if (!createTicketsResponse.data) {
-      return {
-        error: true,
-        message: 'No ticketIds 🤔',
-      };
-    }
-
-    //  update the existing invoice with the new ticket ids
-    const newInvoiceMetadata: BtcPayServerInvoiceMetadata = {
-      ...invoice.metadata,
-      ticketIds: [...invoice.metadata.ticketIds, ...createTicketsResponse.data],
-    };
-
-    await updateInvoice(storeId, invoiceId, { metadata: newInvoiceMetadata });
-  }
+  // TODO: SS handle late settlement
 
   return {
     error: false,
@@ -186,7 +194,7 @@ const bagman = functions.https.onRequest(
     const data: BtcPayServerInvoiceReceivedPaymentEventData = request.body;
 
     // ignore all other webhook events in case the webhook was not set up correctly
-    if (data.type !== 'InvoiceReceivedPayment') {
+    if (data.type !== BtcPayServerWebhookEvent.invoiceReceivedPayment) {
       response.status(200).send(`Received ${data.type} event.`);
 
       return;

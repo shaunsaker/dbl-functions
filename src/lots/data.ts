@@ -1,4 +1,5 @@
 import moment = require('moment');
+import { BtcPayServerInvoice } from '../services/btcPayServer/models';
 import { getTimeAsISOString } from '../utils/getTimeAsISOString';
 import { getUuid } from '../utils/getUuid';
 import {
@@ -68,4 +69,31 @@ export const makeTicket = ({
   dateCreated: dateCreated || getTimeAsISOString(),
   confirmedTime: confirmedTime || getTimeAsISOString(),
   expiredTime: expiredTime || getTimeAsISOString(),
+});
+
+export const makeInvoice = ({
+  metadata: { uid, lotId, ticketIds } = { uid: '', lotId: '', ticketIds: [] },
+  amount,
+}: Partial<BtcPayServerInvoice>): BtcPayServerInvoice => ({
+  metadata: {
+    uid,
+    lotId,
+    ticketIds,
+  },
+  checkout: {
+    speedPolicy: 'LowSpeed',
+  },
+  amount: amount || '',
+  id: getUuid(),
+  storeId: getUuid(),
+  currency: 'BTC',
+  type: '',
+  checkoutLink: '',
+  dateCreated: 0,
+  expirationTime: 0,
+  monitoringTime: 0,
+  status: '',
+  additionalStatus: '',
+  availableStatusesForManualMarking: [],
+  archived: false,
 });
