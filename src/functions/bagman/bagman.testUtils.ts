@@ -19,6 +19,7 @@ export const setupBagmanTest = async ({
   userProfileData = makeUserProfileData({}),
   lot = makeLot({}),
   tickets = [makeTicket({})],
+  paymentValueUSD = 10,
 }: {
   storeId?: BtcPayServerStoreId;
   invoiceId?: BtcPayServerInvoiceId;
@@ -26,14 +27,13 @@ export const setupBagmanTest = async ({
   userProfileData?: UserProfileData | null;
   lot?: Lot | null;
   tickets?: Ticket[];
+  paymentValueUSD?: number;
 }) => {
   const getInvoice = jest.fn();
   const firebaseFetchUserProfile = jest.fn();
   const firebaseFetchLot = jest.fn();
   const firebaseFetchTickets = jest.fn();
   const saveTickets = jest.fn();
-  const createTickets = jest.fn();
-  const updateInvoice = jest.fn();
   const firebaseSendNotification = jest.fn();
 
   if (invoice) {
@@ -53,7 +53,6 @@ export const setupBagmanTest = async ({
   }
 
   // create the webhook payment event
-  const paymentValueUSD = 10;
   const eventData = makeBtcPayServerInvoiceReceivedPaymentEventData({
     storeId,
     invoiceId,
@@ -67,10 +66,8 @@ export const setupBagmanTest = async ({
     firebaseFetchTickets,
     markTicketsStatus,
     saveTickets,
-    createTickets,
-    updateInvoice,
     firebaseSendNotification,
   });
 
-  return { response };
+  return { response, saveTickets, firebaseSendNotification };
 };

@@ -12,16 +12,50 @@ import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
 import { saveTickets } from '../saveTickets';
 import { markTicketsStatus } from '../markTicketsStatus';
-import { createTickets } from '../createTickets';
-import { updateInvoice } from '../../services/btcPayServer/updateInvoice';
 import { firebaseSendNotification } from '../../services/firebase/firebaseSendNotification';
 import { firebaseFetchUserProfile } from '../../services/firebase/firebaseFetchUserProfile';
+
+export const getBagmanNotification = ({
+  paymentAmountBTC,
+  paidTickets,
+  fcmToken,
+}: {
+  paymentAmountBTC: number;
+  paidTickets: Ticket[];
+  fcmToken: string;
+}): {
+  title: string;
+  body: string;
+  token: string;
+} => {
+  return {
+    title: `We've just received payment of ${paymentAmountBTC} BTC from you 😎`,
+    body:
+      paidTickets.length > 0
+        ? `This was enough for ${maybePluralise(
+            paidTickets.length,
+            'ticket',
+          )}. Once your transaction has received 6 confirmations on the blockchain, we'll enter your ticket${
+            paidTickets.length > 1 ? 's' : ''
+          } into today's draw 🤞`
+        : "Unfortunately, this wasn't enough for any of your reserved tickets. Please deposit more.",
+    token: fcmToken,
+  };
+};
+
+export const getBagmanSuccessMessage = (paidTickets: Ticket[]): string => {
+  return paidTickets.length > 0
+    ? `Great Success! ${maybePluralise(paidTickets.length, 'ticket')} ${
+        paidTickets.length > 1 ? 'were' : 'was'
+      } marked as paymentReceived.`
+    : 'Epic Fail! User could not afford any tickets.';
+};
 
 export type BagmanResponse = FirebaseFunctionResponse<void>;
 
 // bagman is a webhook for the InvoiceReceivedPaymentEvent
 // he'll mark an invoices ticket statuses as Payment Received
-// he also handles partial payments and over payments
+// he also handles partial payments
 export const runBagman = async (
   data: BtcPayServerInvoiceReceivedPaymentEventData,
   dependencies: {
@@ -31,8 +65,6 @@ export const runBagman = async (
     firebaseFetchTickets: typeof firebaseFetchTickets;
     markTicketsStatus: typeof markTicketsStatus;
     saveTickets: typeof saveTickets;
-    createTickets: typeof createTickets;
-    updateInvoice: typeof updateInvoice;
     firebaseSendNotification: typeof firebaseSendNotification;
   } = {
     getInvoice,
@@ -41,8 +73,6 @@ export const runBagman = async (
     firebaseFetchTickets,
     markTicketsStatus,
     saveTickets,
-    createTickets,
-    updateInvoice,
     firebaseSendNotification,
   },
 ): Promise<BagmanResponse> => {
@@ -162,29 +192,14 @@ export const runBagman = async (
 
   // notify the user that their payment was received
   for await (const fcmToken of userProfileData.fcmTokens) {
-    await dependencies.firebaseSendNotification({
-      title: `We've just received payment of ${paymentAmountBTC} BTC from you 😎`,
-      body:
-        paidTickets.length > 0
-          ? `This was enough for ${maybePluralise(
-              paidTickets.length,
-              'ticket',
-            )}. Once your transaction has received 6 confirmations on the blockchain, we'll enter your ticket${
-              paidTickets.length > 1 ? 's' : ''
-            } into today's draw 🤞`
-          : "Unfortunately, this wasn't enough for any of your reserved tickets. Please deposit more.",
-      token: fcmToken,
-    });
+    await dependencies.firebaseSendNotification(
+      getBagmanNotification({ paymentAmountBTC, paidTickets, fcmToken }),
+    );
   }
 
   return {
     error: false,
-    message:
-      paidTickets.length > 0
-        ? `Great Success! ${maybePluralise(paidTickets.length, 'ticket')} ${
-            paidTickets.length > 1 ? 'were' : 'was'
-          } marked as paymentReceived.`
-        : 'Epic Fail! User could not afford any tickets.',
+    message: getBagmanSuccessMessage(paidTickets),
   };
 };
 
