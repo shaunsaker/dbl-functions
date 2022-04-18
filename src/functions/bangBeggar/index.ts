@@ -8,7 +8,7 @@ import {
 import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTickets';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
-import { saveTickets } from '../saveTickets';
+import { firebaseSaveTickets } from '../../services/firebase/firebaseSaveTickets';
 import { markTicketsStatus } from '../markTicketsStatus';
 import { validateWebookEventData } from '../validateWebhookEventData';
 import { sendNotification } from '../sendNotification';
@@ -40,13 +40,13 @@ export const runBangBeggar = async (
     validateWebookEventData: typeof validateWebookEventData;
     firebaseFetchTickets: typeof firebaseFetchTickets;
     markTicketsStatus: typeof markTicketsStatus;
-    saveTickets: typeof saveTickets;
+    firebaseSaveTickets: typeof firebaseSaveTickets;
     sendNotification: typeof sendNotification;
   } = {
     validateWebookEventData,
     firebaseFetchTickets,
     markTicketsStatus,
-    saveTickets,
+    firebaseSaveTickets,
     sendNotification,
   },
 ): Promise<Response> => {
@@ -86,7 +86,7 @@ export const runBangBeggar = async (
   );
 
   // write the expired tickets to firebase
-  await dependencies.saveTickets(lotId, expiredTickets);
+  await dependencies.firebaseSaveTickets(lotId, expiredTickets);
 
   // notify the user that their payment was received
   const notification = getBangBeggarNotification({

@@ -23,7 +23,7 @@ export const setupBankerTest = async ({
 }) => {
   const validateWebookEventData = jest.fn();
   const firebaseFetchTickets = jest.fn();
-  const saveTickets = jest.fn();
+  const firebaseSaveTickets = jest.fn();
   const sendNotification = jest.fn();
 
   validateWebookEventData.mockReturnValue({
@@ -50,9 +50,9 @@ export const setupBankerTest = async ({
     validateWebookEventData,
     firebaseFetchTickets,
     markTicketsStatus,
-    saveTickets,
+    firebaseSaveTickets,
     sendNotification,
   });
 
-  return { response, saveTickets, sendNotification };
+  return { response, firebaseSaveTickets, sendNotification };
 };

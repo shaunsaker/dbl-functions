@@ -10,7 +10,7 @@ import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTicke
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
-import { saveTickets } from '../saveTickets';
+import { firebaseSaveTickets } from '../../services/firebase/firebaseSaveTickets';
 import { markTicketsStatus } from '../markTicketsStatus';
 import { validateWebookEventData } from '../validateWebhookEventData';
 import { sendNotification } from '../sendNotification';
@@ -52,14 +52,14 @@ export const runBagman = async (
     firebaseFetchLot: typeof firebaseFetchLot;
     firebaseFetchTickets: typeof firebaseFetchTickets;
     markTicketsStatus: typeof markTicketsStatus;
-    saveTickets: typeof saveTickets;
+    firebaseSaveTickets: typeof firebaseSaveTickets;
     sendNotification: typeof sendNotification;
   } = {
     validateWebookEventData,
     firebaseFetchLot,
     firebaseFetchTickets,
     markTicketsStatus,
-    saveTickets,
+    firebaseSaveTickets,
     sendNotification,
   },
 ): Promise<BagmanResponse> => {
@@ -119,7 +119,7 @@ export const runBagman = async (
   );
 
   // update the tickets in firebase
-  await dependencies.saveTickets(lotId, paidTickets);
+  await dependencies.firebaseSaveTickets(lotId, paidTickets);
 
   // notify the user that their payment was received
   const notification = getBagmanNotification({

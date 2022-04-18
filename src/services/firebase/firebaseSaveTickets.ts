@@ -1,8 +1,8 @@
-import { LotId, Ticket } from '../lots/models';
-import { firebase } from '../services/firebase';
-import { firebaseWriteBatch } from '../services/firebase/firebaseWriteBatch';
+import { LotId, Ticket } from '../../lots/models';
+import { firebase } from './';
+import { firebaseWriteBatch } from './firebaseWriteBatch';
 
-export const saveTickets = async (
+export const firebaseSaveTickets = async (
   lotId: LotId,
   tickets: Ticket[],
 ): Promise<void> => {

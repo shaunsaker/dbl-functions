@@ -22,13 +22,12 @@ import {
   FirebaseMessagingTopics,
 } from '../../services/firebase/models';
 import { firebaseSendNotification } from '../../services/firebase/firebaseSendNotification';
-import { sendEmail } from '../../services/mailer';
 import { UserId, Username } from '../../userProfile/models';
 import { numberToDigits } from '../../utils/numberToDigits';
 import { selectRandomItemFromArray } from '../../utils/selectRandomItemFromArray';
 import { createLot } from '../createLot';
 
-const drawWinner = async (lotId: LotId): Promise<UserId | undefined> => {
+export const drawWinner = async (lotId: LotId): Promise<UserId | undefined> => {
   // fetch the lot's confirmed tickets
   const confirmedTickets = await firebaseFetchTickets({
     lotId,
@@ -41,7 +40,7 @@ const drawWinner = async (lotId: LotId): Promise<UserId | undefined> => {
   return winningTicket?.uid;
 };
 
-const createWinnerPullPayment = async ({
+export const createWinnerPullPayment = async ({
   storeId,
   user: { uid, username },
   lot,
@@ -68,7 +67,7 @@ const createWinnerPullPayment = async ({
   return pullPayment;
 };
 
-const createAdminPullPayment = async ({
+export const createAdminPullPayment = async ({
   storeId,
   lot,
 }: {
@@ -94,9 +93,35 @@ const createAdminPullPayment = async ({
 type Response = FirebaseFunctionResponse<void>;
 
 // boss handles drawing the winner, sending BTC and creating the next lot
-export const runBoss = async (): Promise<Response> => {
+export const runBoss = async (
+  dependencies: {
+    firebaseFetchActiveLot: typeof firebaseFetchActiveLot;
+    getStoreByStoreName: typeof getStoreByStoreName;
+    getStoreWalletBalance: typeof getStoreWalletBalance;
+    drawWinner: typeof drawWinner;
+    firebaseFetchUserProfile: typeof firebaseFetchUserProfile;
+    createWinnerPullPayment: typeof createWinnerPullPayment;
+    firebaseUpdateUserProfile: typeof firebaseUpdateUserProfile;
+    firebaseSendNotification: typeof firebaseSendNotification;
+    createAdminPullPayment: typeof createAdminPullPayment;
+    firebaseUpdateLot: typeof firebaseUpdateLot;
+    createLot: typeof createLot;
+  } = {
+    firebaseFetchActiveLot,
+    getStoreByStoreName,
+    getStoreWalletBalance,
+    drawWinner,
+    firebaseFetchUserProfile,
+    createWinnerPullPayment,
+    firebaseUpdateUserProfile,
+    firebaseSendNotification,
+    createAdminPullPayment,
+    firebaseUpdateLot,
+    createLot,
+  },
+): Promise<Response> => {
   // get the active lot id (in the future there may be a few)
-  const activeLot = await firebaseFetchActiveLot();
+  const activeLot = await dependencies.firebaseFetchActiveLot();
 
   if (!activeLot) {
     return {
@@ -106,7 +131,7 @@ export const runBoss = async (): Promise<Response> => {
   }
 
   // get the store
-  const store = await getStoreByStoreName(activeLot.id);
+  const store = await dependencies.getStoreByStoreName(activeLot.id);
 
   if (!store) {
     return {
@@ -116,7 +141,7 @@ export const runBoss = async (): Promise<Response> => {
   }
 
   // validate that activeLot.totalInBTC at least matches our wallet balance
-  const storeWalletBalance = await getStoreWalletBalance(store.id);
+  const storeWalletBalance = await dependencies.getStoreWalletBalance(store.id);
   const isLotTotalValid =
     parseFloat(storeWalletBalance.confirmedBalance) >= activeLot.totalInBTC;
 
@@ -128,7 +153,7 @@ export const runBoss = async (): Promise<Response> => {
   }
 
   // draw the winner
-  const userId = await drawWinner(activeLot.id);
+  const userId = await dependencies.drawWinner(activeLot.id);
 
   if (!userId) {
     return {
@@ -138,7 +163,7 @@ export const runBoss = async (): Promise<Response> => {
   }
 
   // fetch the username
-  const userProfileData = await firebaseFetchUserProfile(userId);
+  const userProfileData = await dependencies.firebaseFetchUserProfile(userId);
 
   if (!userProfileData) {
     return {
@@ -148,7 +173,7 @@ export const runBoss = async (): Promise<Response> => {
   }
 
   // send winner and commission BTC
-  const winnerPullPayment = await createWinnerPullPayment({
+  const winnerPullPayment = await dependencies.createWinnerPullPayment({
     storeId: store.id,
     user: {
       uid: userId,
@@ -158,37 +183,30 @@ export const runBoss = async (): Promise<Response> => {
   });
 
   // save the url to the user's data for in-app display
-  await firebaseUpdateUserProfile(userId, {
+  await dependencies.firebaseUpdateUserProfile(userId, {
     withdrawWinningsLink: winnerPullPayment.viewLink,
   });
 
-  // notify the winner via email
-  await sendEmail({
-    to: userProfileData.email,
-    subject: `${process.env.APP_NAME}: You just won ${winnerPullPayment.amount} BTC!`,
-    text: `Hi ${userProfileData.username},\n\nCongratulations, you're our lucky winner 🎉\n\n You can get your BTC at: ${winnerPullPayment.viewLink}.\n\nLove from the ${process.env.APP_NAME} team 😍`,
-  });
-
   // notify the users
-  await firebaseSendNotification({
+  await dependencies.firebaseSendNotification({
     topic: FirebaseMessagingTopics.winner,
     title: 'We have a new Winner 👑🎉',
     body: 'Open the app for more info 😎',
   });
 
-  await createAdminPullPayment({
+  await dependencies.createAdminPullPayment({
     storeId: store.id,
     lot: activeLot,
   });
 
   // mark active lot as inactive and save the winner username
-  await firebaseUpdateLot(activeLot.id, {
+  await dependencies.firebaseUpdateLot(activeLot.id, {
     active: false,
     winnerUsername: userProfileData.username,
   });
 
   // create a new lot
-  await createLot();
+  await dependencies.createLot();
 
   return {
     error: false,

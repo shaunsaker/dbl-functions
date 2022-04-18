@@ -9,7 +9,7 @@ import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTicke
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
-import { saveTickets } from '../saveTickets';
+import { firebaseSaveTickets } from '../../services/firebase/firebaseSaveTickets';
 import { markTicketsStatus } from '../markTicketsStatus';
 import { validateWebookEventData } from '../validateWebhookEventData';
 import { sendNotification } from '../sendNotification';
@@ -40,13 +40,13 @@ export const runBanker = async (
     validateWebookEventData: typeof validateWebookEventData;
     firebaseFetchTickets: typeof firebaseFetchTickets;
     markTicketsStatus: typeof markTicketsStatus;
-    saveTickets: typeof saveTickets;
+    firebaseSaveTickets: typeof firebaseSaveTickets;
     sendNotification: typeof sendNotification;
   } = {
     validateWebookEventData,
     firebaseFetchTickets,
     markTicketsStatus,
-    saveTickets,
+    firebaseSaveTickets,
     sendNotification,
   },
 ): Promise<Response> => {
@@ -91,7 +91,7 @@ export const runBanker = async (
   );
 
   // write the confirmed tickets to firebase
-  await dependencies.saveTickets(lotId, confirmedTickets);
+  await dependencies.firebaseSaveTickets(lotId, confirmedTickets);
 
   // notify the user that their tickets were confirmed
   const notification = getBankerNotification({
