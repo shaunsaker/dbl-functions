@@ -1,6 +1,6 @@
 import { makeInvoice, makeLot, makeTicket } from '../../lots/data';
 import { TicketStatus } from '../../lots/models';
-import { makeInvoicePayload } from '../../services/btcPayServer/data';
+import { makeBtcPayServerInvoicePayload } from '../../services/btcPayServer/data';
 import { makeStore } from '../../stores/data';
 import { arrayFromNumber } from '../../utils/arrayFromNumber';
 import { getUuid } from '../../utils/getUuid';
@@ -75,7 +75,7 @@ describe('bookie', () => {
         lotId: getUuid(),
       },
     });
-    const { response, createTickets, createInvoice } = await setupBookieTest({
+    const { response, dependencies } = await setupBookieTest({
       lotId,
       uid,
       ticketCount,
@@ -85,7 +85,7 @@ describe('bookie', () => {
       invoice,
     });
 
-    expect(createTickets).toHaveBeenCalledWith({
+    expect(dependencies.createTickets).toHaveBeenCalledWith({
       lot,
       uid,
       ticketCount,
@@ -93,9 +93,9 @@ describe('bookie', () => {
       ticketStatus: TicketStatus.reserved,
     });
 
-    expect(createInvoice).toHaveBeenCalledWith(
+    expect(dependencies.createInvoice).toHaveBeenCalledWith(
       store.id,
-      makeInvoicePayload({
+      makeBtcPayServerInvoicePayload({
         amount: ticketCount * lot.ticketPriceInBTC * lot.BTCPriceInUSD,
         uid,
         lotId: lot.id,

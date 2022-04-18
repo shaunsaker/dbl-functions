@@ -6,6 +6,7 @@ import {
 import { getUuid } from '../utils/getUuid';
 
 // TODO: SS move this to BTCPayServer
+// TODO: SS this is actually the store payload (id)
 export const makeStore = ({
   name = getUuid(),
 }: Partial<BtcPayServerStore>): Omit<BtcPayServerStore, 'id'> => {

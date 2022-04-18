@@ -8,14 +8,14 @@ export const makeUserProfileData = ({
   email,
   hasCompletedOnboarding,
   fcmTokens,
-  withdrawWinningsLink,
+  winnerWithdrawalLink,
 }: Partial<UserProfileData>): UserProfileData => {
   return {
     dateCreated: dateCreated || getTimeAsISOString(),
-    username: username || '',
-    email: email || '',
+    username: username || getUuid(),
+    email: email || getUuid(),
     hasCompletedOnboarding: hasCompletedOnboarding || true,
     fcmTokens: fcmTokens || [getUuid()],
-    withdrawWinningsLink: withdrawWinningsLink || '',
+    winnerWithdrawalLink: winnerWithdrawalLink || getUuid(),
   };
 };

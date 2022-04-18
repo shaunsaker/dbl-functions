@@ -45,13 +45,14 @@ export const setupBangBeggarTest = async ({
     invoiceId,
   });
 
-  const response = await runBangBeggar(eventData, {
+  const dependencies = {
     validateWebookEventData,
     firebaseFetchTickets,
     changeTicketsStatus,
     firebaseSaveTickets,
     sendNotification,
-  });
+  };
+  const response = await runBangBeggar(eventData, dependencies);
 
-  return { response, firebaseSaveTickets, sendNotification };
+  return { response, dependencies };
 };

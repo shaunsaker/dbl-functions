@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions';
 import { CallableContext } from 'firebase-functions/v1/https';
 import { LotId, TicketId, TicketStatus } from '../../lots/models';
 import { createInvoice } from '../../services/btcPayServer/createInvoice';
-import { makeInvoicePayload } from '../../services/btcPayServer/data';
+import { makeBtcPayServerInvoicePayload } from '../../services/btcPayServer/data';
 import { getStoreByStoreName } from '../../services/btcPayServer/getStoreByStoreName';
 import { BtcPayServerInvoice } from '../../services/btcPayServer/models';
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
@@ -105,7 +105,7 @@ export const runBookie = async ({
   // create the invoice
   const invoice = await dependencies.createInvoice(
     store.id,
-    makeInvoicePayload({
+    makeBtcPayServerInvoicePayload({
       amount: ticketCount * lot.ticketPriceInBTC * lot.BTCPriceInUSD,
       uid,
       lotId: lot.id,

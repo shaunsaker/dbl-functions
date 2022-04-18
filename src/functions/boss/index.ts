@@ -23,13 +23,19 @@ import {
 } from '../../services/firebase/models';
 import { firebaseSendNotification } from '../../services/firebase/firebaseSendNotification';
 import { UserId, Username } from '../../userProfile/models';
-import { numberToDigits } from '../../utils/numberToDigits';
 import { selectRandomItemFromArray } from '../../utils/selectRandomItemFromArray';
 import { createLot } from '../createLot';
 
-export const drawWinner = async (lotId: LotId): Promise<UserId | undefined> => {
+export const drawWinner = async (
+  lotId: LotId,
+  dependencies: {
+    firebaseFetchTickets: typeof firebaseFetchTickets;
+  } = {
+    firebaseFetchTickets,
+  },
+): Promise<UserId | undefined> => {
   // fetch the lot's confirmed tickets
-  const confirmedTickets = await firebaseFetchTickets({
+  const confirmedTickets = await dependencies.firebaseFetchTickets({
     lotId,
     ticketStatuses: [TicketStatus.confirmed],
   });
@@ -40,10 +46,24 @@ export const drawWinner = async (lotId: LotId): Promise<UserId | undefined> => {
   return winningTicket?.uid;
 };
 
+export const getAdminPaymentAmountBTC = (lot: Lot): number => {
+  const adminPaymentAmountBTC = lot.totalInBTC * TICKET_COMMISSION_PERCENTAGE;
+
+  return adminPaymentAmountBTC;
+};
+
+export const getWinnerPaymentAmountBTC = (lot: Lot): number => {
+  const adminPaymentAmountBTC = getAdminPaymentAmountBTC(lot);
+  const paymentAmountBTC = lot.totalInBTC - adminPaymentAmountBTC;
+
+  return paymentAmountBTC;
+};
+
 export const createWinnerPullPayment = async ({
   storeId,
   user: { uid, username },
   lot,
+  dependencies = { createPullPayment },
 }: {
   storeId: BtcPayServerStoreId;
   user: {
@@ -51,12 +71,12 @@ export const createWinnerPullPayment = async ({
     username: Username;
   };
   lot: Lot;
+  dependencies?: { createPullPayment: typeof createPullPayment };
 }): Promise<BtcPayServerPullPayment> => {
   // create a pull payment and return the viewLink so that the user can withdraw their BTC
-  const lotCommissionBTC = lot.totalInBTC * TICKET_COMMISSION_PERCENTAGE;
-  const paymentAmountBTC = numberToDigits(lot.totalInBTC - lotCommissionBTC, 6);
+  const paymentAmountBTC = getWinnerPaymentAmountBTC(lot);
 
-  const pullPayment = await createPullPayment(storeId, {
+  const pullPayment = await dependencies.createPullPayment(storeId, {
     name: `${storeId}-${uid}`,
     description: `Congratulations ${username}! You're our lucky winner 🎉`,
     amount: paymentAmountBTC.toString(),
@@ -70,19 +90,18 @@ export const createWinnerPullPayment = async ({
 export const createAdminPullPayment = async ({
   storeId,
   lot,
+  dependencies = { createPullPayment },
 }: {
   storeId: BtcPayServerStoreId;
   lot: Lot;
+  dependencies?: { createPullPayment: typeof createPullPayment };
 }): Promise<BtcPayServerPullPayment> => {
-  const lotCommissionBTC = numberToDigits(
-    lot.totalInBTC * TICKET_COMMISSION_PERCENTAGE,
-    6,
-  );
+  const adminPaymentAmountBTC = getAdminPaymentAmountBTC(lot);
 
-  const pullPayment = await createPullPayment(storeId, {
+  const pullPayment = await dependencies.createPullPayment(storeId, {
     name: `${storeId}-admin`,
     description: '',
-    amount: lotCommissionBTC.toString(),
+    amount: adminPaymentAmountBTC.toString(),
     currency: 'BTC',
     paymentMethods: ['BTC'],
   });
@@ -148,14 +167,14 @@ export const runBoss = async (
   if (!isLotTotalValid) {
     return {
       error: true,
-      message: `Oh shit son, lot total of ${activeLot.totalInBTC} is less than store wallet balance of ${storeWalletBalance.confirmedBalance}!`,
+      message: 'Oh shit son, store wallet balance is less than the lot total!',
     };
   }
 
   // draw the winner
-  const userId = await dependencies.drawWinner(activeLot.id);
+  const winnerUid = await dependencies.drawWinner(activeLot.id);
 
-  if (!userId) {
+  if (!winnerUid) {
     return {
       error: true,
       message: 'Oh shit son, no one participated!',
@@ -163,7 +182,11 @@ export const runBoss = async (
   }
 
   // fetch the username
-  const userProfileData = await dependencies.firebaseFetchUserProfile(userId);
+  const userProfileData = await dependencies.firebaseFetchUserProfile(
+    winnerUid,
+  );
+
+  // TODO: SS we need to log the winnerUid here for debugging and manual action (if necessary)
 
   if (!userProfileData) {
     return {
@@ -176,15 +199,15 @@ export const runBoss = async (
   const winnerPullPayment = await dependencies.createWinnerPullPayment({
     storeId: store.id,
     user: {
-      uid: userId,
+      uid: winnerUid,
       username: userProfileData.username,
     },
     lot: activeLot,
   });
 
   // save the url to the user's data for in-app display
-  await dependencies.firebaseUpdateUserProfile(userId, {
-    withdrawWinningsLink: winnerPullPayment.viewLink,
+  await dependencies.firebaseUpdateUserProfile(winnerUid, {
+    winnerWithdrawalLink: winnerPullPayment.viewLink,
   });
 
   // notify the users

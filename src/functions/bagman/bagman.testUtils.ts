@@ -55,14 +55,15 @@ export const setupBagmanTest = async ({
     value: paymentValueUSD,
   });
 
-  const response = await runBagman(eventData, {
+  const dependencies = {
     validateWebookEventData,
     firebaseFetchLot,
     firebaseFetchTickets,
     changeTicketsStatus,
     firebaseSaveTickets,
     sendNotification,
-  });
+  };
+  const response = await runBagman(eventData, dependencies);
 
-  return { response, firebaseSaveTickets, sendNotification };
+  return { response, dependencies };
 };

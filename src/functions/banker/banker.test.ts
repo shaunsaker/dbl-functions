@@ -31,22 +31,21 @@ describe('banker', () => {
         ticketIds: tickets.map((ticket) => ticket.id),
       },
     });
-    const { response, firebaseSaveTickets, sendNotification } =
-      await setupBankerTest({
-        tickets,
-        invoice,
-      });
+    const { response, dependencies } = await setupBankerTest({
+      tickets,
+      invoice,
+    });
 
     const expectedConfirmedTickets = changeTicketsStatus(
       tickets,
       TicketStatus.confirmed,
     );
-    expect(firebaseSaveTickets).toHaveBeenCalledWith(
+    expect(dependencies.firebaseSaveTickets).toHaveBeenCalledWith(
       lot.id,
       expectedConfirmedTickets,
     );
 
-    expect(sendNotification).toHaveBeenCalledWith({
+    expect(dependencies.sendNotification).toHaveBeenCalledWith({
       uid,
       notification: getBankerNotification({
         confirmedTickets: expectedConfirmedTickets,

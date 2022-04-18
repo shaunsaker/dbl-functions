@@ -41,24 +41,23 @@ describe('bagman', () => {
       },
     });
     const paymentAmountBTC = lot.ticketPriceInBTC;
-    const { response, firebaseSaveTickets, sendNotification } =
-      await setupBagmanTest({
-        lot,
-        tickets,
-        invoice,
-        paymentValueUSD: paymentAmountBTC * lot.BTCPriceInUSD,
-      });
+    const { response, dependencies } = await setupBagmanTest({
+      lot,
+      tickets,
+      invoice,
+      paymentValueUSD: paymentAmountBTC * lot.BTCPriceInUSD,
+    });
 
     const expectedPaidTickets = changeTicketsStatus(
       tickets,
       TicketStatus.paymentReceived,
     );
-    expect(firebaseSaveTickets).toHaveBeenCalledWith(
+    expect(dependencies.firebaseSaveTickets).toHaveBeenCalledWith(
       lot.id,
       expectedPaidTickets,
     );
 
-    expect(sendNotification).toHaveBeenCalledWith({
+    expect(dependencies.sendNotification).toHaveBeenCalledWith({
       uid,
       notification: getBagmanNotification({
         paymentAmountBTC: paymentAmountBTC,
@@ -93,24 +92,23 @@ describe('bagman', () => {
       },
     });
     const paymentAmountBTC = 2 * lot.ticketPriceInBTC;
-    const { response, firebaseSaveTickets, sendNotification } =
-      await setupBagmanTest({
-        lot,
-        tickets,
-        invoice,
-        paymentValueUSD: paymentAmountBTC * lot.BTCPriceInUSD,
-      });
+    const { response, dependencies } = await setupBagmanTest({
+      lot,
+      tickets,
+      invoice,
+      paymentValueUSD: paymentAmountBTC * lot.BTCPriceInUSD,
+    });
 
     const expectedPaidTickets = changeTicketsStatus(
       tickets,
       TicketStatus.paymentReceived,
     );
-    expect(firebaseSaveTickets).toHaveBeenCalledWith(
+    expect(dependencies.firebaseSaveTickets).toHaveBeenCalledWith(
       lot.id,
       expectedPaidTickets,
     );
 
-    expect(sendNotification).toHaveBeenCalledWith({
+    expect(dependencies.sendNotification).toHaveBeenCalledWith({
       uid,
       notification: getBagmanNotification({
         paymentAmountBTC: paymentAmountBTC,
@@ -145,24 +143,23 @@ describe('bagman', () => {
       },
     });
     const paymentAmountBTC = lot.ticketPriceInBTC; // only 1 of the 2
-    const { response, firebaseSaveTickets, sendNotification } =
-      await setupBagmanTest({
-        lot,
-        tickets,
-        invoice,
-        paymentValueUSD: paymentAmountBTC * lot.BTCPriceInUSD,
-      });
+    const { response, dependencies } = await setupBagmanTest({
+      lot,
+      tickets,
+      invoice,
+      paymentValueUSD: paymentAmountBTC * lot.BTCPriceInUSD,
+    });
 
     const expectedPaidTickets = changeTicketsStatus(
       [tickets[0]], // only 1 of the 2
       TicketStatus.paymentReceived,
     );
-    expect(firebaseSaveTickets).toHaveBeenCalledWith(
+    expect(dependencies.firebaseSaveTickets).toHaveBeenCalledWith(
       lot.id,
       expectedPaidTickets,
     );
 
-    expect(sendNotification).toHaveBeenCalledWith({
+    expect(dependencies.sendNotification).toHaveBeenCalledWith({
       uid,
       notification: getBagmanNotification({
         paymentAmountBTC: paymentAmountBTC,
@@ -196,24 +193,23 @@ describe('bagman', () => {
       },
     });
     const paymentAmountBTC = lot.ticketPriceInBTC / 2; // only 1/2 a ticket
-    const { response, firebaseSaveTickets, sendNotification } =
-      await setupBagmanTest({
-        lot,
-        tickets,
-        invoice,
-        paymentValueUSD: paymentAmountBTC * lot.BTCPriceInUSD,
-      });
+    const { response, dependencies } = await setupBagmanTest({
+      lot,
+      tickets,
+      invoice,
+      paymentValueUSD: paymentAmountBTC * lot.BTCPriceInUSD,
+    });
 
     const expectedPaidTickets = changeTicketsStatus(
       [], // only paid for half a ticket, we should not be saving anything
       TicketStatus.paymentReceived,
     );
-    expect(firebaseSaveTickets).toHaveBeenCalledWith(
+    expect(dependencies.firebaseSaveTickets).toHaveBeenCalledWith(
       lot.id,
       expectedPaidTickets,
     );
 
-    expect(sendNotification).toHaveBeenCalledWith({
+    expect(dependencies.sendNotification).toHaveBeenCalledWith({
       uid,
       notification: getBagmanNotification({
         paymentAmountBTC: paymentAmountBTC,

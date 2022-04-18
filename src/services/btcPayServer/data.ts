@@ -6,6 +6,7 @@ import {
   BtcPayServerInvoicePayload,
   BtcPayServerInvoiceReceivedPaymentEventData,
   BtcPayServerInvoiceSettledEventData,
+  BtcPayServerPullPayment,
   BtcPayServerStoreId,
   BtcPayServerWebhookEvent,
 } from './models';
@@ -83,7 +84,7 @@ export const makeBtcPayServerInvoiceExpiredEventData = ({
   };
 };
 
-export const makeInvoicePayload = ({
+export const makeBtcPayServerInvoicePayload = ({
   amount,
   uid,
   lotId,
@@ -104,5 +105,29 @@ export const makeInvoicePayload = ({
       lotId,
       ticketIds,
     },
+  };
+};
+
+export const makeBtcPayServerPullPayment = ({
+  id = getUuid(),
+  name = getUuid(),
+  description = getUuid(),
+  currency = 'USD',
+  amount = '10.00',
+  period = 0,
+  BOLT11Expiration = 0,
+  archived = false,
+  viewLink = getUuid(),
+}: Partial<BtcPayServerPullPayment>): BtcPayServerPullPayment => {
+  return {
+    id,
+    name,
+    description,
+    currency,
+    amount,
+    period,
+    BOLT11Expiration,
+    archived,
+    viewLink,
   };
 };

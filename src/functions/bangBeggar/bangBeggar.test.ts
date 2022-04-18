@@ -31,22 +31,21 @@ describe('bangBeggar', () => {
         ticketIds: tickets.map((ticket) => ticket.id),
       },
     });
-    const { response, firebaseSaveTickets, sendNotification } =
-      await setupBangBeggarTest({
-        tickets,
-        invoice,
-      });
+    const { response, dependencies } = await setupBangBeggarTest({
+      tickets,
+      invoice,
+    });
 
     const expectedExpiredTickets = changeTicketsStatus(
       tickets,
       TicketStatus.expired,
     );
-    expect(firebaseSaveTickets).toHaveBeenCalledWith(
+    expect(dependencies.firebaseSaveTickets).toHaveBeenCalledWith(
       lot.id,
       expectedExpiredTickets,
     );
 
-    expect(sendNotification).toHaveBeenCalledWith({
+    expect(dependencies.sendNotification).toHaveBeenCalledWith({
       uid,
       notification: getBangBeggarNotification({
         expiredTickets: expectedExpiredTickets,

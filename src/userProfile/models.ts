@@ -8,5 +8,5 @@ export interface UserProfileData {
   email: string;
   hasCompletedOnboarding: boolean;
   fcmTokens: string[];
-  withdrawWinningsLink?: string;
+  winnerWithdrawalLink?: string;
 }

@@ -59,18 +59,19 @@ export const setupBookieTest = async ({
     createInvoice.mockReturnValue(invoice);
   }
 
+  const dependencies = {
+    firebaseGetUser,
+    firebaseFetchLot,
+    getStoreByStoreName,
+    createTickets,
+    createInvoice,
+  };
   const response = await runBookie({
     uid,
     lotId,
     ticketCount,
-    dependencies: {
-      firebaseGetUser,
-      firebaseFetchLot,
-      getStoreByStoreName,
-      createTickets,
-      createInvoice,
-    },
+    dependencies,
   });
 
-  return { response, createTickets, createInvoice };
+  return { response, dependencies };
 };

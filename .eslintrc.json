@@ -29,6 +29,7 @@
         "varsIgnorePattern": "^_",
         "caughtErrorsIgnorePattern": "^_"
       }
-    ]
+    ],
+    "jest/expect-expect": 0 // really distracting
   }
 }

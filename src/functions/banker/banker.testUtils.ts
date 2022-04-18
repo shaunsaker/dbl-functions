@@ -43,16 +43,17 @@ export const setupBankerTest = async ({
   const eventData = makeBtcPayServerInvoiceSettledEventData({
     storeId,
     invoiceId,
-    value: 0, // TODO: SS
+    value: 0, // doesn't matter
   });
 
-  const response = await runBanker(eventData, {
+  const dependencies = {
     validateWebookEventData,
     firebaseFetchTickets,
     changeTicketsStatus,
     firebaseSaveTickets,
     sendNotification,
-  });
+  };
+  const response = await runBanker(eventData, dependencies);
 
-  return { response, firebaseSaveTickets, sendNotification };
+  return { response, dependencies };
 };
