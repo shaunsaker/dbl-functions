@@ -1,6 +1,6 @@
 import { Ticket, TicketStatus } from '../lots/models';
 
-export const markTicketsStatus = (
+export const changeTicketsStatus = (
   tickets: Ticket[],
   status: TicketStatus,
 ): Ticket[] => {

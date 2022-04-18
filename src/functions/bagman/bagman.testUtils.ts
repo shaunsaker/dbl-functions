@@ -8,7 +8,7 @@ import {
   BtcPayServerStoreId,
 } from '../../services/btcPayServer/models';
 import { getUuid } from '../../utils/getUuid';
-import { markTicketsStatus } from '../markTicketsStatus';
+import { changeTicketsStatus } from '../changeTicketsStatus';
 
 export const setupBagmanTest = async ({
   storeId = getUuid(),
@@ -59,7 +59,7 @@ export const setupBagmanTest = async ({
     validateWebookEventData,
     firebaseFetchLot,
     firebaseFetchTickets,
-    markTicketsStatus,
+    changeTicketsStatus,
     firebaseSaveTickets,
     sendNotification,
   });

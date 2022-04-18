@@ -9,7 +9,7 @@ import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTicke
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { firebaseSaveTickets } from '../../services/firebase/firebaseSaveTickets';
-import { markTicketsStatus } from '../markTicketsStatus';
+import { changeTicketsStatus } from '../changeTicketsStatus';
 import { validateWebookEventData } from '../validateWebhookEventData';
 import { sendNotification } from '../sendNotification';
 import { maybePluralise } from '../../utils/maybePluralise';
@@ -39,13 +39,13 @@ export const runBangBeggar = async (
   dependencies: {
     validateWebookEventData: typeof validateWebookEventData;
     firebaseFetchTickets: typeof firebaseFetchTickets;
-    markTicketsStatus: typeof markTicketsStatus;
+    changeTicketsStatus: typeof changeTicketsStatus;
     firebaseSaveTickets: typeof firebaseSaveTickets;
     sendNotification: typeof sendNotification;
   } = {
     validateWebookEventData,
     firebaseFetchTickets,
-    markTicketsStatus,
+    changeTicketsStatus,
     firebaseSaveTickets,
     sendNotification,
   },
@@ -80,7 +80,7 @@ export const runBangBeggar = async (
 
   // mark the remaining reserved tickets as expired
   // NOTE: here we can mark all the reserved tickets as expired
-  const expiredTickets: Ticket[] = dependencies.markTicketsStatus(
+  const expiredTickets: Ticket[] = dependencies.changeTicketsStatus(
     reservedTickets,
     TicketStatus.expired,
   );

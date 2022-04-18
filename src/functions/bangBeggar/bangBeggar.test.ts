@@ -2,7 +2,7 @@ import { getBangBeggarNotification } from '.';
 import { makeInvoice, makeLot, makeTicket } from '../../lots/data';
 import { TicketStatus } from '../../lots/models';
 import { getUuid } from '../../utils/getUuid';
-import { markTicketsStatus } from '../markTicketsStatus';
+import { changeTicketsStatus } from '../changeTicketsStatus';
 import { setupBangBeggarTest } from './bangBeggar.testUtils';
 
 describe('bangBeggar', () => {
@@ -37,7 +37,7 @@ describe('bangBeggar', () => {
         invoice,
       });
 
-    const expectedExpiredTickets = markTicketsStatus(
+    const expectedExpiredTickets = changeTicketsStatus(
       tickets,
       TicketStatus.expired,
     );

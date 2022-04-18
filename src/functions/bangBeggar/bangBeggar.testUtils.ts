@@ -8,7 +8,7 @@ import {
   BtcPayServerStoreId,
 } from '../../services/btcPayServer/models';
 import { getUuid } from '../../utils/getUuid';
-import { markTicketsStatus } from '../markTicketsStatus';
+import { changeTicketsStatus } from '../changeTicketsStatus';
 
 export const setupBangBeggarTest = async ({
   storeId = getUuid(),
@@ -48,7 +48,7 @@ export const setupBangBeggarTest = async ({
   const response = await runBangBeggar(eventData, {
     validateWebookEventData,
     firebaseFetchTickets,
-    markTicketsStatus,
+    changeTicketsStatus,
     firebaseSaveTickets,
     sendNotification,
   });

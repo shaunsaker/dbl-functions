@@ -2,7 +2,7 @@ import { getBankerNotification } from '.';
 import { makeInvoice, makeLot, makeTicket } from '../../lots/data';
 import { TicketStatus } from '../../lots/models';
 import { getUuid } from '../../utils/getUuid';
-import { markTicketsStatus } from '../markTicketsStatus';
+import { changeTicketsStatus } from '../changeTicketsStatus';
 import { setupBankerTest } from './banker.testUtils';
 
 describe('banker', () => {
@@ -37,7 +37,7 @@ describe('banker', () => {
         invoice,
       });
 
-    const expectedConfirmedTickets = markTicketsStatus(
+    const expectedConfirmedTickets = changeTicketsStatus(
       tickets,
       TicketStatus.confirmed,
     );

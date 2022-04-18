@@ -10,7 +10,7 @@ import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
 import { firebaseSaveTickets } from '../../services/firebase/firebaseSaveTickets';
-import { markTicketsStatus } from '../markTicketsStatus';
+import { changeTicketsStatus } from '../changeTicketsStatus';
 import { validateWebookEventData } from '../validateWebhookEventData';
 import { sendNotification } from '../sendNotification';
 
@@ -39,13 +39,13 @@ export const runBanker = async (
   dependencies: {
     validateWebookEventData: typeof validateWebookEventData;
     firebaseFetchTickets: typeof firebaseFetchTickets;
-    markTicketsStatus: typeof markTicketsStatus;
+    changeTicketsStatus: typeof changeTicketsStatus;
     firebaseSaveTickets: typeof firebaseSaveTickets;
     sendNotification: typeof sendNotification;
   } = {
     validateWebookEventData,
     firebaseFetchTickets,
-    markTicketsStatus,
+    changeTicketsStatus,
     firebaseSaveTickets,
     sendNotification,
   },
@@ -85,7 +85,7 @@ export const runBanker = async (
   // event for partial payments
   // NOTE: it should also not be possible to get an over payment at this stage
   // that will be handled in the InvoiceReceivedPayment webhook
-  const confirmedTickets: Ticket[] = dependencies.markTicketsStatus(
+  const confirmedTickets: Ticket[] = dependencies.changeTicketsStatus(
     paymentReceivedTickets,
     TicketStatus.confirmed,
   );

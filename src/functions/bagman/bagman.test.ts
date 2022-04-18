@@ -2,7 +2,7 @@ import { getBagmanNotification } from '.';
 import { makeInvoice, makeLot, makeTicket } from '../../lots/data';
 import { TicketStatus } from '../../lots/models';
 import { getUuid } from '../../utils/getUuid';
-import { markTicketsStatus } from '../markTicketsStatus';
+import { changeTicketsStatus } from '../changeTicketsStatus';
 import { setupBagmanTest } from './bagman.testUtils';
 
 describe('bagman', () => {
@@ -49,7 +49,7 @@ describe('bagman', () => {
         paymentValueUSD: paymentAmountBTC * lot.BTCPriceInUSD,
       });
 
-    const expectedPaidTickets = markTicketsStatus(
+    const expectedPaidTickets = changeTicketsStatus(
       tickets,
       TicketStatus.paymentReceived,
     );
@@ -101,7 +101,7 @@ describe('bagman', () => {
         paymentValueUSD: paymentAmountBTC * lot.BTCPriceInUSD,
       });
 
-    const expectedPaidTickets = markTicketsStatus(
+    const expectedPaidTickets = changeTicketsStatus(
       tickets,
       TicketStatus.paymentReceived,
     );
@@ -153,7 +153,7 @@ describe('bagman', () => {
         paymentValueUSD: paymentAmountBTC * lot.BTCPriceInUSD,
       });
 
-    const expectedPaidTickets = markTicketsStatus(
+    const expectedPaidTickets = changeTicketsStatus(
       [tickets[0]], // only 1 of the 2
       TicketStatus.paymentReceived,
     );
@@ -204,7 +204,7 @@ describe('bagman', () => {
         paymentValueUSD: paymentAmountBTC * lot.BTCPriceInUSD,
       });
 
-    const expectedPaidTickets = markTicketsStatus(
+    const expectedPaidTickets = changeTicketsStatus(
       [], // only paid for half a ticket, we should not be saving anything
       TicketStatus.paymentReceived,
     );

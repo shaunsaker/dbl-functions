@@ -8,7 +8,7 @@ import {
   BtcPayServerStoreId,
 } from '../../services/btcPayServer/models';
 import { getUuid } from '../../utils/getUuid';
-import { markTicketsStatus } from '../markTicketsStatus';
+import { changeTicketsStatus } from '../changeTicketsStatus';
 
 export const setupBankerTest = async ({
   storeId = getUuid(),
@@ -49,7 +49,7 @@ export const setupBankerTest = async ({
   const response = await runBanker(eventData, {
     validateWebookEventData,
     firebaseFetchTickets,
-    markTicketsStatus,
+    changeTicketsStatus,
     firebaseSaveTickets,
     sendNotification,
   });

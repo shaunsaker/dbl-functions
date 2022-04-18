@@ -11,7 +11,7 @@ import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
 import { firebaseSaveTickets } from '../../services/firebase/firebaseSaveTickets';
-import { markTicketsStatus } from '../markTicketsStatus';
+import { changeTicketsStatus } from '../changeTicketsStatus';
 import { validateWebookEventData } from '../validateWebhookEventData';
 import { sendNotification } from '../sendNotification';
 
@@ -51,14 +51,14 @@ export const runBagman = async (
     validateWebookEventData: typeof validateWebookEventData;
     firebaseFetchLot: typeof firebaseFetchLot;
     firebaseFetchTickets: typeof firebaseFetchTickets;
-    markTicketsStatus: typeof markTicketsStatus;
+    changeTicketsStatus: typeof changeTicketsStatus;
     firebaseSaveTickets: typeof firebaseSaveTickets;
     sendNotification: typeof sendNotification;
   } = {
     validateWebookEventData,
     firebaseFetchLot,
     firebaseFetchTickets,
-    markTicketsStatus,
+    changeTicketsStatus,
     firebaseSaveTickets,
     sendNotification,
   },
@@ -113,7 +113,7 @@ export const runBagman = async (
   const reservableTickets = reservedTickets.slice(0, quantityTicketsReservable);
 
   // mark the ticket's statuses
-  const paidTickets: Ticket[] = dependencies.markTicketsStatus(
+  const paidTickets: Ticket[] = dependencies.changeTicketsStatus(
     reservableTickets,
     TicketStatus.paymentReceived,
   );
