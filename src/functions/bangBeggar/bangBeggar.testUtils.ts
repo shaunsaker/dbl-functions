@@ -22,7 +22,6 @@ export const setupBangBeggarTest = async ({
   tickets?: Ticket[];
 }) => {
   const validateWebookEventData = jest.fn();
-  const getInvoice = jest.fn();
   const firebaseFetchTickets = jest.fn();
   const saveTickets = jest.fn();
   const sendNotification = jest.fn();
@@ -31,10 +30,6 @@ export const setupBangBeggarTest = async ({
     error: false,
     data: invoice,
   });
-
-  if (invoice) {
-    getInvoice.mockReturnValue(invoice);
-  }
 
   if (tickets) {
     firebaseFetchTickets.mockReturnValue(tickets);
@@ -52,7 +47,6 @@ export const setupBangBeggarTest = async ({
 
   const response = await runBangBeggar(eventData, {
     validateWebookEventData,
-    getInvoice,
     firebaseFetchTickets,
     markTicketsStatus,
     saveTickets,

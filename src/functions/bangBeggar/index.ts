@@ -1,6 +1,5 @@
 import * as functions from 'firebase-functions';
 import { Ticket, TicketStatus } from '../../lots/models';
-import { getInvoice } from '../../services/btcPayServer/getInvoice';
 import {
   BtcPayServerInvoice,
   BtcPayServerInvoiceExpiredEventData,
@@ -39,23 +38,19 @@ export const runBangBeggar = async (
   data: BtcPayServerInvoiceExpiredEventData,
   dependencies: {
     validateWebookEventData: typeof validateWebookEventData;
-    getInvoice: typeof getInvoice;
     firebaseFetchTickets: typeof firebaseFetchTickets;
     markTicketsStatus: typeof markTicketsStatus;
     saveTickets: typeof saveTickets;
     sendNotification: typeof sendNotification;
   } = {
     validateWebookEventData,
-    getInvoice,
     firebaseFetchTickets,
     markTicketsStatus,
     saveTickets,
     sendNotification,
   },
 ): Promise<Response> => {
-  const response = await dependencies.validateWebookEventData(data, {
-    getInvoice: dependencies.getInvoice,
-  });
+  const response = await dependencies.validateWebookEventData(data);
 
   if (response.error) {
     return {

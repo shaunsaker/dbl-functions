@@ -26,7 +26,6 @@ export const setupBagmanTest = async ({
   paymentValueUSD?: number;
 }) => {
   const validateWebookEventData = jest.fn();
-  const getInvoice = jest.fn();
   const firebaseFetchLot = jest.fn();
   const firebaseFetchTickets = jest.fn();
   const saveTickets = jest.fn();
@@ -36,10 +35,6 @@ export const setupBagmanTest = async ({
     error: false,
     data: invoice,
   });
-
-  if (invoice) {
-    getInvoice.mockReturnValue(invoice);
-  }
 
   if (lot) {
     firebaseFetchLot.mockReturnValue(lot);
@@ -62,7 +57,6 @@ export const setupBagmanTest = async ({
 
   const response = await runBagman(eventData, {
     validateWebookEventData,
-    getInvoice,
     firebaseFetchLot,
     firebaseFetchTickets,
     markTicketsStatus,

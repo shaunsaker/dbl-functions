@@ -7,7 +7,7 @@ import { getUuid } from '../utils/getUuid';
 
 // TODO: SS move this to BTCPayServer
 export const makeStore = ({
-  name = '',
+  name = getUuid(),
 }: Partial<BtcPayServerStore>): Omit<BtcPayServerStore, 'id'> => {
   return {
     name,

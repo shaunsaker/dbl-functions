@@ -1,6 +1,5 @@
 import * as functions from 'firebase-functions';
 import { Ticket, TicketStatus } from '../../lots/models';
-import { getInvoice } from '../../services/btcPayServer/getInvoice';
 import {
   BtcPayServerInvoice,
   BtcPayServerInvoiceReceivedPaymentEventData,
@@ -50,7 +49,6 @@ export const runBagman = async (
   data: BtcPayServerInvoiceReceivedPaymentEventData,
   dependencies: {
     validateWebookEventData: typeof validateWebookEventData;
-    getInvoice: typeof getInvoice;
     firebaseFetchLot: typeof firebaseFetchLot;
     firebaseFetchTickets: typeof firebaseFetchTickets;
     markTicketsStatus: typeof markTicketsStatus;
@@ -58,7 +56,6 @@ export const runBagman = async (
     sendNotification: typeof sendNotification;
   } = {
     validateWebookEventData,
-    getInvoice,
     firebaseFetchLot,
     firebaseFetchTickets,
     markTicketsStatus,
@@ -67,9 +64,7 @@ export const runBagman = async (
   },
 ): Promise<BagmanResponse> => {
   const validateWebhookEventDataResponse =
-    await dependencies.validateWebookEventData(data, {
-      getInvoice: dependencies.getInvoice,
-    });
+    await dependencies.validateWebookEventData(data);
 
   if (validateWebhookEventDataResponse.error) {
     return {

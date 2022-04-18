@@ -72,7 +72,7 @@ export const createTickets = async ({
 
   return {
     error: false,
-    message: 'Success',
+    message: 'Great success!',
     data: ticketIds,
   };
 };
