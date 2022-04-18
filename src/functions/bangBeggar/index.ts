@@ -2,6 +2,7 @@ import * as functions from 'firebase-functions';
 import { Ticket, TicketStatus } from '../../lots/models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
 import {
+  BtcPayServerInvoice,
   BtcPayServerInvoiceExpiredEventData,
   BtcPayServerWebhookEvent,
 } from '../../services/btcPayServer/models';
@@ -10,79 +11,68 @@ import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { saveTickets } from '../saveTickets';
 import { markTicketsStatus } from '../markTicketsStatus';
+import { validateWebookEventData } from '../validateWebhookEventData';
 
 type Response = FirebaseFunctionResponse<void>;
 
+// TODO: SS test this
 export const runBangBeggar = async (
   data: BtcPayServerInvoiceExpiredEventData,
+  dependencies: {
+    validateWebookEventData: typeof validateWebookEventData;
+    getInvoice: typeof getInvoice;
+    firebaseFetchTickets: typeof firebaseFetchTickets;
+    markTicketsStatus: typeof markTicketsStatus;
+    saveTickets: typeof saveTickets;
+  } = {
+    validateWebookEventData,
+    getInvoice,
+    firebaseFetchTickets,
+    markTicketsStatus,
+    saveTickets,
+  },
 ): Promise<Response> => {
-  // we need to get the lotId and uid from the invoice
-  // so we need to fetch the invoice
-  const { storeId, invoiceId } = data;
+  const response = await dependencies.validateWebookEventData(data, {
+    getInvoice: dependencies.getInvoice,
+  });
 
-  if (!storeId) {
+  if (response.error) {
     return {
       error: true,
-      message: 'storeId missing fool.',
+      message: response.message,
     };
   }
 
-  if (!invoiceId) {
-    return {
-      error: true,
-      message: 'invoiceId missing fool.',
-    };
-  }
-
-  const invoice = await getInvoice({ storeId, invoiceId });
-
-  if (!invoice) {
-    return {
-      error: true,
-      message: 'Invoice missing fool.',
-    };
-  }
-
-  const { lotId, uid } = invoice.metadata;
-
-  if (!lotId) {
-    return {
-      error: true,
-      message: 'lotId missing from invoice fool.',
-    };
-  }
-
-  if (!uid) {
-    return {
-      error: true,
-      message: 'uid missing from invoice fool.',
-    };
-  }
+  // if there is no invoice, validateWebookEventData will return an error
+  const invoice = response.data as BtcPayServerInvoice;
+  const { uid, lotId, ticketIds } = invoice.metadata;
 
   // fetch the reserved tickets using the ticketIds in the invoice
-  const reservedTickets = await firebaseFetchTickets({
+  const reservedTickets = await dependencies.firebaseFetchTickets({
     lotId,
     uid,
-    ticketIds: invoice.metadata.ticketIds,
+    ticketIds,
     ticketStatuses: [TicketStatus.reserved],
   });
 
   if (!reservedTickets.length) {
     return {
       error: true,
-      message: 'No reservedTickets left to expire 🤔',
+      message: 'Tickets missing fool.',
     };
   }
 
   // mark the remaining reserved tickets as expired
   // NOTE: here we can mark all the reserved tickets as expired
-  const expiredTickets: Ticket[] = markTicketsStatus(
+  const expiredTickets: Ticket[] = dependencies.markTicketsStatus(
     reservedTickets,
     TicketStatus.expired,
   );
 
   // write the expired tickets to firebase
-  await saveTickets(lotId, expiredTickets);
+  await dependencies.saveTickets(lotId, expiredTickets);
+
+  // TODO: SS send the user a notification
 
   return {
     error: false,

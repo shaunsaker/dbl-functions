@@ -7,8 +7,6 @@ import {
   BtcPayServerInvoiceId,
   BtcPayServerStoreId,
 } from '../../services/btcPayServer/models';
-import { makeUserProfileData } from '../../userProfile/data';
-import { UserProfileData } from '../../userProfile/models';
 import { getUuid } from '../../utils/getUuid';
 import { markTicketsStatus } from '../markTicketsStatus';
 
@@ -16,7 +14,6 @@ export const setupBagmanTest = async ({
   storeId = getUuid(),
   invoiceId = getUuid(),
   invoice = makeInvoice({}),
-  userProfileData = makeUserProfileData({}),
   lot = makeLot({}),
   tickets = [makeTicket({})],
   paymentValueUSD = 10,
@@ -24,24 +21,24 @@ export const setupBagmanTest = async ({
   storeId?: BtcPayServerStoreId;
   invoiceId?: BtcPayServerInvoiceId;
   invoice?: BtcPayServerInvoice | null;
-  userProfileData?: UserProfileData | null;
   lot?: Lot | null;
   tickets?: Ticket[];
   paymentValueUSD?: number;
 }) => {
+  const validateWebookEventData = jest.fn();
   const getInvoice = jest.fn();
-  const firebaseFetchUserProfile = jest.fn();
   const firebaseFetchLot = jest.fn();
   const firebaseFetchTickets = jest.fn();
   const saveTickets = jest.fn();
-  const firebaseSendNotification = jest.fn();
+  const sendNotification = jest.fn();
+
+  validateWebookEventData.mockReturnValue({
+    error: false,
+    data: invoice,
+  });
 
   if (invoice) {
     getInvoice.mockReturnValue(invoice);
-  }
-
-  if (userProfileData) {
-    firebaseFetchUserProfile.mockReturnValue(userProfileData);
   }
 
   if (lot) {
@@ -52,6 +49,10 @@ export const setupBagmanTest = async ({
     firebaseFetchTickets.mockReturnValue(tickets);
   }
 
+  sendNotification.mockReturnValue({
+    error: false,
+  });
+
   // create the webhook payment event
   const eventData = makeBtcPayServerInvoiceReceivedPaymentEventData({
     storeId,
@@ -60,14 +61,14 @@ export const setupBagmanTest = async ({
   });
 
   const response = await runBagman(eventData, {
+    validateWebookEventData,
     getInvoice,
-    firebaseFetchUserProfile,
     firebaseFetchLot,
     firebaseFetchTickets,
     markTicketsStatus,
     saveTickets,
-    firebaseSendNotification,
+    sendNotification,
   });
 
-  return { response, saveTickets, firebaseSendNotification };
+  return { response, saveTickets, sendNotification };
 };

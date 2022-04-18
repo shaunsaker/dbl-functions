@@ -2,6 +2,7 @@ import * as functions from 'firebase-functions';
 import { Ticket, TicketStatus } from '../../lots/models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
 import {
+  BtcPayServerInvoice,
   BtcPayServerInvoiceReceivedPaymentEventData,
   BtcPayServerWebhookEvent,
 } from '../../services/btcPayServer/models';
@@ -12,21 +13,19 @@ import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
 import { saveTickets } from '../saveTickets';
 import { markTicketsStatus } from '../markTicketsStatus';
-import { firebaseSendNotification } from '../../services/firebase/firebaseSendNotification';
-import { firebaseFetchUserProfile } from '../../services/firebase/firebaseFetchUserProfile';
+import { validateWebookEventData } from '../validateWebhookEventData';
+import { sendNotification } from '../sendNotification';
 
+// FIXME: improve and test this
 export const getBagmanNotification = ({
   paymentAmountBTC,
   paidTickets,
-  fcmToken,
 }: {
   paymentAmountBTC: number;
   paidTickets: Ticket[];
-  fcmToken: string;
 }): {
   title: string;
   body: string;
-  token: string;
 } => {
   return {
     title: `We've just received payment of ${paymentAmountBTC} BTC from you 😎`,
@@ -39,10 +38,10 @@ export const getBagmanNotification = ({
             paidTickets.length > 1 ? 's' : ''
           } into today's draw 🤞`
         : "Unfortunately, this wasn't enough for any of your reserved tickets. Please deposit more.",
-    token: fcmToken,
   };
 };
 
+// FIXME: improve and test this
 export const getBagmanSuccessMessage = (paidTickets: Ticket[]): string => {
   return paidTickets.length > 0
     ? `Great Success! ${maybePluralise(paidTickets.length, 'ticket')} ${
@@ -59,90 +58,51 @@ export type BagmanResponse = FirebaseFunctionResponse<void>;
 export const runBagman = async (
   data: BtcPayServerInvoiceReceivedPaymentEventData,
   dependencies: {
+    validateWebookEventData: typeof validateWebookEventData;
     getInvoice: typeof getInvoice;
-    firebaseFetchUserProfile: typeof firebaseFetchUserProfile;
     firebaseFetchLot: typeof firebaseFetchLot;
     firebaseFetchTickets: typeof firebaseFetchTickets;
     markTicketsStatus: typeof markTicketsStatus;
     saveTickets: typeof saveTickets;
-    firebaseSendNotification: typeof firebaseSendNotification;
+    sendNotification: typeof sendNotification;
   } = {
+    validateWebookEventData,
     getInvoice,
-    firebaseFetchUserProfile,
     firebaseFetchLot,
     firebaseFetchTickets,
     markTicketsStatus,
     saveTickets,
-    firebaseSendNotification,
+    sendNotification,
   },
 ): Promise<BagmanResponse> => {
-  // we need to get the lotId and uid from the invoice
-  // so we need to fetch the invoice
-  const { storeId, invoiceId } = data;
+  const validateWebhookEventDataResponse =
+    await dependencies.validateWebookEventData(data, {
+      getInvoice: dependencies.getInvoice,
+    });
 
-  if (!storeId) {
+  if (validateWebhookEventDataResponse.error) {
     return {
       error: true,
-      message: 'storeId missing fool.',
+      message: validateWebhookEventDataResponse.message,
     };
   }
 
-  if (!invoiceId) {
-    return {
-      error: true,
-      message: 'invoiceId missing fool.',
-    };
-  }
+  // if there is no invoice, validateWebookEventData will return an error
+  const invoice = validateWebhookEventDataResponse.data as BtcPayServerInvoice;
+  const { uid, lotId, ticketIds } = invoice.metadata;
 
-  const invoice = await dependencies.getInvoice({
-    storeId,
-    invoiceId,
+  // fetch the tickets using the ticketIds in the invoice
+  const reservedTickets = await dependencies.firebaseFetchTickets({
+    lotId,
+    uid,
+    ticketIds,
+    ticketStatuses: [TicketStatus.reserved],
   });
 
-  if (!invoice) {
+  if (!reservedTickets.length) {
     return {
       error: true,
-      message: 'Invoice missing fool.',
-    };
-  }
-
-  const { lotId, uid, ticketIds } = invoice.metadata;
-
-  if (!lotId) {
-    return {
-      error: true,
-      message: 'lotId missing from invoice fool.',
-    };
-  }
-
-  if (!uid) {
-    return {
-      error: true,
-      message: 'uid missing from invoice fool.',
-    };
-  }
-
-  if (!ticketIds) {
-    return {
-      error: true,
-      message: 'ticketIds missing from invoice fool.',
-    };
-  }
-
-  if (!ticketIds.length) {
-    return {
-      error: true,
-      message: 'ticketIds in invoice are empty fool.',
-    };
-  }
-
-  // fetch the user profile
-  const userProfileData = await dependencies.firebaseFetchUserProfile(lotId);
-
-  if (!userProfileData) {
-    return {
-      error: true,
-      message: 'User data missing fool.',
+      message: 'Tickets missing fool.',
     };
   }
 
@@ -153,21 +113,6 @@ export const runBagman = async (
     return {
       error: true,
       message: 'Lot missing fool.',
-    };
-  }
-
-  // fetch the tickets using the ticketIds in the invoice
-  const reservedTickets = await dependencies.firebaseFetchTickets({
-    lotId,
-    uid,
-    ticketIds: invoice.metadata.ticketIds,
-    ticketStatuses: [TicketStatus.reserved],
-  });
-
-  if (!reservedTickets.length) {
-    return {
-      error: true,
-      message: 'Tickets missing fool.',
     };
   }
 
@@ -191,10 +136,20 @@ export const runBagman = async (
   await dependencies.saveTickets(lotId, paidTickets);
 
   // notify the user that their payment was received
-  for await (const fcmToken of userProfileData.fcmTokens) {
-    await dependencies.firebaseSendNotification(
-      getBagmanNotification({ paymentAmountBTC, paidTickets, fcmToken }),
-    );
+  const notification = getBagmanNotification({
+    paymentAmountBTC,
+    paidTickets,
+  });
+  const sendNotificationResponse = await dependencies.sendNotification({
+    uid,
+    notification,
+  });
+
+  if (sendNotificationResponse.error) {
+    return {
+      error: true,
+      message: sendNotificationResponse.message,
+    };
   }
 
   return {
