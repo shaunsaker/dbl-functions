@@ -1,5 +1,4 @@
 import { Ticket, TicketStatus } from '../lots/models';
-import { getTimeAsISOString } from '../utils/getTimeAsISOString';
 
 export const markTicketsStatus = (
   tickets: Ticket[],
@@ -11,7 +10,6 @@ export const markTicketsStatus = (
     const newTicket: Ticket = {
       ...ticket,
       status,
-      confirmedTime: getTimeAsISOString(),
     };
 
     newTickets.push(newTicket);

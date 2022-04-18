@@ -1,203 +1,86 @@
-import { BagmanResponse, runBagman } from '.';
-import { makeInvoice, makeLot } from '../../lots/data';
-import { makeBtcPayServerInvoiceReceivedPaymentEventData } from '../../services/btcPayServer/data';
+import { makeInvoice } from '../../lots/data';
 import { getUuid } from '../../utils/getUuid';
+import { setupBagmanTest } from './bagman.testUtils';
 
 describe('bagman', () => {
-  const getInvoice = jest.fn();
-  const firebaseFetchLot = jest.fn();
-  const firebaseFetchTickets = jest.fn();
-  const markTicketsStatus = jest.fn();
-  const saveTickets = jest.fn();
-  const createTickets = jest.fn();
-  const updateInvoice = jest.fn();
-
   it('returns an error when there is no storeId', async () => {
-    const eventData = makeBtcPayServerInvoiceReceivedPaymentEventData({
-      invoiceId: getUuid(),
-      value: 10,
-      // @ts-expect-error we want to test bad data
-      storeId: undefined,
-    });
-    const response = await runBagman(eventData, {
-      getInvoice,
-      firebaseFetchLot,
-      firebaseFetchTickets,
-      markTicketsStatus,
-
-      saveTickets,
-      createTickets,
-      updateInvoice,
+    const { response } = await setupBagmanTest({
+      storeId: '',
     });
 
-    const expectedResponse: BagmanResponse = {
+    expect(response).toEqual({
       error: true,
       message: 'storeId missing fool.',
-    };
-    expect(response).toEqual(expectedResponse);
+    });
   });
 
   it('returns an error when there is no invoiceId', async () => {
-    const eventData = makeBtcPayServerInvoiceReceivedPaymentEventData({
+    const { response } = await setupBagmanTest({
       storeId: getUuid(),
-      value: 10,
-      // @ts-expect-error we want to test bad data
-      invoiceId: undefined,
-    });
-    const response = await runBagman(eventData, {
-      getInvoice,
-      firebaseFetchLot,
-      firebaseFetchTickets,
-      markTicketsStatus,
-      saveTickets,
-      createTickets,
-      updateInvoice,
+      invoiceId: '',
     });
 
-    const expectedResponse: BagmanResponse = {
+    expect(response).toEqual({
       error: true,
       message: 'invoiceId missing fool.',
-    };
-    expect(response).toEqual(expectedResponse);
+    });
   });
 
   it('returns an error when there is no matching invoice', async () => {
-    const eventData = makeBtcPayServerInvoiceReceivedPaymentEventData({
+    const { response } = await setupBagmanTest({
       storeId: getUuid(),
       invoiceId: getUuid(),
-      value: 10,
+      invoice: null,
     });
 
-    // invoice is null because there is no match
-    const invoice = null;
-    getInvoice.mockReturnValue(invoice);
-
-    const response = await runBagman(eventData, {
-      getInvoice,
-      firebaseFetchLot,
-      firebaseFetchTickets,
-      markTicketsStatus,
-      saveTickets,
-      createTickets,
-      updateInvoice,
-    });
-
-    const expectedResponse: BagmanResponse = {
+    expect(response).toEqual({
       error: true,
       message: 'Invoice missing fool.',
-    };
-    expect(response).toEqual(expectedResponse);
+    });
   });
 
   it('returns an error when there is no lotId in the invoice', async () => {
-    const eventData = makeBtcPayServerInvoiceReceivedPaymentEventData({
-      storeId: getUuid(),
-      invoiceId: getUuid(),
-      value: 10,
-    });
-
     const invoice = makeInvoice({
-      metadata: {
-        uid: getUuid(),
-        ticketIds: [getUuid()],
-        // @ts-expect-error  we want to test bad data
-        lotId: null,
-      },
+      metadata: { lotId: '', uid: getUuid(), ticketIds: [getUuid()] },
     });
-    getInvoice.mockReturnValue(invoice);
+    const { response } = await setupBagmanTest({ invoice });
 
-    const response = await runBagman(eventData, {
-      getInvoice,
-      firebaseFetchLot,
-      firebaseFetchTickets,
-      markTicketsStatus,
-      saveTickets,
-      createTickets,
-      updateInvoice,
-    });
-
-    const expectedResponse: BagmanResponse = {
+    expect(response).toEqual({
       error: true,
       message: 'lotId missing from invoice fool.',
-    };
-    expect(response).toEqual(expectedResponse);
+    });
   });
 
   it('returns an error when there is no uid in the invoice', async () => {
-    const eventData = makeBtcPayServerInvoiceReceivedPaymentEventData({
-      storeId: getUuid(),
-      invoiceId: getUuid(),
-      value: 10,
-    });
-
     const invoice = makeInvoice({
-      metadata: {
-        lotId: getUuid(),
-        ticketIds: [getUuid()],
-        // @ts-expect-error  we want to test bad data
-        uid: null,
-      },
+      metadata: { lotId: getUuid(), uid: '', ticketIds: [getUuid()] },
     });
-    getInvoice.mockReturnValue(invoice);
+    const { response } = await setupBagmanTest({ invoice });
 
-    const response = await runBagman(eventData, {
-      getInvoice,
-      firebaseFetchLot,
-      firebaseFetchTickets,
-      markTicketsStatus,
-      saveTickets,
-      createTickets,
-      updateInvoice,
-    });
-
-    const expectedResponse: BagmanResponse = {
+    expect(response).toEqual({
       error: true,
       message: 'uid missing from invoice fool.',
-    };
-    expect(response).toEqual(expectedResponse);
+    });
   });
 
   it('returns an error when there are no ticketIds in the invoice', async () => {
-    const eventData = makeBtcPayServerInvoiceReceivedPaymentEventData({
-      storeId: getUuid(),
-      invoiceId: getUuid(),
-      value: 10,
-    });
-
     const invoice = makeInvoice({
       metadata: {
         lotId: getUuid(),
         uid: getUuid(),
-        // @ts-expect-error  we want to test bad data
+        // @ts-expect-error mocked
         ticketIds: null,
       },
     });
-    getInvoice.mockReturnValue(invoice);
+    const { response } = await setupBagmanTest({ invoice });
 
-    const response = await runBagman(eventData, {
-      getInvoice,
-      firebaseFetchLot,
-      firebaseFetchTickets,
-      markTicketsStatus,
-      saveTickets,
-      createTickets,
-      updateInvoice,
-    });
-
-    const expectedResponse: BagmanResponse = {
+    expect(response).toEqual({
       error: true,
       message: 'ticketIds missing from invoice fool.',
-    };
-    expect(response).toEqual(expectedResponse);
+    });
   });
 
-  it('returns an error when the ticketIds in the invoice are empty', async () => {
-    const eventData = makeBtcPayServerInvoiceReceivedPaymentEventData({
-      storeId: getUuid(),
-      invoiceId: getUuid(),
-      value: 10,
-    });
-
+  it('returns an error when there the ticketIds in the invoice are empty', async () => {
     const invoice = makeInvoice({
       metadata: {
         lotId: getUuid(),
@@ -205,96 +88,268 @@ describe('bagman', () => {
         ticketIds: [],
       },
     });
-    getInvoice.mockReturnValue(invoice);
+    const { response } = await setupBagmanTest({ invoice });
 
-    const response = await runBagman(eventData, {
-      getInvoice,
-      firebaseFetchLot,
-      firebaseFetchTickets,
-      markTicketsStatus,
-      saveTickets,
-      createTickets,
-      updateInvoice,
-    });
-
-    const expectedResponse: BagmanResponse = {
+    expect(response).toEqual({
       error: true,
       message: 'ticketIds in invoice are empty fool.',
-    };
-    expect(response).toEqual(expectedResponse);
+    });
+  });
+
+  it('returns an error when there is no user data', async () => {
+    const { response } = await setupBagmanTest({ userProfileData: null });
+
+    expect(response).toEqual({
+      error: true,
+      message: 'User data missing fool.',
+    });
   });
 
   it('returns an error when there is no matching lot', async () => {
-    const eventData = makeBtcPayServerInvoiceReceivedPaymentEventData({
-      storeId: getUuid(),
-      invoiceId: getUuid(),
-      value: 10,
-    });
+    const { response } = await setupBagmanTest({ lot: null });
 
-    const invoice = makeInvoice({
-      metadata: {
-        lotId: getUuid(),
-        uid: getUuid(),
-        ticketIds: [getUuid()],
-      },
-    });
-    getInvoice.mockReturnValue(invoice);
-
-    const lot = null;
-    firebaseFetchLot.mockReturnValue(lot);
-
-    const response = await runBagman(eventData, {
-      getInvoice,
-      firebaseFetchLot,
-      firebaseFetchTickets,
-      markTicketsStatus,
-      saveTickets,
-      createTickets,
-      updateInvoice,
-    });
-
-    const expectedResponse: BagmanResponse = {
+    expect(response).toEqual({
       error: true,
       message: 'Lot missing fool.',
-    };
-    expect(response).toEqual(expectedResponse);
+    });
   });
 
   it('returns an error when there are no reserved tickets', async () => {
-    const eventData = makeBtcPayServerInvoiceReceivedPaymentEventData({
-      storeId: getUuid(),
-      invoiceId: getUuid(),
-      value: 10,
-    });
+    const { response } = await setupBagmanTest({ tickets: [] });
 
-    const invoice = makeInvoice({
-      metadata: {
-        lotId: getUuid(),
-        uid: getUuid(),
-        ticketIds: [getUuid()],
-      },
-    });
-    getInvoice.mockReturnValue(invoice);
-
-    const lot = makeLot({});
-    firebaseFetchLot.mockReturnValue(lot);
-
-    firebaseFetchTickets.mockReturnValue([]);
-
-    const response = await runBagman(eventData, {
-      getInvoice,
-      firebaseFetchLot,
-      firebaseFetchTickets,
-      markTicketsStatus,
-      saveTickets,
-      createTickets,
-      updateInvoice,
-    });
-
-    const expectedResponse: BagmanResponse = {
+    expect(response).toEqual({
       error: true,
       message: 'Tickets missing fool.',
-    };
-    expect(response).toEqual(expectedResponse);
+    });
   });
+
+  // it('handles single exact payment', async () => {
+  //   const ticket = makeTicket({ status: TicketStatus.reserved });
+  //   const tickets = [ticket];
+  //   const lot = makeLot({});
+  //   const invoice = makeInvoice({
+  //     metadata: {
+  //       lotId: lot.id,
+  //       uid: getUuid(),
+  //       ticketIds: tickets.map((ticket) => ticket.id),
+  //     },
+  //   });
+  //   getInvoice.mockReturnValue(invoice);
+
+  //   const userProfileData = makeUserProfileData({});
+  //   firebaseFetchUserProfile.mockReturnValue(userProfileData);
+
+  //   firebaseFetchLot.mockReturnValue(lot);
+
+  //   firebaseFetchTickets.mockReturnValue(tickets);
+
+  //   const eventData = makeBtcPayServerInvoiceReceivedPaymentEventData({
+  //     storeId: invoice.storeId,
+  //     invoiceId: invoice.id,
+  //     value: tickets.length * ticket.price * lot.BTCPriceInUSD,
+  //   });
+  //   const response = await runBagman(eventData, {
+  //     getInvoice,
+  //     firebaseFetchUserProfile,
+  //     firebaseFetchLot,
+  //     firebaseFetchTickets,
+  //     markTicketsStatus,
+  //     saveTickets,
+  //     createTickets,
+  //     updateInvoice,
+  //     firebaseSendNotification,
+  //   });
+
+  //   expect(saveTickets).toHaveBeenCalledWith(
+  //     lot.id,
+  //     markTicketsStatus(tickets, TicketStatus.paymentReceived),
+  //   );
+
+  //   expect(firebaseSendNotification).toHaveBeenCalledWith({
+  //     title: `We've just received payment of ${
+  //       tickets.length * ticket.price
+  //     } BTC from you 😎`,
+  //     body: "This was enough for 1 ticket. Once your transaction has received 6 confirmations on the blockchain, we'll enter your ticket into today's draw 🤞",
+  //     token: userProfileData.fcmTokens[0],
+  //   });
+
+  //   const expectedResponse: BagmanResponse = {
+  //     error: false,
+  //     message: 'Great Success! 1 ticket was marked as paymentReceived.',
+  //   };
+  //   expect(response).toEqual(expectedResponse);
+  // });
+
+  // it('handles multiple exact payments', async () => {
+  //   const ticket1 = makeTicket({ status: TicketStatus.reserved });
+  //   const ticket2 = makeTicket({ status: TicketStatus.reserved });
+  //   const tickets = [ticket1, ticket2];
+  //   const lot = makeLot({});
+  //   const invoice = makeInvoice({
+  //     metadata: {
+  //       lotId: lot.id,
+  //       uid: getUuid(),
+  //       ticketIds: tickets.map((ticket) => ticket.id),
+  //     },
+  //   });
+  //   getInvoice.mockReturnValue(invoice);
+
+  //   const userProfileData = makeUserProfileData({});
+  //   firebaseFetchUserProfile.mockReturnValue(userProfileData);
+
+  //   firebaseFetchLot.mockReturnValue(lot);
+
+  //   firebaseFetchTickets.mockReturnValue([ticket1, ticket2]);
+
+  //   const eventData = makeBtcPayServerInvoiceReceivedPaymentEventData({
+  //     storeId: invoice.storeId,
+  //     invoiceId: invoice.id,
+  //     value: tickets.length * ticket1.price * lot.BTCPriceInUSD,
+  //   });
+  //   const response = await runBagman(eventData, {
+  //     getInvoice,
+  //     firebaseFetchUserProfile,
+  //     firebaseFetchLot,
+  //     firebaseFetchTickets,
+  //     markTicketsStatus,
+  //     saveTickets,
+  //     createTickets,
+  //     updateInvoice,
+  //     firebaseSendNotification,
+  //   });
+
+  //   expect(saveTickets).toHaveBeenCalledWith(
+  //     lot.id,
+  //     markTicketsStatus(tickets, TicketStatus.paymentReceived),
+  //   );
+
+  //   expect(firebaseSendNotification).toHaveBeenCalledWith({
+  //     title: `We've just received payment of ${
+  //       tickets.length * tickets[0].price
+  //     } BTC from you 😎`,
+  //     body: "This was enough for 2 tickets. Once your transaction has received 6 confirmations on the blockchain, we'll enter your tickets into today's draw 🤞",
+  //     token: userProfileData.fcmTokens[0],
+  //   });
+
+  //   const expectedResponse: BagmanResponse = {
+  //     error: false,
+  //     message: 'Great Success! 2 tickets were marked as paymentReceived.',
+  //   };
+  //   expect(response).toEqual(expectedResponse);
+  // });
+
+  // it('handles under payments when they can afford at least one ticket', async () => {
+  //   const ticket1 = makeTicket({ status: TicketStatus.reserved });
+  //   const ticket2 = makeTicket({ status: TicketStatus.reserved });
+  //   const tickets = [ticket1, ticket2];
+  //   const lot = makeLot({});
+  //   const invoice = makeInvoice({
+  //     metadata: {
+  //       lotId: lot.id,
+  //       uid: getUuid(),
+  //       ticketIds: tickets.map((ticket) => ticket.id),
+  //     },
+  //   });
+  //   getInvoice.mockReturnValue(invoice);
+
+  //   const userProfileData = makeUserProfileData({});
+  //   firebaseFetchUserProfile.mockReturnValue(userProfileData);
+
+  //   firebaseFetchLot.mockReturnValue(lot);
+
+  //   // we still return both tickets even though the invoice was underpaid
+  //   firebaseFetchTickets.mockReturnValue(tickets);
+
+  //   const eventData = makeBtcPayServerInvoiceReceivedPaymentEventData({
+  //     storeId: invoice.storeId,
+  //     invoiceId: invoice.id,
+  //     value: ticket1.price * lot.BTCPriceInUSD, // only enough for one ticket
+  //   });
+  //   const response = await runBagman(eventData, {
+  //     getInvoice,
+  //     firebaseFetchUserProfile,
+  //     firebaseFetchLot,
+  //     firebaseFetchTickets,
+  //     markTicketsStatus,
+  //     saveTickets,
+  //     createTickets,
+  //     updateInvoice,
+  //     firebaseSendNotification,
+  //   });
+
+  //   expect(saveTickets).toHaveBeenCalledWith(
+  //     lot.id,
+  //     markTicketsStatus([ticket1], TicketStatus.paymentReceived),
+  //   );
+
+  //   expect(firebaseSendNotification).toHaveBeenCalledWith({
+  //     title: `We've just received payment of ${ticket1.price} BTC from you 😎`,
+  //     body: "This was enough for 1 ticket. Once your transaction has received 6 confirmations on the blockchain, we'll enter your ticket into today's draw 🤞",
+  //     token: userProfileData.fcmTokens[0],
+  //   });
+
+  //   const expectedResponse: BagmanResponse = {
+  //     error: false,
+  //     message: 'Great Success! 1 ticket was marked as paymentReceived.',
+  //   };
+  //   expect(response).toEqual(expectedResponse);
+  // });
+
+  // it('handles under payments when they cant afford any tickets', async () => {
+  //   const ticket1 = makeTicket({ status: TicketStatus.reserved });
+  //   const tickets = [ticket1];
+  //   const lot = makeLot({});
+  //   const invoice = makeInvoice({
+  //     metadata: {
+  //       lotId: lot.id,
+  //       uid: getUuid(),
+  //       ticketIds: tickets.map((ticket) => ticket.id),
+  //     },
+  //   });
+  //   getInvoice.mockReturnValue(invoice);
+
+  //   const userProfileData = makeUserProfileData({});
+  //   firebaseFetchUserProfile.mockReturnValue(userProfileData);
+
+  //   firebaseFetchLot.mockReturnValue(lot);
+
+  //   // we still return both tickets even though the invoice was underpaid
+  //   firebaseFetchTickets.mockReturnValue(tickets);
+
+  //   const eventData = makeBtcPayServerInvoiceReceivedPaymentEventData({
+  //     storeId: invoice.storeId,
+  //     invoiceId: invoice.id,
+  //     value: (ticket1.price * lot.BTCPriceInUSD) / 2, // not enough for one ticket
+  //   });
+  //   const response = await runBagman(eventData, {
+  //     getInvoice,
+  //     firebaseFetchUserProfile,
+  //     firebaseFetchLot,
+  //     firebaseFetchTickets,
+  //     markTicketsStatus,
+  //     saveTickets,
+  //     createTickets,
+  //     updateInvoice,
+  //     firebaseSendNotification,
+  //   });
+
+  //   expect(saveTickets).toHaveBeenCalledWith(
+  //     lot.id,
+  //     [], // no tickets
+  //   );
+
+  //   expect(firebaseSendNotification).toHaveBeenCalledWith({
+  //     title: `We've just received payment of ${
+  //       parseFloat(eventData.payment.value) / lot.BTCPriceInUSD
+  //     } BTC from you 😎`,
+  //     body: "Unfortunately, this wasn't enough for any of your reserved tickets. Please deposit more.",
+  //     token: userProfileData.fcmTokens[0],
+  //   });
+
+  //   const expectedResponse: BagmanResponse = {
+  //     error: false,
+  //     message: 'Epic Fail! User could not afford any tickets.',
+  //   };
+  //   expect(response).toEqual(expectedResponse);
+  // });
 });

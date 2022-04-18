@@ -7,5 +7,6 @@ export interface UserProfileData {
   username: Username;
   email: string;
   hasCompletedOnboarding: boolean;
+  fcmTokens: string[];
   withdrawWinningsLink?: string;
 }

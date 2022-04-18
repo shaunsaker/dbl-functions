@@ -44,6 +44,4 @@ export interface Ticket {
   price: number;
   status: TicketStatus;
   dateCreated: string;
-  confirmedTime?: string; // only once the deposit has been received and confirmed
-  expiredTime?: string; // only if expired
 }

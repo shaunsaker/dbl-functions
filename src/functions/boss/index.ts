@@ -21,7 +21,7 @@ import {
   FirebaseFunctionResponse,
   FirebaseMessagingTopics,
 } from '../../services/firebase/models';
-import { sendNotification } from '../../services/firebase/sendNotification';
+import { firebaseSendNotification } from '../../services/firebase/firebaseSendNotification';
 import { sendEmail } from '../../services/mailer';
 import { UserId, Username } from '../../userProfile/models';
 import { numberToDigits } from '../../utils/numberToDigits';
@@ -170,7 +170,7 @@ export const runBoss = async (): Promise<Response> => {
   });
 
   // notify the users
-  await sendNotification({
+  await firebaseSendNotification({
     topic: FirebaseMessagingTopics.winner,
     title: 'We have a new Winner 👑🎉',
     body: 'Open the app for more info 😎',

@@ -5,6 +5,7 @@ import {
 } from '../services/btcPayServer/models';
 import { getUuid } from '../utils/getUuid';
 
+// TODO: SS move this to BTCPayServer
 export const makeStore = ({
   name = '',
 }: Partial<BtcPayServerStore>): Omit<BtcPayServerStore, 'id'> => {
@@ -17,6 +18,7 @@ export const makeStore = ({
   };
 };
 
+// TODO: SS move this to BTCPayServer
 export const makeWebhook = (
   specificEvents: BtcPayServerWebhookEvent[],
   url: string,

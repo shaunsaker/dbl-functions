@@ -14,6 +14,8 @@ import { saveTickets } from '../saveTickets';
 import { markTicketsStatus } from '../markTicketsStatus';
 import { createTickets } from '../createTickets';
 import { updateInvoice } from '../../services/btcPayServer/updateInvoice';
+import { firebaseSendNotification } from '../../services/firebase/firebaseSendNotification';
+import { firebaseFetchUserProfile } from '../../services/firebase/firebaseFetchUserProfile';
 
 export type BagmanResponse = FirebaseFunctionResponse<void>;
 
@@ -24,20 +26,24 @@ export const runBagman = async (
   data: BtcPayServerInvoiceReceivedPaymentEventData,
   dependencies: {
     getInvoice: typeof getInvoice;
+    firebaseFetchUserProfile: typeof firebaseFetchUserProfile;
     firebaseFetchLot: typeof firebaseFetchLot;
     firebaseFetchTickets: typeof firebaseFetchTickets;
     markTicketsStatus: typeof markTicketsStatus;
     saveTickets: typeof saveTickets;
     createTickets: typeof createTickets;
     updateInvoice: typeof updateInvoice;
+    firebaseSendNotification: typeof firebaseSendNotification;
   } = {
     getInvoice,
+    firebaseFetchUserProfile,
     firebaseFetchLot,
     firebaseFetchTickets,
     markTicketsStatus,
     saveTickets,
     createTickets,
     updateInvoice,
+    firebaseSendNotification,
   },
 ): Promise<BagmanResponse> => {
   // we need to get the lotId and uid from the invoice
@@ -100,6 +106,16 @@ export const runBagman = async (
     };
   }
 
+  // fetch the user profile
+  const userProfileData = await dependencies.firebaseFetchUserProfile(lotId);
+
+  if (!userProfileData) {
+    return {
+      error: true,
+      message: 'User data missing fool.',
+    };
+  }
+
   // fetch the lot
   const lot = await dependencies.firebaseFetchLot(lotId);
 
@@ -125,27 +141,15 @@ export const runBagman = async (
     };
   }
 
-  const paymentAmountUSD = parseFloat(data.payment.value);
-  const paymentAmountBTC = paymentAmountUSD / lot.BTCPriceInUSD;
-  const ticketPriceInBTC = lot.ticketPriceInBTC;
-
   // handle partial payments by only reserving the tickets to the value of the payment
   // e.g. if I reserved 5 tickets but only paid for 3, only reserve 3
   // NOTE: keep in mind that this could also be an over payment
-
-  // the user can afford X amount of tickets
+  const paymentAmountUSD = parseFloat(data.payment.value);
+  const paymentAmountBTC = paymentAmountUSD / lot.BTCPriceInUSD;
   const quantityTicketsReservable = Math.floor(
-    paymentAmountBTC / ticketPriceInBTC,
+    paymentAmountBTC / lot.ticketPriceInBTC,
   );
-
-  // the user has overpaid if they can afford more tickets than they reserved
-  const hasUserOverpaidOrPaidLate =
-    quantityTicketsReservable > reservedTickets.length;
-
-  // for partial payments, we should only mark a certain amounts of the tickets as paid
-  const reservableTickets = hasUserOverpaidOrPaidLate
-    ? reservedTickets
-    : reservedTickets.slice(0, quantityTicketsReservable - 1);
+  const reservableTickets = reservedTickets.slice(0, quantityTicketsReservable);
 
   // mark the ticket's statuses
   const paidTickets: Ticket[] = dependencies.markTicketsStatus(
@@ -156,16 +160,31 @@ export const runBagman = async (
   // update the tickets in firebase
   await dependencies.saveTickets(lotId, paidTickets);
 
-  // TODO: SS handle late payment
-
-  // TODO: SS handle late settlement
+  // notify the user that their payment was received
+  for await (const fcmToken of userProfileData.fcmTokens) {
+    await dependencies.firebaseSendNotification({
+      title: `We've just received payment of ${paymentAmountBTC} BTC from you 😎`,
+      body:
+        paidTickets.length > 0
+          ? `This was enough for ${maybePluralise(
+              paidTickets.length,
+              'ticket',
+            )}. Once your transaction has received 6 confirmations on the blockchain, we'll enter your ticket${
+              paidTickets.length > 1 ? 's' : ''
+            } into today's draw 🤞`
+          : "Unfortunately, this wasn't enough for any of your reserved tickets. Please deposit more.",
+      token: fcmToken,
+    });
+  }
 
   return {
     error: false,
-    message: `Great Success!  ${maybePluralise(
-      paidTickets.length,
-      'ticket',
-    )} were marked as reserved.`,
+    message:
+      paidTickets.length > 0
+        ? `Great Success! ${maybePluralise(paidTickets.length, 'ticket')} ${
+            paidTickets.length > 1 ? 'were' : 'was'
+          } marked as paymentReceived.`
+        : 'Epic Fail! User could not afford any tickets.',
   };
 };
 

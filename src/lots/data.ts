@@ -59,20 +59,20 @@ export const makeTicket = ({
   price,
   status,
   dateCreated,
-  confirmedTime,
-  expiredTime,
 }: Partial<Ticket>): Ticket => ({
   id: id || getUuid(),
   uid: uid || getUuid(),
   price: price || 0.00025,
   status: status || TicketStatus.reserved,
   dateCreated: dateCreated || getTimeAsISOString(),
-  confirmedTime: confirmedTime || getTimeAsISOString(),
-  expiredTime: expiredTime || getTimeAsISOString(),
 });
 
 export const makeInvoice = ({
-  metadata: { uid, lotId, ticketIds } = { uid: '', lotId: '', ticketIds: [] },
+  metadata: { uid, lotId, ticketIds } = {
+    uid: getUuid(),
+    lotId: getUuid(),
+    ticketIds: [getUuid()],
+  },
   amount,
 }: Partial<BtcPayServerInvoice>): BtcPayServerInvoice => ({
   metadata: {
