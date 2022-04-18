@@ -2,6 +2,7 @@ import * as functions from 'firebase-functions';
 import { Ticket, TicketStatus } from '../../lots/models';
 import { getInvoice } from '../../services/btcPayServer/getInvoice';
 import {
+  BtcPayServerInvoice,
   BtcPayServerInvoiceSettledEventData,
   BtcPayServerWebhookEvent,
 } from '../../services/btcPayServer/models';
@@ -11,60 +12,68 @@ import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
 import { saveTickets } from '../saveTickets';
 import { markTicketsStatus } from '../markTicketsStatus';
+import { validateWebookEventData } from '../validateWebhookEventData';
+import { sendNotification } from '../sendNotification';
+
+// FIXME: improve and test this
+export const getBankerNotification = ({
+  confirmedTickets,
+}: {
+  confirmedTickets: Ticket[];
+}): {
+  title: string;
+  body: string;
+} => {
+  return {
+    title: `We've just confirmed ${maybePluralise(
+      confirmedTickets.length,
+      'ticket',
+    )} 🎉`,
+    body: "You're officially in today's draw 🤞",
+  };
+};
 
 type Response = FirebaseFunctionResponse<void>;
 
 export const runBanker = async (
   data: BtcPayServerInvoiceSettledEventData,
+  dependencies: {
+    validateWebookEventData: typeof validateWebookEventData;
+    getInvoice: typeof getInvoice;
+    firebaseFetchTickets: typeof firebaseFetchTickets;
+    markTicketsStatus: typeof markTicketsStatus;
+    saveTickets: typeof saveTickets;
+    sendNotification: typeof sendNotification;
+  } = {
+    validateWebookEventData,
+    getInvoice,
+    firebaseFetchTickets,
+    markTicketsStatus,
+    saveTickets,
+    sendNotification,
+  },
 ): Promise<Response> => {
-  // we need to get the lotId and uid from the invoice
-  // so we need to fetch the invoice
-  const { storeId, invoiceId } = data;
+  const validateWebhookEventDataResponse =
+    await dependencies.validateWebookEventData(data, {
+      getInvoice: dependencies.getInvoice,
+    });
 
-  if (!storeId) {
+  if (validateWebhookEventDataResponse.error) {
     return {
       error: true,
-      message: 'storeId missing fool.',
+      message: validateWebhookEventDataResponse.message,
     };
   }
 
-  if (!invoiceId) {
-    return {
-      error: true,
-      message: 'invoiceId missing fool.',
-    };
-  }
-
-  const invoice = await getInvoice({ storeId, invoiceId });
-
-  if (!invoice) {
-    return {
-      error: true,
-      message: 'Invoice missing fool.',
-    };
-  }
-
-  const { lotId, uid } = invoice.metadata;
-
-  if (!lotId) {
-    return {
-      error: true,
-      message: 'lotId missing from invoice fool.',
-    };
-  }
-
-  if (!uid) {
-    return {
-      error: true,
-      message: 'uid missing from invoice fool.',
-    };
-  }
+  // if there is no invoice, validateWebookEventData will return an error
+  const invoice = validateWebhookEventDataResponse.data as BtcPayServerInvoice;
+  const { uid, lotId, ticketIds } = invoice.metadata;
 
   // fetch the tickets using the ticketIds in the invoice
-  const paymentReceivedTickets = await firebaseFetchTickets({
+  const paymentReceivedTickets = await dependencies.firebaseFetchTickets({
     lotId,
     uid,
-    ticketIds: invoice.metadata.ticketIds,
+    ticketIds,
     ticketStatuses: [TicketStatus.paymentReceived],
   });
 
@@ -72,7 +81,7 @@ export const runBanker = async (
     // should not be possible
     return {
       error: true,
-      message: 'Free money baby!',
+      message: 'Tickets missing fool.',
     };
   }
 
@@ -81,20 +90,33 @@ export const runBanker = async (
   // event for partial payments
   // NOTE: it should also not be possible to get an over payment at this stage
   // that will be handled in the InvoiceReceivedPayment webhook
-  const confirmedTickets: Ticket[] = markTicketsStatus(
+  const confirmedTickets: Ticket[] = dependencies.markTicketsStatus(
     paymentReceivedTickets,
     TicketStatus.confirmed,
   );
 
   // write the confirmed tickets to firebase
-  await saveTickets(lotId, confirmedTickets);
+  await dependencies.saveTickets(lotId, confirmedTickets);
+
+  // notify the user that their tickets were confirmed
+  const notification = getBankerNotification({
+    confirmedTickets,
+  });
+  const sendNotificationResponse = await dependencies.sendNotification({
+    uid,
+    notification,
+  });
+
+  if (sendNotificationResponse.error) {
+    return {
+      error: true,
+      message: sendNotificationResponse.message,
+    };
+  }
 
   return {
     error: false,
-    message: `Great Success!  ${maybePluralise(
-      confirmedTickets.length,
-      'ticket',
-    )} were marked as confirmed.`,
+    message: 'Great success!',
   };
 };
 
