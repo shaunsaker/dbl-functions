@@ -41,15 +41,6 @@ export const getBagmanNotification = ({
   };
 };
 
-// FIXME: improve and test this
-export const getBagmanSuccessMessage = (paidTickets: Ticket[]): string => {
-  return paidTickets.length > 0
-    ? `Great Success! ${maybePluralise(paidTickets.length, 'ticket')} ${
-        paidTickets.length > 1 ? 'were' : 'was'
-      } marked as paymentReceived.`
-    : 'Epic Fail! User could not afford any tickets.';
-};
-
 export type BagmanResponse = FirebaseFunctionResponse<void>;
 
 // bagman is a webhook for the InvoiceReceivedPaymentEvent
@@ -154,7 +145,7 @@ export const runBagman = async (
 
   return {
     error: false,
-    message: getBagmanSuccessMessage(paidTickets),
+    message: 'Great success!',
   };
 };
 

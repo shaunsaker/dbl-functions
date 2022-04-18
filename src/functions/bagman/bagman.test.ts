@@ -1,4 +1,4 @@
-import { getBagmanNotification, getBagmanSuccessMessage } from '.';
+import { getBagmanNotification } from '.';
 import { makeInvoice, makeLot, makeTicket } from '../../lots/data';
 import { TicketStatus } from '../../lots/models';
 import { getUuid } from '../../utils/getUuid';
@@ -64,7 +64,7 @@ describe('bagman', () => {
 
     expect(response).toEqual({
       error: false,
-      message: getBagmanSuccessMessage(expectedPaidTickets),
+      message: 'Great success!',
     });
   });
 
@@ -112,7 +112,7 @@ describe('bagman', () => {
 
     expect(response).toEqual({
       error: false,
-      message: getBagmanSuccessMessage(expectedPaidTickets),
+      message: 'Great success!',
     });
   });
 
@@ -157,10 +157,9 @@ describe('bagman', () => {
         paidTickets: expectedPaidTickets,
       }),
     });
-
     expect(response).toEqual({
       error: false,
-      message: getBagmanSuccessMessage(expectedPaidTickets),
+      message: 'Great success!',
     });
   });
 
@@ -205,10 +204,9 @@ describe('bagman', () => {
         paidTickets: expectedPaidTickets,
       }),
     });
-
     expect(response).toEqual({
       error: false,
-      message: getBagmanSuccessMessage(expectedPaidTickets),
+      message: 'Great success!',
     });
   });
 });

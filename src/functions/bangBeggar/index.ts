@@ -12,10 +12,29 @@ import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { saveTickets } from '../saveTickets';
 import { markTicketsStatus } from '../markTicketsStatus';
 import { validateWebookEventData } from '../validateWebhookEventData';
+import { sendNotification } from '../sendNotification';
+import { maybePluralise } from '../../utils/maybePluralise';
+
+// FIXME: improve and test this
+export const getBangBeggarNotification = ({
+  expiredTickets,
+}: {
+  expiredTickets: Ticket[];
+}): {
+  title: string;
+  body: string;
+} => {
+  return {
+    title: `We've just expired ${maybePluralise(
+      expiredTickets.length,
+      'ticket',
+    )} 😔`,
+    body: "To keep things fair, if we don't receive payment within 15 minutes, we expire those tickets for other users. Please try again.",
+  };
+};
 
 type Response = FirebaseFunctionResponse<void>;
 
-// TODO: SS test this
 export const runBangBeggar = async (
   data: BtcPayServerInvoiceExpiredEventData,
   dependencies: {
@@ -24,12 +43,14 @@ export const runBangBeggar = async (
     firebaseFetchTickets: typeof firebaseFetchTickets;
     markTicketsStatus: typeof markTicketsStatus;
     saveTickets: typeof saveTickets;
+    sendNotification: typeof sendNotification;
   } = {
     validateWebookEventData,
     getInvoice,
     firebaseFetchTickets,
     markTicketsStatus,
     saveTickets,
+    sendNotification,
   },
 ): Promise<Response> => {
   const response = await dependencies.validateWebookEventData(data, {
@@ -72,11 +93,25 @@ export const runBangBeggar = async (
   // write the expired tickets to firebase
   await dependencies.saveTickets(lotId, expiredTickets);
 
-  // TODO: SS send the user a notification
+  // notify the user that their payment was received
+  const notification = getBangBeggarNotification({
+    expiredTickets,
+  });
+  const sendNotificationResponse = await dependencies.sendNotification({
+    uid,
+    notification,
+  });
+
+  if (sendNotificationResponse.error) {
+    return {
+      error: true,
+      message: sendNotificationResponse.message,
+    };
+  }
 
   return {
     error: false,
-    message: 'Great Success!',
+    message: 'Great success!',
   };
 };
 
