@@ -26,10 +26,6 @@ export const firebaseFetchTickets = async ({
         ref = ref.where('uid', '==', uid);
       }
 
-      if (ticketStatuses) {
-        ref = ref.where('status', 'in', ticketStatuses);
-      }
-
       if (ticketIds) {
         ref = ref.where(
           firebase.firestore.FieldPath.documentId(),
@@ -38,9 +34,17 @@ export const firebaseFetchTickets = async ({
         );
       }
 
-      const tickets = (await ref.get()).docs.map(
+      let tickets = (await ref.get()).docs.map(
         (doc) => ({ id: doc.id, ...doc.data() } as Ticket),
       );
+
+      // we're only allowed a single "in" per Firebase query
+      // so we need to filter manually here
+      if (ticketStatuses) {
+        tickets = tickets.filter((ticket) =>
+          ticketStatuses.includes(ticket.status),
+        );
+      }
 
       resolve(tickets);
     } catch (error) {
