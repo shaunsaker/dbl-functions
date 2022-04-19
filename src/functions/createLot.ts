@@ -14,7 +14,10 @@ import { firebaseSaveStoreData } from '../services/firebase/firebaseSaveStoreDat
 import { createMnemonic } from '../utils/createMnemonic';
 import { encrypt } from '../utils/crypto';
 import { numberToDigits } from '../utils/numberToDigits';
-import { makeStore, makeWebhook } from '../stores/data';
+import {
+  makeBtcPayServerStore,
+  makeBtcPayServerWebhook,
+} from '../services/btcPayServer/data';
 import { makeLot } from '../lots/data';
 import { BtcPayServerWebhookEvent } from '../services/btcPayServer/models';
 
@@ -73,14 +76,14 @@ export const getTicketCommission = ({
 export const getLotId = () => moment().startOf('day').format('YYYY-MM-DD'); // the id is the day
 
 export const getPaymentReceivedWebhook = () =>
-  makeWebhook({
+  makeBtcPayServerWebhook({
     url: process.env.INVOICE_RECEIVED_PAYMENT_WEBHOOK_URL,
     specificEvents: [BtcPayServerWebhookEvent.invoiceReceivedPayment], // once the tx is broadcasted on the blockchain
     secret: process.env.WEBHOOK_SECRET,
   });
 
 export const getInvoiceSettledWebhook = () =>
-  makeWebhook({
+  makeBtcPayServerWebhook({
     url: process.env.INVOICE_SETTLED_WEBHOOK_URL,
     specificEvents: [
       BtcPayServerWebhookEvent.invoiceSettled,
@@ -90,7 +93,7 @@ export const getInvoiceSettledWebhook = () =>
   });
 
 export const getInvoiceExpiredWebhook = () =>
-  makeWebhook({
+  makeBtcPayServerWebhook({
     url: process.env.INVOICE_EXPIRED_WEBHOOK_URL,
     specificEvents: [
       BtcPayServerWebhookEvent.invoiceExpired,
@@ -136,7 +139,7 @@ export const createLot = async (
 
   // create the store
   const lotId: LotId = getLotId();
-  const store = makeStore({ name: lotId });
+  const store = makeBtcPayServerStore({ name: lotId });
   const { id: storeId } = await dependencies.createStore(store);
 
   // create the store wallet

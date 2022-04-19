@@ -5,7 +5,7 @@ import {
   BtcPayServerInvoice,
   BtcPayServerStore,
 } from '../../services/btcPayServer/models';
-import { makeStore } from '../../stores/data';
+import { makeBtcPayServerStore } from '../../services/btcPayServer/data';
 import { UserId } from '../../userProfile/models';
 import { getUuid } from '../../utils/getUuid';
 
@@ -15,7 +15,7 @@ export const setupBookieTest = async ({
   ticketCount = 1,
   isAuthUser = true,
   lot = makeLot({}),
-  store = { ...makeStore({}), id: getUuid() },
+  store = { ...makeBtcPayServerStore({}), id: getUuid() },
   tickets = [makeTicket({})],
   invoice = makeInvoice({}),
 }: {

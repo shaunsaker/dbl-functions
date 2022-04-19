@@ -6,14 +6,14 @@ import {
   BtcPayServerPullPayment,
   BtcPayServerStore,
 } from '../../services/btcPayServer/models';
-import { makeStore } from '../../stores/data';
+import { makeBtcPayServerStore } from '../../services/btcPayServer/data';
 import { makeUserProfileData } from '../../userProfile/data';
 import { UserId, UserProfileData } from '../../userProfile/models';
 import { getUuid } from '../../utils/getUuid';
 
 export const setupBossTest = async ({
   lot = makeLot({}),
-  store = { ...makeStore({}), id: getUuid() },
+  store = { ...makeBtcPayServerStore({}), id: getUuid() },
   walletBalanceBTC = 10,
   winnerUid = getUuid(),
   winnerUserProfileData = makeUserProfileData({}),

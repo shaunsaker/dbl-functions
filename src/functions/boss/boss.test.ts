@@ -9,7 +9,7 @@ import { makeLot, makeTicket } from '../../lots/data';
 import { TicketStatus } from '../../lots/models';
 import { makeBtcPayServerPullPayment } from '../../services/btcPayServer/data';
 import { FirebaseMessagingTopics } from '../../services/firebase/models';
-import { makeStore } from '../../stores/data';
+import { makeBtcPayServerStore } from '../../services/btcPayServer/data';
 import { makeUserProfileData } from '../../userProfile/data';
 import { arrayFromNumber } from '../../utils/arrayFromNumber';
 import { getUuid } from '../../utils/getUuid';
@@ -138,7 +138,7 @@ describe('boss', () => {
 
     it('does the nitty gritty', async () => {
       const lot = makeLot({ totalInBTC: 1 });
-      const store = { ...makeStore({}), id: getUuid() };
+      const store = { ...makeBtcPayServerStore({}), id: getUuid() };
       const winnerUid = getUuid();
       const winnerUserProfileData = makeUserProfileData({});
       const winnerPullPayment = makeBtcPayServerPullPayment({});

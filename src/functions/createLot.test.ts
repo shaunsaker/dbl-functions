@@ -1,5 +1,5 @@
 import { makeLot } from '../lots/data';
-import { makeStore } from '../stores/data';
+import { makeBtcPayServerStore } from '../services/btcPayServer/data';
 import { getUuid } from '../utils/getUuid';
 import {
   getInvoiceExpiredWebhook,
@@ -66,7 +66,7 @@ describe('createLot', () => {
 
     expect(dependencies.getBTCUSDPrice).toHaveBeenCalled();
     expect(dependencies.createStore).toHaveBeenCalledWith(
-      makeStore({ name: getLotId() }),
+      makeBtcPayServerStore({ name: getLotId() }),
     );
     expect(dependencies.createStoreWallet).toHaveBeenCalledWith(storeId, {
       existingMnemonic: expect.any(String),

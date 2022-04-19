@@ -1,6 +1,6 @@
 import { makeInvoice, makeLot, makeTicket } from '../../lots/data';
 import { makeBtcPayServerInvoicePayload } from '../../services/btcPayServer/data';
-import { makeStore } from '../../stores/data';
+import { makeBtcPayServerStore } from '../../services/btcPayServer/data';
 import { arrayFromNumber } from '../../utils/arrayFromNumber';
 import { getUuid } from '../../utils/getUuid';
 import { setupBookieTest } from './bookie.testUtils';
@@ -65,7 +65,7 @@ describe('bookie', () => {
     const lot = makeLot({ id: lotId });
     const uid = getUuid();
     const ticketCount = 5;
-    const store = { ...makeStore({}), id: getUuid() };
+    const store = { ...makeBtcPayServerStore({}), id: getUuid() };
     const tickets = arrayFromNumber(5).map(() => makeTicket({}));
     const invoice = makeInvoice({
       metadata: {

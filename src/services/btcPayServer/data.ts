@@ -7,7 +7,9 @@ import {
   BtcPayServerInvoiceReceivedPaymentEventData,
   BtcPayServerInvoiceSettledEventData,
   BtcPayServerPullPayment,
+  BtcPayServerStore,
   BtcPayServerStoreId,
+  BtcPayServerWebhook,
   BtcPayServerWebhookEvent,
 } from './models';
 
@@ -129,5 +131,39 @@ export const makeBtcPayServerPullPayment = ({
     BOLT11Expiration,
     archived,
     viewLink,
+  };
+};
+
+export const makeBtcPayServerStore = ({
+  name = getUuid(),
+}: Partial<BtcPayServerStore>): Omit<BtcPayServerStore, 'id'> => {
+  return {
+    name,
+    website: '', // website is only for the BtcPayServer UI which we don't use
+    defaultPaymentMethod: 'BTC',
+    speedPolicy: 'LowSpeed', // 6 confirmations
+    networkFeeMode: 'MultiplePaymentsOnly',
+  };
+};
+
+export const makeBtcPayServerWebhook = ({
+  id = getUuid(),
+  url,
+  specificEvents,
+  secret,
+}: {
+  id?: string;
+  url: string;
+  specificEvents: BtcPayServerWebhookEvent[];
+  secret: string;
+}): BtcPayServerWebhook => {
+  return {
+    id,
+    url,
+    authorizedEvents: {
+      everything: false,
+      specificEvents: specificEvents,
+    },
+    secret,
   };
 };
