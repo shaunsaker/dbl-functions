@@ -143,6 +143,7 @@ export const makeBtcPayServerStore = ({
     defaultPaymentMethod: 'BTC',
     speedPolicy: 'LowSpeed', // 6 confirmations
     networkFeeMode: 'MultiplePaymentsOnly',
+    monitoringExpiration: 60 * 60 * 2, // monitor for 2 hours (default is 1 hour which I have found not to be enough, at least on testnet)
   };
 };
 
