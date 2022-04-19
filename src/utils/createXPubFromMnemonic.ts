@@ -2,6 +2,8 @@ import { networks } from 'bitcoinjs-lib';
 import * as bip39 from 'bip39';
 import { bip32 } from './bip32';
 
+require('dotenv').config();
+
 const testnet = networks.testnet;
 
 export const createXPubFromMnemonic = (mnemonic: string): string => {

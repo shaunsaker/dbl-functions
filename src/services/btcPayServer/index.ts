@@ -2,6 +2,8 @@
 // eslint-disable-next-line
 import axios, { AxiosError } from 'axios';
 
+require('dotenv').config();
+
 const get = <R>(endpoint: string): Promise<R> => {
   return new Promise(async (resolve, reject) => {
     try {

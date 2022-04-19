@@ -14,6 +14,8 @@ import { validateWebookEventData } from '../validateWebhookEventData';
 import { sendNotification } from '../sendNotification';
 import { maybePluralise } from '../../utils/maybePluralise';
 
+require('dotenv').config();
+
 // FIXME: improve and test this
 export const getBangBeggarNotification = ({
   expiredTickets,

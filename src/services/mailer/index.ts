@@ -1,6 +1,8 @@
 import * as nodemailer from 'nodemailer';
 import * as cors from 'cors';
 
+require('dotenv').config();
+
 cors({ origin: true });
 
 const transporter = nodemailer.createTransport({

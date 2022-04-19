@@ -1,7 +1,5 @@
 import { runBookie } from '.';
 
-require('dotenv').config();
-
 const doAsync = async () => {
   const response = await runBookie({
     uid: process.argv[2],

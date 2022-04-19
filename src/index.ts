@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 export * from './functions/bagman';
 export * from './functions/bangBeggar';
 export * from './functions/banker';

@@ -14,6 +14,8 @@ import { changeTicketsStatus } from '../changeTicketsStatus';
 import { validateWebookEventData } from '../validateWebhookEventData';
 import { sendNotification } from '../sendNotification';
 
+require('dotenv').config();
+
 // FIXME: improve and test this
 export const getBankerNotification = ({
   confirmedTickets,

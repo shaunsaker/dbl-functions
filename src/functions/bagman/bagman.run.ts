@@ -1,8 +1,6 @@
 import { runBagman } from '.';
 import { makeBtcPayServerInvoiceReceivedPaymentEventData } from '../../services/btcPayServer/data';
 
-require('dotenv').config();
-
 const doAsync = async () => {
   const storeId = process.argv[2];
   const invoiceId = process.argv[3];
