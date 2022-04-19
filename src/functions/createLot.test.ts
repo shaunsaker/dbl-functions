@@ -56,46 +56,62 @@ describe('createLot', () => {
     });
   });
 
-  it('creates a lot', async () => {
-    const BTCPriceInUSD = 50000;
-    const storeId = getUuid();
-    const { dependencies } = await setupCreateLotTest({
-      BTCPriceInUSD,
-      storeId,
+  describe('createLot', () => {
+    const lotId = getLotId();
+
+    it('returns an error if a lot already exists', async () => {
+      const { response } = await setupCreateLotTest({
+        lotExists: true,
+      });
+
+      expect(response).toEqual({
+        error: true,
+        message: `lot with id ${lotId} already exists fool.`,
+      });
     });
 
-    expect(dependencies.getBTCUSDPrice).toHaveBeenCalled();
-    expect(dependencies.createStore).toHaveBeenCalledWith(
-      makeBtcPayServerStore({ name: getLotId() }),
-    );
-    expect(dependencies.createStoreWallet).toHaveBeenCalledWith(storeId, {
-      existingMnemonic: expect.any(String),
-      passphrase: expect.any(String),
-    });
-    expect(dependencies.firebaseSaveStoreData).toHaveBeenCalledWith(storeId, {
-      hash: expect.any(Object),
-    });
-    expect(dependencies.createWebhook).toHaveBeenCalledWith(storeId, {
-      ...getPaymentReceivedWebhook(),
-      id: expect.any(String),
-    });
-    expect(dependencies.createWebhook).toHaveBeenCalledWith(storeId, {
-      ...getInvoiceSettledWebhook(),
-      id: expect.any(String),
-    });
-    expect(dependencies.createWebhook).toHaveBeenCalledWith(storeId, {
-      ...getInvoiceExpiredWebhook(),
-      id: expect.any(String),
-    });
-    expect(dependencies.firebaseCreateLot).toHaveBeenCalledWith({
-      ...makeLot({
-        id: getLotId(),
-        dateCreated: expect.any(String),
+    it('creates a lot', async () => {
+      const BTCPriceInUSD = 50000;
+      const storeId = getUuid();
+      const { dependencies } = await setupCreateLotTest({
         BTCPriceInUSD,
-        ticketPriceInBTC: expect.any(Number), // tested above
-        ticketCommissionInBTC: expect.any(Number),
-        ticketsAvailable: expect.any(Number),
-      }),
+        storeId,
+      });
+
+      expect(dependencies.firebaseFetchLot).toHaveBeenCalledWith(lotId);
+      expect(dependencies.getBTCUSDPrice).toHaveBeenCalled();
+      expect(dependencies.createStore).toHaveBeenCalledWith(
+        makeBtcPayServerStore({ name: lotId }),
+      );
+      expect(dependencies.createStoreWallet).toHaveBeenCalledWith(storeId, {
+        existingMnemonic: expect.any(String),
+        passphrase: expect.any(String),
+      });
+      expect(dependencies.firebaseSaveStoreData).toHaveBeenCalledWith(storeId, {
+        hash: expect.any(Object),
+      });
+      expect(dependencies.createWebhook).toHaveBeenCalledWith(storeId, {
+        ...getPaymentReceivedWebhook(),
+        id: expect.any(String),
+      });
+      expect(dependencies.createWebhook).toHaveBeenCalledWith(storeId, {
+        ...getInvoiceSettledWebhook(),
+        id: expect.any(String),
+      });
+      expect(dependencies.createWebhook).toHaveBeenCalledWith(storeId, {
+        ...getInvoiceExpiredWebhook(),
+        id: expect.any(String),
+      });
+      expect(dependencies.firebaseCreateLot).toHaveBeenCalledWith({
+        ...makeLot({
+          id: lotId,
+          dateCreated: expect.any(String),
+          BTCPriceInUSD,
+          ticketPriceInBTC: expect.any(Number), // tested above
+          ticketCommissionInBTC: expect.any(Number),
+          ticketsAvailable: expect.any(Number),
+        }),
+      });
     });
   });
 });

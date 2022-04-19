@@ -2,18 +2,25 @@ import { getUuid } from '../utils/getUuid';
 import { createLot } from './createLot';
 
 export const setupCreateLotTest = async ({
+  lotExists = false,
   BTCPriceInUSD = 50000,
   storeId = getUuid(),
 }: {
+  lotExists?: boolean;
   BTCPriceInUSD?: number;
   storeId?: string;
 }) => {
+  const firebaseFetchLot = jest.fn();
   const getBTCUSDPrice = jest.fn();
   const createStore = jest.fn();
   const createStoreWallet = jest.fn();
   const firebaseSaveStoreData = jest.fn();
   const createWebhook = jest.fn();
   const firebaseCreateLot = jest.fn();
+
+  if (lotExists) {
+    firebaseFetchLot.mockReturnValue(true);
+  }
 
   if (BTCPriceInUSD) {
     getBTCUSDPrice.mockReturnValue(BTCPriceInUSD);
@@ -24,6 +31,7 @@ export const setupCreateLotTest = async ({
   }
 
   const dependencies = {
+    firebaseFetchLot,
     getBTCUSDPrice,
     createStore,
     createStoreWallet,

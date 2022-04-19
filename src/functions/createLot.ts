@@ -21,6 +21,8 @@ import {
 } from '../services/btcPayServer/data';
 import { makeLot } from '../lots/data';
 import { BtcPayServerWebhookEvent } from '../services/btcPayServer/models';
+import { firebaseFetchLot } from '../services/firebase/firebaseFetchLot';
+import { FirebaseFunctionResponse } from '../services/firebase/models';
 
 require('dotenv').config();
 
@@ -104,8 +106,11 @@ export const getInvoiceExpiredWebhook = () =>
     secret: process.env.WEBHOOK_SECRET,
   });
 
+type Response = FirebaseFunctionResponse<void>;
+
 export const createLot = async (
   dependencies: {
+    firebaseFetchLot: typeof firebaseFetchLot;
     getBTCUSDPrice: typeof getBTCUSDPrice;
     createStore: typeof createStore;
     createStoreWallet: typeof createStoreWallet;
@@ -113,6 +118,7 @@ export const createLot = async (
     createWebhook: typeof createWebhook;
     firebaseCreateLot: typeof firebaseCreateLot;
   } = {
+    firebaseFetchLot,
     getBTCUSDPrice,
     createStore,
     createStoreWallet,
@@ -120,7 +126,23 @@ export const createLot = async (
     createWebhook,
     firebaseCreateLot,
   },
-): Promise<void> => {
+): Promise<Response> => {
+  const lotId: LotId = getLotId();
+
+  // check if the lot already exists
+  const lotExists = await dependencies.firebaseFetchLot(lotId);
+
+  if (lotExists) {
+    const message = `lot with id ${lotId} already exists fool.`;
+
+    console.log('createLot:', message);
+
+    return {
+      error: true,
+      message,
+    };
+  }
+
   // fetch the btc price in usd
   const BTCPriceInUSD = await dependencies.getBTCUSDPrice();
 
@@ -140,7 +162,6 @@ export const createLot = async (
   });
 
   // create the store
-  const lotId: LotId = getLotId();
   const store = makeBtcPayServerStore({ name: lotId });
   const { id: storeId } = await dependencies.createStore(store);
 
@@ -181,4 +202,9 @@ export const createLot = async (
   console.log(
     `successfully created lot with id, ${lotId}, ${ticketsAvailable} available tickets and ticket price of ${ticketPriceInBTC} BTC. The BTC price is $${BTCPriceInUSD}.`,
   );
+
+  return {
+    error: false,
+    message: 'great success!',
+  };
 };
