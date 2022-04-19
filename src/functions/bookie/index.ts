@@ -1,6 +1,6 @@
 import * as functions from 'firebase-functions';
 import { CallableContext } from 'firebase-functions/v1/https';
-import { LotId, TicketId, TicketStatus } from '../../lots/models';
+import { LotId, TicketId } from '../../lots/models';
 import { createInvoice } from '../../services/btcPayServer/createInvoice';
 import { makeBtcPayServerInvoicePayload } from '../../services/btcPayServer/data';
 import { getStoreByStoreName } from '../../services/btcPayServer/getStoreByStoreName';
@@ -91,8 +91,6 @@ export const runBookie = async ({
     lot,
     uid,
     ticketCount,
-    ticketPriceInBTC: lot.ticketPriceInBTC,
-    ticketStatus: TicketStatus.reserved,
   });
 
   if (createTicketsResponse.error) {

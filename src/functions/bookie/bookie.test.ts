@@ -1,5 +1,4 @@
 import { makeInvoice, makeLot, makeTicket } from '../../lots/data';
-import { TicketStatus } from '../../lots/models';
 import { makeBtcPayServerInvoicePayload } from '../../services/btcPayServer/data';
 import { makeStore } from '../../stores/data';
 import { arrayFromNumber } from '../../utils/arrayFromNumber';
@@ -89,8 +88,6 @@ describe('bookie', () => {
       lot,
       uid,
       ticketCount,
-      ticketPriceInBTC: lot.ticketPriceInBTC,
-      ticketStatus: TicketStatus.reserved,
     });
 
     expect(dependencies.createInvoice).toHaveBeenCalledWith(
