@@ -4,7 +4,7 @@ import { BtcPayServerStoreId } from '../btcPayServer/models';
 
 export const firebaseSaveStoreData = (
   storeId: BtcPayServerStoreId,
-  data: StoreData,
+  data: Partial<StoreData>,
 ): Promise<void> => {
   return new Promise(async (resolve, reject) => {
     try {

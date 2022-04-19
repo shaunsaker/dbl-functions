@@ -40,19 +40,18 @@ describe('boss', () => {
 
     it('creates a pull payment for the winner', async () => {
       const storeId = getUuid();
-      const uid = getUuid();
       const username = getUuid();
       const lot = makeLot({});
       await createWinnerPullPayment({
         storeId,
-        user: { uid, username },
+        username,
         lot,
         dependencies: { createPullPayment },
       });
 
       const paymentAmountBTC = getWinnerPaymentAmountBTC(lot);
       expect(createPullPayment).toHaveBeenCalledWith(storeId, {
-        name: `${storeId}-${uid}`,
+        name: `${lot.id}-${username}`,
         description: `Congratulations ${username}! You're our lucky winner 🎉`,
         amount: paymentAmountBTC.toString(),
         currency: 'BTC',
@@ -75,7 +74,7 @@ describe('boss', () => {
 
       const adminPaymentAmountBTC = getAdminPaymentAmountBTC(lot);
       expect(createPullPayment).toHaveBeenCalledWith(storeId, {
-        name: `${storeId}-admin`,
+        name: `${lot.id}-admin`,
         description: '',
         amount: adminPaymentAmountBTC.toString(),
         currency: 'BTC',
@@ -162,12 +161,13 @@ describe('boss', () => {
       expect(dependencies.firebaseFetchUserProfile).toHaveBeenCalledWith(
         winnerUid,
       );
+      expect(dependencies.firebaseSaveStoreData).toHaveBeenCalledWith(
+        store.id,
+        { winnerUid },
+      );
       expect(dependencies.createWinnerPullPayment).toHaveBeenCalledWith({
         storeId: store.id,
-        user: {
-          uid: winnerUid,
-          username: winnerUserProfileData.username,
-        },
+        username: winnerUserProfileData.username,
         lot,
       });
       expect(dependencies.firebaseUpdateUserProfile).toHaveBeenCalledWith(

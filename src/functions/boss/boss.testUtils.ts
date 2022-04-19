@@ -31,6 +31,7 @@ export const setupBossTest = async ({
   const getStoreWalletBalance = jest.fn();
   const drawWinner = jest.fn();
   const firebaseFetchUserProfile = jest.fn();
+  const firebaseSaveStoreData = jest.fn();
   const createWinnerPullPayment = jest.fn();
   const firebaseUpdateUserProfile = jest.fn();
   const firebaseSendNotification = jest.fn();
@@ -71,6 +72,7 @@ export const setupBossTest = async ({
     getStoreWalletBalance,
     drawWinner,
     firebaseFetchUserProfile,
+    firebaseSaveStoreData,
     createWinnerPullPayment,
     firebaseUpdateUserProfile,
     firebaseSendNotification,

@@ -10,6 +10,10 @@ export const firebaseFetchActiveLot = async (): Promise<Lot> => {
         .where('active', '==', true)
         .get();
 
+      if (documents.docs.length > 1) {
+        console.log('firebaseFetchActiveLot: multiple active lots fool.');
+      }
+
       // for now there is only one
       const document = documents.docs[0];
       const lot = document.data() as Lot;
