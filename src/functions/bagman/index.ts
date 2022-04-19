@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import { Ticket, TicketStatus } from '../../lots/models';
+import { MAX_BTC_DIGITS, Ticket, TicketStatus } from '../../lots/models';
 import {
   BtcPayServerInvoice,
   BtcPayServerInvoiceReceivedPaymentEventData,
@@ -14,6 +14,7 @@ import { changeTicketsStatus } from '../changeTicketsStatus';
 import { validateWebookEventData } from '../validateWebhookEventData';
 import { sendNotification } from '../sendNotification';
 import { verifyWebhookSignature } from '../verifyWebhookSignature';
+import { numberToDigits } from '../../utils/numberToDigits';
 
 require('dotenv').config();
 
@@ -120,16 +121,27 @@ export const runBagman = async (
   // e.g. if I reserved 5 tickets but only paid for 3, only reserve 3
   // NOTE: keep in mind that this could also be an over payment
   const paymentAmountUSD = parseFloat(data.payment.value);
-  const paymentAmountBTC = paymentAmountUSD / lot.BTCPriceInUSD;
+
+  // when we save the ticket price, we round up to 8 digits
+  const paymentAmountBTC = numberToDigits(
+    paymentAmountUSD / lot.BTCPriceInUSD,
+    MAX_BTC_DIGITS,
+  );
+
   const quantityTicketsReservable = Math.floor(
     paymentAmountBTC / lot.ticketPriceInBTC,
   );
+
   const reservableTickets = reservedTickets.slice(0, quantityTicketsReservable);
 
   // mark the ticket's statuses
   const paidTickets: Ticket[] = dependencies.changeTicketsStatus(
     reservableTickets,
     TicketStatus.paymentReceived,
+  );
+
+  console.log(
+    `bagman: ${uid} paid ${paymentAmountBTC} BTC ($${paymentAmountUSD}) of the invoice total, $${invoice.amount}, and we are marking ${paidTickets.length} / ${reservedTickets.length} tickets as Payment Received.`,
   );
 
   // update the tickets in firebase

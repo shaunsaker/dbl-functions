@@ -10,6 +10,8 @@ export const TARGET_TICKET_VALUE_USD = 10;
 
 export const TICKET_COMMISSION_PERCENTAGE = 10;
 
+export const MAX_BTC_DIGITS = 8; // when rounded up, this is equivalent to $0.004 which is negligible
+
 // FIXME: these types (except Ticket types) can be shared with the mobile app somehow
 export type LotId = string;
 

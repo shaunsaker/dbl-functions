@@ -1,6 +1,7 @@
 import moment = require('moment');
 import {
   LotId,
+  MAX_BTC_DIGITS,
   TARGET_LOT_VALUE_USD,
   TARGET_TICKET_VALUE_USD,
   TICKET_COMMISSION_PERCENTAGE,
@@ -52,7 +53,7 @@ export const getTicketPrice = ({
   const ticketPriceInBTC = numberToDigits(
     ticketPriceWithoutCommissionInBTC *
       ((100 + ticketCommissionPercentage) / 100),
-    6,
+    MAX_BTC_DIGITS,
   );
 
   return ticketPriceInBTC;
@@ -68,7 +69,7 @@ export const getTicketCommission = ({
   // calculate the commission
   const ticketCommissionInBTC = numberToDigits(
     (ticketPriceInBTC * ticketCommissionPercentage) / 100,
-    6,
+    MAX_BTC_DIGITS,
   );
 
   return ticketCommissionInBTC;
