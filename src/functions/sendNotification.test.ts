@@ -10,7 +10,7 @@ describe('sendNotification', () => {
 
     expect(response).toEqual({
       error: true,
-      message: 'User data missing fool.',
+      message: 'user data missing fool.',
     });
   });
 
@@ -36,7 +36,7 @@ describe('sendNotification', () => {
 
     expect(response).toEqual({
       error: false,
-      message: 'Great success!',
+      message: 'great success!',
     });
   });
 });

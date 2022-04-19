@@ -36,23 +36,35 @@ export const runBookie = async ({
   };
 }): Promise<Response> => {
   if (!uid) {
+    const message = `user is not signed in.`;
+
+    console.log(`bookie: ${message}.`);
+
     return {
       error: true,
-      message: 'User is not signed in.',
+      message,
     };
   }
 
   if (!lotId) {
+    const message = `please provide a lotId.`;
+
+    console.log(`bookie: ${message}`);
+
     return {
       error: true,
-      message: 'Please provide a lotId.',
+      message,
     };
   }
 
   if (!ticketCount) {
+    const message = `please provide a ticket count > 0.`;
+
+    console.log(`bookie: ${message}`);
+
     return {
       error: true,
-      message: 'Please provide a ticketCount greater than 0.',
+      message,
     };
   }
 
@@ -60,9 +72,13 @@ export const runBookie = async ({
   try {
     await dependencies.firebaseGetUser(uid);
   } catch (error) {
+    const message = `user does not exist.`;
+
+    console.log(`bookie: ${message}`);
+
     return {
       error: true,
-      message: 'User does not exist.',
+      message,
     };
   }
 
@@ -70,9 +86,13 @@ export const runBookie = async ({
   const lot = await dependencies.firebaseFetchLot(lotId);
 
   if (!lot) {
+    const message = `could not find this lot.`;
+
+    console.log(`bookie: ${message}`);
+
     return {
       error: true,
-      message: 'Could not find this lot.',
+      message,
     };
   }
 
@@ -80,9 +100,13 @@ export const runBookie = async ({
   const store = await dependencies.getStoreByStoreName(lotId);
 
   if (!store) {
+    const message = `could not find this store.`;
+
+    console.log(`bookie: ${message}`);
+
     return {
       error: true,
-      message: 'Could not find this store.',
+      message,
     };
   }
 
@@ -94,9 +118,13 @@ export const runBookie = async ({
   });
 
   if (createTicketsResponse.error) {
+    const message = createTicketsResponse.message;
+
+    console.log(`bookie: ${message}`);
+
     return {
       error: true,
-      message: createTicketsResponse.message,
+      message,
     };
   }
 
@@ -113,7 +141,7 @@ export const runBookie = async ({
 
   return {
     error: false,
-    message: 'Great success!',
+    message: 'great success!',
     data: invoice,
   };
 };

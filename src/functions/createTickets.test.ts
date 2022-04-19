@@ -1,7 +1,7 @@
 import { makeLot, makeTicket } from '../lots/data';
 import {
-  getNotEnoughTicketsAvailableResponse,
-  getReachedUserTicketLimitResponse,
+  getNotEnoughTicketsAvailableResponseMessage,
+  getReachedUserTicketLimitResponseMessage,
 } from './createTickets';
 import { setupCreateTicketsTests } from './createTickets.testUtils';
 
@@ -15,12 +15,13 @@ describe('createTickets', () => {
       ticketCount,
     });
 
-    expect(response).toEqual(
-      getNotEnoughTicketsAvailableResponse({
+    expect(response).toEqual({
+      error: true,
+      message: getNotEnoughTicketsAvailableResponseMessage({
         ticketCount,
         ticketsAvailable,
       }),
-    );
+    });
   });
 
   it('returns an error if the user has reached their ticket limit', async () => {
@@ -34,12 +35,13 @@ describe('createTickets', () => {
     });
 
     expect(dependencies.firebaseFetchTickets).toHaveBeenCalled();
-    expect(response).toEqual(
-      getReachedUserTicketLimitResponse({
+    expect(response).toEqual({
+      error: true,
+      message: getReachedUserTicketLimitResponseMessage({
         existingUserTicketCount: 0,
         perUserTicketLimit,
       }),
-    );
+    });
   });
 
   it('creates tickets', async () => {

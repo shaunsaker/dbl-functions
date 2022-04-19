@@ -26,9 +26,13 @@ export const sendNotification = async (
   const userProfileData = await dependencies.firebaseFetchUserProfile(uid);
 
   if (!userProfileData) {
+    const message = `user data missing fool.`;
+
+    console.log(`sendNotification: ${message}`);
+
     return {
       error: true,
-      message: 'User data missing fool.',
+      message,
     };
   }
 
@@ -43,6 +47,6 @@ export const sendNotification = async (
 
   return {
     error: false,
-    message: 'Great success!',
+    message: 'great success!',
   };
 };

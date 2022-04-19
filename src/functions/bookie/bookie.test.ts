@@ -11,7 +11,7 @@ describe('bookie', () => {
 
     expect(response).toEqual({
       error: true,
-      message: 'User is not signed in.',
+      message: 'user is not signed in.',
     });
   });
 
@@ -20,7 +20,7 @@ describe('bookie', () => {
 
     expect(response).toEqual({
       error: true,
-      message: 'Please provide a lotId.',
+      message: 'please provide a lotId.',
     });
   });
 
@@ -29,7 +29,7 @@ describe('bookie', () => {
 
     expect(response).toEqual({
       error: true,
-      message: 'Please provide a ticketCount greater than 0.',
+      message: 'please provide a ticket count > 0.',
     });
   });
 
@@ -38,7 +38,7 @@ describe('bookie', () => {
 
     expect(response).toEqual({
       error: true,
-      message: 'User does not exist.',
+      message: 'user does not exist.',
     });
   });
 
@@ -47,7 +47,7 @@ describe('bookie', () => {
 
     expect(response).toEqual({
       error: true,
-      message: 'Could not find this lot.',
+      message: 'could not find this lot.',
     });
   });
 
@@ -56,7 +56,7 @@ describe('bookie', () => {
 
     expect(response).toEqual({
       error: true,
-      message: 'Could not find this store.',
+      message: 'could not find this store.',
     });
   });
 
@@ -102,7 +102,7 @@ describe('bookie', () => {
 
     expect(response).toEqual({
       error: false,
-      message: 'Great success!',
+      message: 'great success!',
       data: invoice,
     });
   });

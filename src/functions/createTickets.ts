@@ -8,18 +8,16 @@ import { UserId } from '../userProfile/models';
 import { arrayFromNumber } from '../utils/arrayFromNumber';
 import { getUuid } from '../utils/getUuid';
 
-export const getNotEnoughTicketsAvailableResponse = ({
+export const getNotEnoughTicketsAvailableResponseMessage = ({
   ticketCount,
   ticketsAvailable,
 }: {
   ticketCount: number;
   ticketsAvailable: number;
-}) => ({
-  error: true,
-  message: `There are only ${ticketsAvailable} and you are attempting to reserve ${ticketCount} tickets. Please try again with ${ticketsAvailable} tickets.`,
-});
+}) =>
+  `There are only ${ticketsAvailable} and you are attempting to reserve ${ticketCount} tickets. please try again with ${ticketsAvailable} tickets.`;
 
-export const getReachedUserTicketLimitResponse = ({
+export const getReachedUserTicketLimitResponseMessage = ({
   existingUserTicketCount,
   perUserTicketLimit,
 }: {
@@ -28,12 +26,9 @@ export const getReachedUserTicketLimitResponse = ({
 }) => {
   const remainingUserTicketLimit = perUserTicketLimit - existingUserTicketCount;
 
-  return {
-    error: true,
-    message: remainingUserTicketLimit
-      ? `By reserving these tickets you'll reach the user ticket limit of ${perUserTicketLimit}. Please try again using your remaininig ticket limit of ${remainingUserTicketLimit}.`
-      : "You've reached the maximum number of tickets that you can purchase today.",
-  };
+  return remainingUserTicketLimit
+    ? `By reserving these tickets you'll reach the user ticket limit of ${perUserTicketLimit}. please try again using your remaininig ticket limit of ${remainingUserTicketLimit}.`
+    : "You've reached the maximum number of tickets that you can purchase today.";
 };
 
 export const createTickets = async ({
@@ -55,10 +50,17 @@ export const createTickets = async ({
 }): Promise<FirebaseFunctionResponse<TicketId[]>> => {
   // validate against ticketsAvailable
   if (ticketCount > lot.ticketsAvailable) {
-    return getNotEnoughTicketsAvailableResponse({
+    const message = getNotEnoughTicketsAvailableResponseMessage({
       ticketCount,
       ticketsAvailable: lot.ticketsAvailable,
     });
+
+    console.log(`createTickets: ${message}`);
+
+    return {
+      error: true,
+      message,
+    };
   }
 
   // validate against perUserTicketLimit
@@ -69,10 +71,17 @@ export const createTickets = async ({
     lot.perUserTicketLimit - existingUserTicketCount;
 
   if (ticketCount > remainingUserTicketLimit) {
-    return getReachedUserTicketLimitResponse({
+    const message = getReachedUserTicketLimitResponseMessage({
       existingUserTicketCount,
       perUserTicketLimit: lot.perUserTicketLimit,
     });
+
+    console.log(`createTickets: ${message}`);
+
+    return {
+      error: true,
+      message,
+    };
   }
 
   const ticketDocs = arrayFromNumber(ticketCount).map(() => {
@@ -100,7 +109,7 @@ export const createTickets = async ({
 
   return {
     error: false,
-    message: 'Great success!',
+    message: 'great success!',
     data: ticketIds,
   };
 };

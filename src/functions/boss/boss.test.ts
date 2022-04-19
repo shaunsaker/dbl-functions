@@ -90,7 +90,7 @@ describe('boss', () => {
 
       expect(response).toEqual({
         error: true,
-        message: 'Oh shit son, no active lot!',
+        message: 'oh shit son, no active lot!',
       });
     });
 
@@ -101,7 +101,7 @@ describe('boss', () => {
 
       expect(response).toEqual({
         error: true,
-        message: 'Oh shit son, no store!',
+        message: 'oh shit son, no store!',
       });
     });
 
@@ -114,7 +114,7 @@ describe('boss', () => {
       expect(response).toEqual({
         error: true,
         message:
-          'Oh shit son, store wallet balance is less than the lot total!',
+          'oh shit son, store wallet balance is less than the lot total!',
       });
     });
 
@@ -123,16 +123,20 @@ describe('boss', () => {
 
       expect(response).toEqual({
         error: true,
-        message: 'Oh shit son, no one participated!',
+        message: 'oh shit son, no one participated 😢',
       });
     });
 
     it('returns an error if there is no user data for the winner', async () => {
-      const { response } = await setupBossTest({ winnerUserProfileData: null });
+      const winnerUid = getUuid();
+      const { response } = await setupBossTest({
+        winnerUid,
+        winnerUserProfileData: null,
+      });
 
       expect(response).toEqual({
         error: true,
-        message: 'Oh shit son, no user data!',
+        message: `oh shit son, no user data for ${winnerUid}!`,
       });
     });
 
@@ -188,7 +192,7 @@ describe('boss', () => {
       expect(dependencies.createLot).toHaveBeenCalled();
       expect(response).toEqual({
         error: false,
-        message: 'Great success!',
+        message: 'great success!',
       });
     });
   });

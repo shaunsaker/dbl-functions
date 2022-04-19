@@ -31,10 +31,13 @@ export const runBusker = async ({
 
   if (!lot) {
     // should not happen
+    const message = `lot missing fool.`;
+
+    console.log(`busker: ${message}`);
+
     return {
       error: true,
-      message: 'Lot missing fool.',
-      data: undefined,
+      message,
     };
   }
 
@@ -44,7 +47,7 @@ export const runBusker = async ({
 
   return {
     error: false,
-    message: 'Great success!',
+    message: 'great success!',
     data: undefined,
   };
 };

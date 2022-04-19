@@ -11,7 +11,7 @@ describe('bangBeggar', () => {
 
     expect(response).toEqual({
       error: true,
-      message: 'Tickets missing fool.',
+      message: 'tickets missing fool.',
     });
   });
 
@@ -54,7 +54,7 @@ describe('bangBeggar', () => {
 
     expect(response).toEqual({
       error: false,
-      message: 'Great success!',
+      message: 'great success!',
     });
   });
 });

@@ -11,7 +11,7 @@ describe('busker', () => {
     expect(dependencies.firebaseFetchLot).toHaveBeenCalled();
     expect(response).toEqual({
       error: true,
-      message: 'Lot missing fool.',
+      message: 'lot missing fool.',
       data: undefined,
     });
   });
@@ -35,7 +35,7 @@ describe('busker', () => {
     );
     expect(response).toEqual({
       error: false,
-      message: 'Great success!',
+      message: 'great success!',
       data: undefined,
     });
   });

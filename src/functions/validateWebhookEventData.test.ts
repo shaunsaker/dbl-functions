@@ -35,7 +35,7 @@ describe('validateWebhookEventData', () => {
 
     expect(response).toEqual({
       error: true,
-      message: 'Invoice missing fool.',
+      message: 'invoice missing fool.',
     });
   });
 
@@ -108,7 +108,7 @@ describe('validateWebhookEventData', () => {
 
     expect(response).toEqual({
       error: false,
-      message: 'Great success!',
+      message: 'great success!',
       data: invoice,
     });
   });

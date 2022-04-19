@@ -23,13 +23,21 @@ export const validateWebookEventData = async (
   const { storeId, invoiceId } = data;
 
   if (!storeId) {
+    const message = 'storeId missing fool.';
+
+    console.log(`validateWebhookEventData: ${message}`);
+
     return {
       error: true,
-      message: 'storeId missing fool.',
+      message,
     };
   }
 
   if (!invoiceId) {
+    const message = 'invoiceId missing fool.';
+
+    console.log(`validateWebhookEventData: ${message}`);
+
     return {
       error: true,
       message: 'invoiceId missing fool.',
@@ -42,29 +50,45 @@ export const validateWebookEventData = async (
   });
 
   if (!invoice) {
+    const message = 'invoice missing fool.';
+
+    console.log(`validateWebhookEventData: ${message}`);
+
     return {
       error: true,
-      message: 'Invoice missing fool.',
+      message,
     };
   }
 
   const { lotId, uid, ticketIds } = invoice.metadata;
 
   if (!lotId) {
+    const message = 'lotId missing from invoice fool.';
+
+    console.log(`validateWebhookEventData: ${message}`);
+
     return {
       error: true,
-      message: 'lotId missing from invoice fool.',
+      message,
     };
   }
 
   if (!uid) {
+    const message = 'uid missing from invoice fool.';
+
+    console.log(`validateWebhookEventData: ${message}`);
+
     return {
       error: true,
-      message: 'uid missing from invoice fool.',
+      message,
     };
   }
 
   if (!ticketIds) {
+    const message = 'ticketIds missing from invoice fool.';
+
+    console.log(`validateWebhookEventData: ${message}`);
+
     return {
       error: true,
       message: 'ticketIds missing from invoice fool.',
@@ -72,15 +96,19 @@ export const validateWebookEventData = async (
   }
 
   if (!ticketIds.length) {
+    const message = 'ticketIds in invoice are empty fool.';
+
+    console.log(`validateWebhookEventData: ${message}`);
+
     return {
       error: true,
-      message: 'ticketIds in invoice are empty fool.',
+      message,
     };
   }
 
   return {
     error: false,
-    message: 'Great success!',
+    message: 'great success!',
     data: invoice,
   };
 };

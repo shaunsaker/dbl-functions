@@ -143,9 +143,13 @@ export const runBoss = async (
   const activeLot = await dependencies.firebaseFetchActiveLot();
 
   if (!activeLot) {
+    const message = 'oh shit son, no active lot!';
+
+    console.log(`boss: ${message}`);
+
     return {
       error: true,
-      message: 'Oh shit son, no active lot!',
+      message,
     };
   }
 
@@ -153,9 +157,13 @@ export const runBoss = async (
   const store = await dependencies.getStoreByStoreName(activeLot.id);
 
   if (!store) {
+    const message = 'oh shit son, no store!';
+
+    console.log(`boss: ${message}`);
+
     return {
       error: true,
-      message: 'Oh shit son, no store!',
+      message,
     };
   }
 
@@ -165,9 +173,14 @@ export const runBoss = async (
     parseFloat(storeWalletBalance.confirmedBalance) >= activeLot.totalInBTC;
 
   if (!isLotTotalValid) {
+    const message =
+      'oh shit son, store wallet balance is less than the lot total!';
+
+    console.log(`boss: ${message}`);
+
     return {
       error: true,
-      message: 'Oh shit son, store wallet balance is less than the lot total!',
+      message,
     };
   }
 
@@ -175,9 +188,13 @@ export const runBoss = async (
   const winnerUid = await dependencies.drawWinner(activeLot.id);
 
   if (!winnerUid) {
+    const message = 'oh shit son, no one participated 😢';
+
+    console.log(`boss: ${message}`);
+
     return {
       error: true,
-      message: 'Oh shit son, no one participated!',
+      message,
     };
   }
 
@@ -186,12 +203,14 @@ export const runBoss = async (
     winnerUid,
   );
 
-  // TODO: SS we need to log the winnerUid here for debugging and manual action (if necessary)
-
   if (!userProfileData) {
+    const message = `oh shit son, no user data for ${winnerUid}!`;
+
+    console.log(`boss: ${message}`);
+
     return {
       error: true,
-      message: 'Oh shit son, no user data!',
+      message,
     };
   }
 
@@ -233,7 +252,7 @@ export const runBoss = async (
 
   return {
     error: false,
-    message: 'Great success!',
+    message: 'great success!',
   };
 };
 

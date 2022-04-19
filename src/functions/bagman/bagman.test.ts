@@ -11,7 +11,7 @@ describe('bagman', () => {
 
     expect(response).toEqual({
       error: true,
-      message: 'Lot missing fool.',
+      message: 'lot missing fool.',
     });
   });
 
@@ -20,7 +20,7 @@ describe('bagman', () => {
 
     expect(response).toEqual({
       error: true,
-      message: 'Tickets missing fool.',
+      message: 'tickets missing fool.',
     });
   });
 
@@ -67,7 +67,7 @@ describe('bagman', () => {
 
     expect(response).toEqual({
       error: false,
-      message: 'Great success!',
+      message: 'great success!',
     });
   });
 
@@ -118,7 +118,7 @@ describe('bagman', () => {
 
     expect(response).toEqual({
       error: false,
-      message: 'Great success!',
+      message: 'great success!',
     });
   });
 
@@ -168,7 +168,7 @@ describe('bagman', () => {
     });
     expect(response).toEqual({
       error: false,
-      message: 'Great success!',
+      message: 'great success!',
     });
   });
 
@@ -218,7 +218,7 @@ describe('bagman', () => {
     });
     expect(response).toEqual({
       error: false,
-      message: 'Great success!',
+      message: 'great success!',
     });
   });
 });

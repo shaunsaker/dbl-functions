@@ -7,12 +7,12 @@ import {
 } from '../../services/btcPayServer/models';
 import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTickets';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
-import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
 import { firebaseSaveTickets } from '../../services/firebase/firebaseSaveTickets';
 import { changeTicketsStatus } from '../changeTicketsStatus';
 import { validateWebookEventData } from '../validateWebhookEventData';
 import { sendNotification } from '../sendNotification';
+import { verifyWebhookSignature } from '../verifyWebhookSignature';
 
 require('dotenv').config();
 
@@ -56,6 +56,10 @@ export const runBanker = async (
     await dependencies.validateWebookEventData(data);
 
   if (validateWebhookEventDataResponse.error) {
+    const message = validateWebhookEventDataResponse.message;
+
+    console.log(`banker: ${message}`);
+
     return {
       error: true,
       message: validateWebhookEventDataResponse.message,
@@ -76,9 +80,13 @@ export const runBanker = async (
 
   if (!paymentReceivedTickets.length) {
     // should not be possible
+    const message = 'tickets missing fool.';
+
+    console.log(`banker: ${message}`);
+
     return {
       error: true,
-      message: 'Tickets missing fool.',
+      message,
     };
   }
 
@@ -105,36 +113,32 @@ export const runBanker = async (
   });
 
   if (sendNotificationResponse.error) {
+    const message = sendNotificationResponse.message;
+
+    console.log(`banker: ${message}`);
+
     return {
       error: true,
-      message: sendNotificationResponse.message,
+      message,
     };
   }
 
   return {
     error: false,
-    message: 'Great success!',
+    message: 'great success!',
   };
 };
 
 const banker = functions.https.onRequest(
   async (request, response): Promise<void> => {
-    const signature = request.get('BTCPay-Sig');
+    const verifyWebhookSignatureResponse = verifyWebhookSignature(request);
 
-    if (!signature) {
-      response.status(200).send('You fuck on meee!'); // webhook needs 200 otherwise it will try redeliver continuously
+    if (verifyWebhookSignatureResponse.error) {
+      const message = verifyWebhookSignatureResponse.message;
 
-      return;
-    }
+      console.log(`bagman: ${message}`);
 
-    const isValidSignature = verifySignature({
-      secret: process.env.WEBHOOK_SECRET,
-      body: request.body,
-      signature,
-    });
-
-    if (!isValidSignature) {
-      response.status(200).send('You fuck on meee!');
+      response.status(200).send(message); // webhook needs 200 otherwise it will try redeliver continuously
 
       return;
     }
@@ -146,7 +150,11 @@ const banker = functions.https.onRequest(
       data.type !== BtcPayServerWebhookEvent.invoiceSettled &&
       data.type !== BtcPayServerWebhookEvent.invoicePaymentSettled
     ) {
-      response.status(200).send(`Received ${data.type} event.`);
+      const message = `ignoring webhook event, ${data.type}, fool.`;
+
+      console.log(`banker: ${message}`);
+
+      response.status(200).send(message);
 
       return;
     }
@@ -156,7 +164,11 @@ const banker = functions.https.onRequest(
 
       response.status(200).send(bankerResponse.message);
     } catch (error) {
-      response.status(200).send((error as Error).message);
+      const message = (error as Error).message;
+
+      console.log(`banker: ${message}`);
+
+      response.status(200).send(message);
     }
   },
 );

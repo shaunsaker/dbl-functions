@@ -7,12 +7,12 @@ import {
 } from '../../services/btcPayServer/models';
 import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTickets';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
-import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { firebaseSaveTickets } from '../../services/firebase/firebaseSaveTickets';
 import { changeTicketsStatus } from '../changeTicketsStatus';
 import { validateWebookEventData } from '../validateWebhookEventData';
 import { sendNotification } from '../sendNotification';
 import { maybePluralise } from '../../utils/maybePluralise';
+import { verifyWebhookSignature } from '../verifyWebhookSignature';
 
 require('dotenv').config();
 
@@ -30,7 +30,7 @@ export const getBangBeggarNotification = ({
       expiredTickets.length,
       'ticket',
     )} 😔`,
-    body: "To keep things fair, if we don't receive payment within 15 minutes, we expire those tickets for other users. Please try again.",
+    body: "To keep things fair, if we don't receive payment within 15 minutes, we expire those tickets for other users. please try again.",
   };
 };
 
@@ -52,17 +52,22 @@ export const runBangBeggar = async (
     sendNotification,
   },
 ): Promise<Response> => {
-  const response = await dependencies.validateWebookEventData(data);
+  const validateWebhookEventDataResponse =
+    await dependencies.validateWebookEventData(data);
 
-  if (response.error) {
+  if (validateWebhookEventDataResponse.error) {
+    const message = validateWebhookEventDataResponse.message;
+
+    console.log(`bangBeggar: ${message}`);
+
     return {
       error: true,
-      message: response.message,
+      message: validateWebhookEventDataResponse.message,
     };
   }
 
   // if there is no invoice, validateWebookEventData will return an error
-  const invoice = response.data as BtcPayServerInvoice;
+  const invoice = validateWebhookEventDataResponse.data as BtcPayServerInvoice;
   const { uid, lotId, ticketIds } = invoice.metadata;
 
   // fetch the reserved tickets using the ticketIds in the invoice
@@ -74,9 +79,13 @@ export const runBangBeggar = async (
   });
 
   if (!reservedTickets.length) {
+    const message = 'tickets missing fool.';
+
+    console.log(`bangBeggar: ${message}`);
+
     return {
       error: true,
-      message: 'Tickets missing fool.',
+      message,
     };
   }
 
@@ -100,36 +109,32 @@ export const runBangBeggar = async (
   });
 
   if (sendNotificationResponse.error) {
+    const message = sendNotificationResponse.message;
+
+    console.log(`bangBeggar: ${message}`);
+
     return {
       error: true,
-      message: sendNotificationResponse.message,
+      message,
     };
   }
 
   return {
     error: false,
-    message: 'Great success!',
+    message: 'great success!',
   };
 };
 
 const bangBeggar = functions.https.onRequest(
   async (request, response): Promise<void> => {
-    const signature = request.get('BTCPay-Sig');
+    const verifyWebhookSignatureResponse = verifyWebhookSignature(request);
 
-    if (!signature) {
-      response.status(200).send('You fuck on meee!'); // webhook needs 200 otherwise it will try redeliver continuously
+    if (verifyWebhookSignatureResponse.error) {
+      const message = verifyWebhookSignatureResponse.message;
 
-      return;
-    }
+      console.log(`bagman: ${message}`);
 
-    const isValidSignature = verifySignature({
-      secret: process.env.WEBHOOK_SECRET,
-      body: request.body,
-      signature,
-    });
-
-    if (!isValidSignature) {
-      response.status(200).send('You fuck on meee!');
+      response.status(200).send(message); // webhook needs 200 otherwise it will try redeliver continuously
 
       return;
     }
@@ -141,7 +146,11 @@ const bangBeggar = functions.https.onRequest(
       data.type !== BtcPayServerWebhookEvent.invoiceExpired &&
       data.type !== BtcPayServerWebhookEvent.invoiceInvalid
     ) {
-      response.status(200).send(`Received ${data.type} event.`);
+      const message = `ignoring webhook event, ${data.type}, fool.`;
+
+      console.log(`bangBeggar: ${message}`);
+
+      response.status(200).send(message);
 
       return;
     }
@@ -151,7 +160,11 @@ const bangBeggar = functions.https.onRequest(
 
       response.status(200).send(bangBeggarResponse.message);
     } catch (error) {
-      response.status(200).send((error as Error).message);
+      const message = (error as Error).message;
+
+      console.log(`bangBeggar: ${message}.`);
+
+      response.status(200).send(message);
     }
   },
 );

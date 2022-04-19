@@ -8,12 +8,12 @@ import {
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTickets';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
-import { verifySignature } from '../../services/btcPayServer/verifySignature';
 import { maybePluralise } from '../../utils/maybePluralise';
 import { firebaseSaveTickets } from '../../services/firebase/firebaseSaveTickets';
 import { changeTicketsStatus } from '../changeTicketsStatus';
 import { validateWebookEventData } from '../validateWebhookEventData';
 import { sendNotification } from '../sendNotification';
+import { verifyWebhookSignature } from '../verifyWebhookSignature';
 
 require('dotenv').config();
 
@@ -38,7 +38,7 @@ export const getBagmanNotification = ({
           )}. Once your transaction has received 6 confirmations on the blockchain, we'll enter your ticket${
             paidTickets.length > 1 ? 's' : ''
           } into today's draw 🤞`
-        : "Unfortunately, this wasn't enough for any of your reserved tickets. Please deposit more.",
+        : "Unfortunately, this wasn't enough for any of your reserved tickets. please deposit more.",
   };
 };
 
@@ -69,9 +69,13 @@ export const runBagman = async (
     await dependencies.validateWebookEventData(data);
 
   if (validateWebhookEventDataResponse.error) {
+    const message = validateWebhookEventDataResponse.message;
+
+    console.log(`bagman: ${message}`);
+
     return {
       error: true,
-      message: validateWebhookEventDataResponse.message,
+      message,
     };
   }
 
@@ -88,9 +92,13 @@ export const runBagman = async (
   });
 
   if (!reservedTickets.length) {
+    const message = 'tickets missing fool.';
+
+    console.log(`bagman: ${message}`);
+
     return {
       error: true,
-      message: 'Tickets missing fool.',
+      message,
     };
   }
 
@@ -98,9 +106,13 @@ export const runBagman = async (
   const lot = await dependencies.firebaseFetchLot(lotId);
 
   if (!lot) {
+    const message = 'lot missing fool.';
+
+    console.log(`bagman: ${message}`);
+
     return {
       error: true,
-      message: 'Lot missing fool.',
+      message,
     };
   }
 
@@ -134,36 +146,32 @@ export const runBagman = async (
   });
 
   if (sendNotificationResponse.error) {
+    const message = sendNotificationResponse.message;
+
+    console.log(`bagman: ${message}`);
+
     return {
       error: true,
-      message: sendNotificationResponse.message,
+      message,
     };
   }
 
   return {
     error: false,
-    message: 'Great success!',
+    message: 'great success!',
   };
 };
 
 const bagman = functions.https.onRequest(
   async (request, response): Promise<void> => {
-    const signature = request.get('BTCPay-Sig');
+    const verifyWebhookSignatureResponse = verifyWebhookSignature(request);
 
-    if (!signature) {
-      response.status(200).send('You fuck on meee!'); // webhook needs 200 otherwise it will try redeliver continuously
+    if (verifyWebhookSignatureResponse.error) {
+      const message = verifyWebhookSignatureResponse.message;
 
-      return;
-    }
+      console.log(`bagman: ${message}`);
 
-    const isValidSignature = verifySignature({
-      secret: process.env.WEBHOOK_SECRET,
-      body: request.body,
-      signature,
-    });
-
-    if (!isValidSignature) {
-      response.status(200).send('You fuck on meee!');
+      response.status(200).send(message); // webhook needs 200 otherwise it will try redeliver continuously
 
       return;
     }
@@ -172,7 +180,11 @@ const bagman = functions.https.onRequest(
 
     // ignore all other webhook events in case the webhook was not set up correctly
     if (data.type !== BtcPayServerWebhookEvent.invoiceReceivedPayment) {
-      response.status(200).send(`Received ${data.type} event.`);
+      const message = `ignoring webhook event, ${data.type}, fool.`;
+
+      console.log(`bagman: ${message}`);
+
+      response.status(200).send(message);
 
       return;
     }
@@ -182,7 +194,11 @@ const bagman = functions.https.onRequest(
 
       response.status(200).send(bagmanResponse.message);
     } catch (error) {
-      response.status(200).send((error as Error).message);
+      const message = (error as Error).message;
+
+      console.log(`bagman: ${message}`);
+
+      response.status(200).send(message);
     }
   },
 );
