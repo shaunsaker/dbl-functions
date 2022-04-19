@@ -18,73 +18,150 @@ import { makeStore, makeWebhook } from '../stores/data';
 import { makeLot } from '../lots/data';
 import { BtcPayServerWebhookEvent } from '../services/btcPayServer/models';
 
-export const createLot = async (): Promise<void> => {
-  // fetch the btc price in usd
-  const BTCPriceInUSD = await getBTCUSDPrice();
+require('dotenv').config();
 
-  // // calculate the amount of tickets available
-  const ticketsAvailable = Math.ceil(
-    TARGET_LOT_VALUE_USD / TARGET_TICKET_VALUE_USD,
-  );
+export const getTicketsAvailable = ({
+  targetLotValueUSD,
+  targetTicketValueUSD,
+}: {
+  targetLotValueUSD: number;
+  targetTicketValueUSD: number;
+}): number => {
+  // calculate the amount of tickets available
+  return Math.ceil(targetLotValueUSD / targetTicketValueUSD);
+};
 
+export const getTicketPrice = ({
+  targetLotValueUSD,
+  BTCPriceInUSD,
+  ticketsAvailable,
+  ticketCommissionPercentage,
+}: {
+  targetLotValueUSD: number;
+  BTCPriceInUSD: number;
+  ticketsAvailable: number;
+  ticketCommissionPercentage: number;
+}): number => {
   // calculate the ticket price
-  const targetLotValueBTC = TARGET_LOT_VALUE_USD / BTCPriceInUSD;
+  const targetLotValueBTC = targetLotValueUSD / BTCPriceInUSD;
   const ticketPriceWithoutCommissionInBTC =
     targetLotValueBTC / ticketsAvailable;
   const ticketPriceInBTC = numberToDigits(
-    ticketPriceWithoutCommissionInBTC * (100 + TICKET_COMMISSION_PERCENTAGE),
+    ticketPriceWithoutCommissionInBTC * (100 + ticketCommissionPercentage),
     6,
   );
 
+  return ticketPriceInBTC;
+};
+
+export const getTicketCommission = ({
+  ticketPriceInBTC,
+  ticketCommissionPercentage,
+}: {
+  ticketPriceInBTC: number;
+  ticketCommissionPercentage: number;
+}): number => {
   // calculate the commission
   const ticketCommissionInBTC = numberToDigits(
-    (ticketPriceInBTC * TICKET_COMMISSION_PERCENTAGE) / 100,
+    (ticketPriceInBTC * ticketCommissionPercentage) / 100,
     6,
   );
 
+  return ticketCommissionInBTC;
+};
+
+export const getLotId = () => moment().startOf('day').format('YYYY-MM-DD'); // the id is the day
+
+export const getPaymentReceivedWebhook = () =>
+  makeWebhook({
+    url: process.env.INVOICE_RECEIVED_PAYMENT_WEBHOOK_URL,
+    specificEvents: [BtcPayServerWebhookEvent.invoiceReceivedPayment], // once the tx is broadcasted on the blockchain
+    secret: process.env.WEBHOOK_SECRET,
+  });
+
+export const getInvoiceSettledWebhook = () =>
+  makeWebhook({
+    url: process.env.INVOICE_SETTLED_WEBHOOK_URL,
+    specificEvents: [
+      BtcPayServerWebhookEvent.invoiceSettled,
+      BtcPayServerWebhookEvent.invoicePaymentSettled,
+    ], // once the tx is confirmed or manually settled, we'll receive this webhook
+    secret: process.env.WEBHOOK_SECRET,
+  });
+
+export const getInvoiceExpiredWebhook = () =>
+  makeWebhook({
+    url: process.env.INVOICE_EXPIRED_WEBHOOK_URL,
+    specificEvents: [
+      BtcPayServerWebhookEvent.invoiceExpired,
+      BtcPayServerWebhookEvent.invoiceInvalid,
+    ], // if invoice expires or manually marked as invalid
+    secret: process.env.WEBHOOK_SECRET,
+  });
+
+export const createLot = async (
+  dependencies: {
+    getBTCUSDPrice: typeof getBTCUSDPrice;
+    createStore: typeof createStore;
+    createStoreWallet: typeof createStoreWallet;
+    firebaseSaveStoreData: typeof firebaseSaveStoreData;
+    createWebhook: typeof createWebhook;
+    firebaseCreateLot: typeof firebaseCreateLot;
+  } = {
+    getBTCUSDPrice,
+    createStore,
+    createStoreWallet,
+    firebaseSaveStoreData,
+    createWebhook,
+    firebaseCreateLot,
+  },
+): Promise<void> => {
+  // fetch the btc price in usd
+  const BTCPriceInUSD = await dependencies.getBTCUSDPrice();
+
+  const ticketsAvailable = getTicketsAvailable({
+    targetLotValueUSD: TARGET_LOT_VALUE_USD,
+    targetTicketValueUSD: TARGET_TICKET_VALUE_USD,
+  });
+  const ticketPriceInBTC = getTicketPrice({
+    targetLotValueUSD: TARGET_LOT_VALUE_USD,
+    BTCPriceInUSD,
+    ticketsAvailable,
+    ticketCommissionPercentage: TICKET_COMMISSION_PERCENTAGE,
+  });
+  const ticketCommissionInBTC = getTicketCommission({
+    ticketPriceInBTC,
+    ticketCommissionPercentage: TICKET_COMMISSION_PERCENTAGE,
+  });
+
   // create the store
-  const lotId: LotId = moment().startOf('day').format('YYYY-MM-DD'); // the id is the day
+  const lotId: LotId = getLotId();
   const store = makeStore({ name: lotId });
-  const { id: storeId } = await createStore(store);
+  const { id: storeId } = await dependencies.createStore(store);
 
   // create the store wallet
   const mnemonic = createMnemonic();
 
-  await createStoreWallet(storeId, {
+  await dependencies.createStoreWallet(storeId, {
     existingMnemonic: mnemonic,
     passphrase: process.env.STORE_WALLET_SECRET_KEY,
   });
 
   // save the mnemonic created above in case we need to retrieve it later
   const hash = encrypt(mnemonic, process.env.STORE_MNEMONIC_SECRET_KEY);
-  await firebaseSaveStoreData(storeId, { hash });
+  await dependencies.firebaseSaveStoreData(storeId, { hash });
 
   // create an invoice payment webhook
-  const invoicePaymentReceivedWebhook = makeWebhook(
-    [BtcPayServerWebhookEvent.invoiceReceivedPayment], // once the tx is broadcasted on the blockchain
-    process.env.INVOICE_RECEIVED_PAYMENT_WEBHOOK_URL,
-  );
-  await createWebhook(storeId, invoicePaymentReceivedWebhook);
+  const invoicePaymentReceivedWebhook = getPaymentReceivedWebhook();
+  await dependencies.createWebhook(storeId, invoicePaymentReceivedWebhook);
 
   // create an invoice settled webhook
-  const invoiceSettledWebhook = makeWebhook(
-    [
-      BtcPayServerWebhookEvent.invoiceSettled,
-      BtcPayServerWebhookEvent.invoicePaymentSettled,
-    ], // once the tx is confirmed or manually settled, we'll receive this webhook
-    process.env.INVOICE_SETTLED_WEBHOOK_URL,
-  );
-  await createWebhook(storeId, invoiceSettledWebhook);
+  const invoiceSettledWebhook = getInvoiceSettledWebhook();
+  await dependencies.createWebhook(storeId, invoiceSettledWebhook);
 
   // create an invoice expiry webhook
-  const invoiceExpiredWebhook = makeWebhook(
-    [
-      BtcPayServerWebhookEvent.invoiceExpired,
-      BtcPayServerWebhookEvent.invoiceInvalid,
-    ], // if invoice expires or manually marked as invalid
-    process.env.INVOICE_EXPIRED_WEBHOOK_URL,
-  );
-  await createWebhook(storeId, invoiceExpiredWebhook);
+  const invoiceExpiredWebhook = getInvoiceExpiredWebhook();
+  await dependencies.createWebhook(storeId, invoiceExpiredWebhook);
 
   // create the lot
   const lot = makeLot({
@@ -94,6 +171,5 @@ export const createLot = async (): Promise<void> => {
     ticketCommissionInBTC,
     ticketsAvailable,
   });
-
-  await firebaseCreateLot(lot);
+  await dependencies.firebaseCreateLot(lot);
 };

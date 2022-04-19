@@ -20,17 +20,24 @@ export const makeStore = ({
 };
 
 // TODO: SS move this to BTCPayServer
-export const makeWebhook = (
-  specificEvents: BtcPayServerWebhookEvent[],
-  url: string,
-): BtcPayServerWebhook => {
+export const makeWebhook = ({
+  id = getUuid(),
+  url,
+  specificEvents,
+  secret,
+}: {
+  id?: string;
+  url: string;
+  specificEvents: BtcPayServerWebhookEvent[];
+  secret: string;
+}): BtcPayServerWebhook => {
   return {
-    id: getUuid(),
+    id,
     url,
     authorizedEvents: {
       everything: false,
       specificEvents: specificEvents,
     },
-    secret: process.env.WEBHOOK_SECRET,
+    secret,
   };
 };
