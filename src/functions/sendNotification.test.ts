@@ -4,13 +4,32 @@ import { setupSendNotificationTest } from './sendNotification.testUtils';
 
 describe('sendNotification', () => {
   it('returns an error if there is no user profile data', async () => {
+    const uid = getUuid();
     const { response } = await setupSendNotificationTest({
+      uid,
       userProfileData: null,
     });
 
     expect(response).toEqual({
       error: true,
-      message: 'user data missing fool.',
+      message: `user data missing for ${uid} fool.`,
+    });
+  });
+
+  it('returns an error if there are no user fcm tokens', async () => {
+    const uid = getUuid();
+    const userProfileData = makeUserProfileData({
+      // @ts-expect-error testing bad data
+      fcmTokens: null,
+    });
+    const { response } = await setupSendNotificationTest({
+      uid,
+      userProfileData,
+    });
+
+    expect(response).toEqual({
+      error: true,
+      message: `user fcm tokens missing for ${uid} fool.`,
     });
   });
 

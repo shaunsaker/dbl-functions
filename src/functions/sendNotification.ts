@@ -26,7 +26,18 @@ export const sendNotification = async (
   const userProfileData = await dependencies.firebaseFetchUserProfile(uid);
 
   if (!userProfileData) {
-    const message = `user data missing fool.`;
+    const message = `user data missing for ${uid} fool.`;
+
+    console.log(`sendNotification: ${message}`);
+
+    return {
+      error: true,
+      message,
+    };
+  }
+
+  if (!userProfileData.fcmTokens) {
+    const message = `user fcm tokens missing for ${uid} fool.`;
 
     console.log(`sendNotification: ${message}`);
 

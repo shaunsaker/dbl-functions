@@ -3,19 +3,19 @@ import { getUuid } from '../utils/getUuid';
 import { UserProfileData } from './models';
 
 export const makeUserProfileData = ({
-  dateCreated,
-  username,
-  email,
-  hasCompletedOnboarding,
-  fcmTokens,
-  winnerWithdrawalLink,
+  dateCreated = getTimeAsISOString(),
+  username = getUuid(),
+  email = getUuid(),
+  hasCompletedOnboarding = true,
+  fcmTokens = [getUuid()],
+  winnerWithdrawalLink = getUuid(),
 }: Partial<UserProfileData>): UserProfileData => {
   return {
-    dateCreated: dateCreated || getTimeAsISOString(),
-    username: username || getUuid(),
-    email: email || getUuid(),
-    hasCompletedOnboarding: hasCompletedOnboarding || true,
-    fcmTokens: fcmTokens || [getUuid()],
-    winnerWithdrawalLink: winnerWithdrawalLink || getUuid(),
+    dateCreated,
+    username,
+    email,
+    hasCompletedOnboarding,
+    fcmTokens,
+    winnerWithdrawalLink,
   };
 };
