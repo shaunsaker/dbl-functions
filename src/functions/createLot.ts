@@ -50,7 +50,8 @@ export const getTicketPrice = ({
   const ticketPriceWithoutCommissionInBTC =
     targetLotValueBTC / ticketsAvailable;
   const ticketPriceInBTC = numberToDigits(
-    ticketPriceWithoutCommissionInBTC * (100 + ticketCommissionPercentage),
+    ticketPriceWithoutCommissionInBTC *
+      ((100 + ticketCommissionPercentage) / 100),
     6,
   );
 
@@ -175,4 +176,8 @@ export const createLot = async (
     ticketsAvailable,
   });
   await dependencies.firebaseCreateLot(lot);
+
+  console.log(
+    `successfully created lot with id, ${lotId}, ${ticketsAvailable} available tickets and ticket price of ${ticketPriceInBTC} BTC. The BTC price is $${BTCPriceInUSD}.`,
+  );
 };

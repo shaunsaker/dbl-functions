@@ -39,7 +39,7 @@ describe('createLot', () => {
         ticketCommissionPercentage,
       });
 
-      expect(ticketPrice).toEqual(0.0275);
+      expect(ticketPrice).toEqual(0.000275);
     });
   });
 
