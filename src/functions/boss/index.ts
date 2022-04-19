@@ -233,7 +233,7 @@ export const runBoss = async (
 
   return {
     error: false,
-    message: 'Great Success!',
+    message: 'Great success!',
   };
 };
 

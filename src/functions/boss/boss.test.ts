@@ -188,7 +188,7 @@ describe('boss', () => {
       expect(dependencies.createLot).toHaveBeenCalled();
       expect(response).toEqual({
         error: false,
-        message: 'Great Success!',
+        message: 'Great success!',
       });
     });
   });
