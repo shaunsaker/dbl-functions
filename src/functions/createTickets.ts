@@ -15,7 +15,9 @@ export const getNotEnoughTicketsAvailableResponseMessage = ({
   ticketCount: number;
   ticketsAvailable: number;
 }) =>
-  `There are only ${ticketsAvailable} and you are attempting to reserve ${ticketCount} tickets. please try again with ${ticketsAvailable} tickets.`;
+  ticketsAvailable === 0
+    ? 'There are no more tickets available for this lot. Please try again tomorrow.'
+    : `There are only ${ticketsAvailable} and you are attempting to reserve ${ticketCount} tickets. please try again with ${ticketsAvailable} tickets.`;
 
 export const getReachedUserTicketLimitResponseMessage = ({
   existingUserTicketCount,
