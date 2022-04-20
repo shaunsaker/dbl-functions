@@ -5,7 +5,6 @@ import { createInvoice } from '../../services/btcPayServer/createInvoice';
 import { makeBtcPayServerInvoicePayload } from '../../services/btcPayServer/data';
 import { getInvoicePaymentMethods } from '../../services/btcPayServer/getInvoicePaymentMethods';
 import { getStoreByStoreName } from '../../services/btcPayServer/getStoreByStoreName';
-import { BtcPayServerInvoice } from '../../services/btcPayServer/models';
 import { updateInvoice } from '../../services/btcPayServer/updateInvoice';
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseGetUser } from '../../services/firebase/firebaseGetUser';
@@ -14,7 +13,7 @@ import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import { numberToDigits } from '../../utils/numberToDigits';
 import { createTickets } from '../createTickets';
 
-type Response = FirebaseFunctionResponse<BtcPayServerInvoice>;
+type Response = FirebaseFunctionResponse<TicketId[]>;
 
 export const runBookie = async ({
   uid,
@@ -156,12 +155,13 @@ export const runBookie = async ({
     invoicePaymentTotal: invoicePaymentTotal,
     invoicePaymentExpiry,
   });
+  const ticketIds = createTicketsResponse.data as TicketId[]; // these are definitely defined
 
   // update the original invoice with the created ticket ids
   invoice = await dependencies.updateInvoice(store.id, invoice.id, {
     metadata: {
       ...invoice.metadata,
-      ticketIds: createTicketsResponse.data as TicketId[], // these are definitely defined
+      ticketIds,
     },
   });
 
@@ -179,7 +179,7 @@ export const runBookie = async ({
   return {
     error: false,
     message: 'great success!',
-    data: invoice,
+    data: ticketIds,
   };
 };
 

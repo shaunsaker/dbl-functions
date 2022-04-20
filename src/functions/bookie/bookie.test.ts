@@ -115,13 +115,14 @@ describe('bookie', () => {
       invoicePaymentExpiry,
     });
 
+    const ticketIds = tickets.map((ticket) => ticket.id);
     expect(dependencies.updateInvoice).toHaveBeenCalledWith(
       store.id,
       invoice.id,
       {
         metadata: {
           ...invoice.metadata,
-          ticketIds: tickets.map((ticket) => ticket.id),
+          ticketIds,
         },
       },
     );
@@ -129,7 +130,7 @@ describe('bookie', () => {
     expect(response).toEqual({
       error: false,
       message: 'great success!',
-      data: invoice,
+      data: ticketIds,
     });
   });
 });
