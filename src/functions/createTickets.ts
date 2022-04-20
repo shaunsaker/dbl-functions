@@ -37,6 +37,9 @@ export const createTickets = async ({
   lot,
   uid,
   ticketCount,
+  invoicePaymentAddress,
+  invoicePaymentTotal,
+  invoicePaymentExpiry,
   dependencies = {
     firebaseFetchTickets,
     firebaseWriteBatch,
@@ -45,6 +48,9 @@ export const createTickets = async ({
   lot: Lot;
   uid: UserId;
   ticketCount: number;
+  invoicePaymentAddress: string;
+  invoicePaymentTotal: number;
+  invoicePaymentExpiry: string;
   dependencies?: {
     firebaseFetchTickets: typeof firebaseFetchTickets;
     firebaseWriteBatch: typeof firebaseWriteBatch;
@@ -92,6 +98,9 @@ export const createTickets = async ({
       id,
       uid,
       price: lot.ticketPriceInBTC,
+      invoicePaymentAddress,
+      invoicePaymentTotal,
+      invoicePaymentExpiry,
     });
 
     return {

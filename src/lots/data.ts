@@ -54,17 +54,23 @@ export const makeLot = ({
 };
 
 export const makeTicket = ({
+  id = getUuid(),
+  uid = getUuid(),
+  price = 0.00025,
+  status = TicketStatus.reserved,
+  dateCreated = getTimeAsISOString(),
+  invoicePaymentAddress = getUuid(),
+  invoicePaymentTotal = 0.00025,
+  invoicePaymentExpiry = getUuid(),
+}: Partial<Ticket>): Ticket => ({
   id,
   uid,
   price,
   status,
   dateCreated,
-}: Partial<Ticket>): Ticket => ({
-  id: id || getUuid(),
-  uid: uid || getUuid(),
-  price: price || 0.00025,
-  status: status || TicketStatus.reserved,
-  dateCreated: dateCreated || getTimeAsISOString(),
+  invoicePaymentAddress,
+  invoicePaymentTotal,
+  invoicePaymentExpiry,
 });
 
 export const makeInvoice = ({

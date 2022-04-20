@@ -18,6 +18,7 @@ export const setupBookieTest = async ({
   store = { ...makeBtcPayServerStore({}), id: getUuid() },
   tickets = [makeTicket({})],
   invoice = makeInvoice({}),
+  invoicePaymentAddress = getUuid(),
 }: {
   uid?: UserId;
   lotId?: LotId;
@@ -27,12 +28,15 @@ export const setupBookieTest = async ({
   store?: BtcPayServerStore | null;
   tickets?: Ticket[];
   invoice?: BtcPayServerInvoice;
+  invoicePaymentAddress?: string;
 }) => {
   const firebaseGetUser = jest.fn();
   const firebaseFetchLot = jest.fn();
   const getStoreByStoreName = jest.fn();
   const createTickets = jest.fn();
   const createInvoice = jest.fn();
+  const getInvoicePaymentMethods = jest.fn();
+  const updateInvoice = jest.fn();
 
   if (isAuthUser) {
     firebaseGetUser.mockReturnValue(true);
@@ -57,6 +61,14 @@ export const setupBookieTest = async ({
 
   if (invoice) {
     createInvoice.mockReturnValue(invoice);
+
+    updateInvoice.mockReturnValue(invoice);
+  }
+
+  if (invoicePaymentAddress) {
+    getInvoicePaymentMethods.mockReturnValue([
+      { destination: invoicePaymentAddress },
+    ]);
   }
 
   const dependencies = {
@@ -65,6 +77,8 @@ export const setupBookieTest = async ({
     getStoreByStoreName,
     createTickets,
     createInvoice,
+    getInvoicePaymentMethods,
+    updateInvoice,
   };
   const response = await runBookie({
     uid,

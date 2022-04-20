@@ -2,6 +2,7 @@ import { makeInvoice, makeLot, makeTicket } from '../../lots/data';
 import { makeBtcPayServerInvoicePayload } from '../../services/btcPayServer/data';
 import { makeBtcPayServerStore } from '../../services/btcPayServer/data';
 import { arrayFromNumber } from '../../utils/arrayFromNumber';
+import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import { getUuid } from '../../utils/getUuid';
 import { setupBookieTest } from './bookie.testUtils';
 
@@ -74,6 +75,7 @@ describe('bookie', () => {
         lotId: getUuid(),
       },
     });
+    const invoicePaymentAddress = getUuid();
     const { response, dependencies } = await setupBookieTest({
       lotId,
       uid,
@@ -82,22 +84,46 @@ describe('bookie', () => {
       store,
       tickets,
       invoice,
+      invoicePaymentAddress,
+    });
+    const invoicePaymentTotal = ticketCount * lot.ticketPriceInBTC;
+    const invoicePaymentExpiry = getTimeAsISOString(
+      invoice.expirationTime * 1000,
+    );
+
+    expect(dependencies.createInvoice).toHaveBeenCalledWith(
+      store.id,
+      makeBtcPayServerInvoicePayload({
+        amount: invoicePaymentTotal * lot.BTCPriceInUSD,
+        uid,
+        lotId: lot.id,
+        ticketIds: [],
+      }),
+    );
+
+    expect(dependencies.getInvoicePaymentMethods).toHaveBeenCalledWith({
+      storeId: store.id,
+      invoiceId: invoice.id,
     });
 
     expect(dependencies.createTickets).toHaveBeenCalledWith({
       lot,
       uid,
       ticketCount,
+      invoicePaymentAddress,
+      invoicePaymentTotal,
+      invoicePaymentExpiry,
     });
 
-    expect(dependencies.createInvoice).toHaveBeenCalledWith(
+    expect(dependencies.updateInvoice).toHaveBeenCalledWith(
       store.id,
-      makeBtcPayServerInvoicePayload({
-        amount: ticketCount * lot.ticketPriceInBTC * lot.BTCPriceInUSD,
-        uid,
-        lotId: lot.id,
-        ticketIds: tickets.map((ticket) => ticket.id),
-      }),
+      invoice.id,
+      {
+        metadata: {
+          ...invoice.metadata,
+          ticketIds: tickets.map((ticket) => ticket.id),
+        },
+      },
     );
 
     expect(response).toEqual({

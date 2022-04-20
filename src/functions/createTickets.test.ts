@@ -62,6 +62,9 @@ describe('createTickets', () => {
           id: expect.any(String),
           uid: expect.any(String),
           dateCreated: expect.any(String),
+          invoicePaymentAddress: expect.any(String),
+          invoicePaymentTotal: expect.any(Number),
+          invoicePaymentExpiry: expect.any(String),
         },
       },
       {
@@ -71,6 +74,9 @@ describe('createTickets', () => {
           id: expect.any(String),
           uid: expect.any(String),
           dateCreated: expect.any(String),
+          invoicePaymentAddress: expect.any(String),
+          invoicePaymentTotal: expect.any(Number),
+          invoicePaymentExpiry: expect.any(String),
         },
       },
     ]);

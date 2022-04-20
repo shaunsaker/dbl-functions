@@ -1,13 +1,17 @@
 import * as functions from 'firebase-functions';
 import { CallableContext } from 'firebase-functions/v1/https';
-import { LotId, TicketId } from '../../lots/models';
+import { LotId, MAX_BTC_DIGITS, TicketId } from '../../lots/models';
 import { createInvoice } from '../../services/btcPayServer/createInvoice';
 import { makeBtcPayServerInvoicePayload } from '../../services/btcPayServer/data';
+import { getInvoicePaymentMethods } from '../../services/btcPayServer/getInvoicePaymentMethods';
 import { getStoreByStoreName } from '../../services/btcPayServer/getStoreByStoreName';
 import { BtcPayServerInvoice } from '../../services/btcPayServer/models';
+import { updateInvoice } from '../../services/btcPayServer/updateInvoice';
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseGetUser } from '../../services/firebase/firebaseGetUser';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
+import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
+import { numberToDigits } from '../../utils/numberToDigits';
 import { createTickets } from '../createTickets';
 
 type Response = FirebaseFunctionResponse<BtcPayServerInvoice>;
@@ -22,6 +26,8 @@ export const runBookie = async ({
     getStoreByStoreName,
     createTickets,
     createInvoice,
+    getInvoicePaymentMethods,
+    updateInvoice,
   },
 }: {
   uid: string | undefined;
@@ -33,6 +39,8 @@ export const runBookie = async ({
     getStoreByStoreName: typeof getStoreByStoreName;
     createTickets: typeof createTickets;
     createInvoice: typeof createInvoice;
+    getInvoicePaymentMethods: typeof getInvoicePaymentMethods;
+    updateInvoice: typeof updateInvoice;
   };
 }): Promise<Response> => {
   if (!uid) {
@@ -110,11 +118,51 @@ export const runBookie = async ({
     };
   }
 
+  // create the invoice
+  // NOTE: we do this before creating the tickets so that we can attach invoice data to the tickets
+  // that way, we don't have to fetch invoices on the client
+  const invoicePaymentTotal = numberToDigits(
+    ticketCount * lot.ticketPriceInBTC,
+    MAX_BTC_DIGITS,
+  );
+  let invoice = await dependencies.createInvoice(
+    store.id,
+    makeBtcPayServerInvoicePayload({
+      amount: invoicePaymentTotal * lot.BTCPriceInUSD,
+      uid,
+      lotId: lot.id,
+      ticketIds: [], // we don't know this yet, we'll update it after the step below
+    }),
+  );
+
+  // get the invoice payment address
+  const paymentMethods = await dependencies.getInvoicePaymentMethods({
+    storeId: store.id,
+    invoiceId: invoice.id,
+  });
+  const invoicePaymentAddress = paymentMethods[0].destination;
+
+  // get the invoice payment expiry
+  const invoicePaymentExpiry = getTimeAsISOString(
+    invoice.expirationTime * 1000,
+  );
+
   // create the tickets
   const createTicketsResponse = await dependencies.createTickets({
     lot,
     uid,
     ticketCount,
+    invoicePaymentAddress,
+    invoicePaymentTotal: invoicePaymentTotal,
+    invoicePaymentExpiry,
+  });
+
+  // update the original invoice with the created ticket ids
+  invoice = await dependencies.updateInvoice(store.id, invoice.id, {
+    metadata: {
+      ...invoice.metadata,
+      ticketIds: createTicketsResponse.data as TicketId[], // these are definitely defined
+    },
   });
 
   if (createTicketsResponse.error) {
@@ -127,17 +175,6 @@ export const runBookie = async ({
       message,
     };
   }
-
-  // create the invoice
-  const invoice = await dependencies.createInvoice(
-    store.id,
-    makeBtcPayServerInvoicePayload({
-      amount: ticketCount * lot.ticketPriceInBTC * lot.BTCPriceInUSD,
-      uid,
-      lotId: lot.id,
-      ticketIds: createTicketsResponse.data as TicketId[], // these are definitely defined
-    }),
-  );
 
   return {
     error: false,

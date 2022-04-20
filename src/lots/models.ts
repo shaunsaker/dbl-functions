@@ -46,4 +46,7 @@ export interface Ticket {
   price: number;
   status: TicketStatus;
   dateCreated: string;
+  invoicePaymentAddress: string;
+  invoicePaymentTotal: number;
+  invoicePaymentExpiry: string;
 }

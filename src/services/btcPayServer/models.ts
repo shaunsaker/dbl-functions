@@ -201,3 +201,10 @@ export interface BtcPayServerStoreWalletBalance {
   unconfirmedBalance: string;
   confirmedBalance: string;
 }
+
+export interface BtcPayServerPaymentMethod {
+  destination: string;
+  // ...other unused fields
+}
+
+export type BtcPayServerPaymentMethods = BtcPayServerPaymentMethod[];
