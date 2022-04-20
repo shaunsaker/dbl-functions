@@ -194,7 +194,7 @@ export const runBoss = async (
 
   // draw the winner
   const winnerUid = (await dependencies.drawWinner(activeLot.id)) || '';
-  const winnerUsername = '';
+  let winnerUsername = '';
 
   if (!winnerUid) {
     const message = 'oh shit son, no one participated 😢';
@@ -216,6 +216,8 @@ export const runBoss = async (
         message,
       };
     }
+
+    winnerUsername = userProfileData.username;
 
     // send winner and commission BTC
     const winnerPullPayment = await dependencies.createWinnerPullPayment({

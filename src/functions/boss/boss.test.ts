@@ -117,15 +117,6 @@ describe('boss', () => {
       });
     });
 
-    it('returns an error if there are no participants', async () => {
-      const { response } = await setupBossTest({ winnerUid: '' });
-
-      expect(response).toEqual({
-        error: true,
-        message: 'oh shit son, no one participated 😢',
-      });
-    });
-
     it('returns an error if there is no user data for the winner', async () => {
       const winnerUid = getUuid();
       const { response } = await setupBossTest({
