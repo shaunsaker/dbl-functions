@@ -193,66 +193,62 @@ export const runBoss = async (
   }
 
   // draw the winner
-  const winnerUid = await dependencies.drawWinner(activeLot.id);
+  const winnerUid = (await dependencies.drawWinner(activeLot.id)) || '';
+  const winnerUsername = '';
 
   if (!winnerUid) {
     const message = 'oh shit son, no one participated 😢';
 
     console.log(`boss: ${message}`);
+  } else {
+    // fetch the username
+    const userProfileData = await dependencies.firebaseFetchUserProfile(
+      winnerUid,
+    );
 
-    return {
-      error: true,
-      message,
-    };
-  }
+    if (!userProfileData) {
+      const message = `oh shit son, no user data for ${winnerUid}!`;
 
-  // fetch the username
-  const userProfileData = await dependencies.firebaseFetchUserProfile(
-    winnerUid,
-  );
+      console.log(`boss: ${message}`);
 
-  if (!userProfileData) {
-    const message = `oh shit son, no user data for ${winnerUid}!`;
+      return {
+        error: true,
+        message,
+      };
+    }
 
-    console.log(`boss: ${message}`);
+    // send winner and commission BTC
+    const winnerPullPayment = await dependencies.createWinnerPullPayment({
+      storeId: store.id,
+      username: userProfileData.username,
+      lot: activeLot,
+    });
 
-    return {
-      error: true,
-      message,
-    };
+    // save the url to the user's data for in-app display
+    await dependencies.firebaseUpdateUserProfile(winnerUid, {
+      winnerWithdrawalLink: winnerPullPayment.viewLink,
+    });
+
+    // notify the users
+    await dependencies.firebaseSendNotification({
+      topic: FirebaseMessagingTopics.winner,
+      title: 'We have a new Winner 👑🎉',
+      body: 'Open the app for more info 😎',
+    });
+
+    await dependencies.createAdminPullPayment({
+      storeId: store.id,
+      lot: activeLot,
+    });
   }
 
   // save the winner's uid to the stores data (so that we don't expose it publicly)
   await dependencies.firebaseSaveStoreData(store.id, { winnerUid });
 
-  // send winner and commission BTC
-  const winnerPullPayment = await dependencies.createWinnerPullPayment({
-    storeId: store.id,
-    username: userProfileData.username,
-    lot: activeLot,
-  });
-
-  // save the url to the user's data for in-app display
-  await dependencies.firebaseUpdateUserProfile(winnerUid, {
-    winnerWithdrawalLink: winnerPullPayment.viewLink,
-  });
-
-  // notify the users
-  await dependencies.firebaseSendNotification({
-    topic: FirebaseMessagingTopics.winner,
-    title: 'We have a new Winner 👑🎉',
-    body: 'Open the app for more info 😎',
-  });
-
-  await dependencies.createAdminPullPayment({
-    storeId: store.id,
-    lot: activeLot,
-  });
-
   // mark active lot as inactive and save the winner username
   await dependencies.firebaseUpdateLot(activeLot.id, {
     active: false,
-    winnerUsername: userProfileData.username,
+    winnerUsername,
   });
 
   // create a new lot
