@@ -12,9 +12,9 @@ export const firebaseFetchStoreData = async (
         .collection('stores')
         .doc(storeId)
         .get();
-      const lot = document.data() as StoreData;
+      const store = document.data() as StoreData;
 
-      resolve(lot);
+      resolve(store);
     } catch (error) {
       reject(error);
     }
