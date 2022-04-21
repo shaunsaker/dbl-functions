@@ -6,8 +6,6 @@ import {
   getInvoiceSettledWebhook,
   getLotId,
   getPaymentReceivedWebhook,
-  getTicketCommission,
-  getTicketPrice,
   getTicketsAvailable,
 } from './createLot';
 import { setupCreateLotTest } from './createLot.testUtils';
@@ -17,42 +15,16 @@ describe('createLot', () => {
     it('returns the tickets available', () => {
       const targetLotValueUSD = 1000000;
       const targetTicketValueUSD = 10;
+      const ticketCommissionPercentage = 10;
+      const avgBTCDailyFluctuationPercentage = 2;
       const ticketsAvailable = getTicketsAvailable({
         targetLotValueUSD,
         targetTicketValueUSD,
-      });
-
-      expect(ticketsAvailable).toEqual(100000);
-    });
-  });
-
-  describe('getTicketPrice', () => {
-    it('returns the tickets price in BTC', () => {
-      const targetLotValueUSD = 1000000;
-      const BTCPriceInUSD = 40000;
-      const ticketsAvailable = 100000;
-      const ticketCommissionPercentage = 10;
-      const ticketPrice = getTicketPrice({
-        targetLotValueUSD,
-        BTCPriceInUSD,
-        ticketsAvailable,
         ticketCommissionPercentage,
+        avgBTCDailyFluctuationPercentage,
       });
 
-      expect(ticketPrice).toEqual(0.000275);
-    });
-  });
-
-  describe('getTicketCommission', () => {
-    it('returns the ticket commission in BTC', () => {
-      const ticketPriceInBTC = 0.025;
-      const ticketCommissionPercentage = 10;
-      const ticketCommission = getTicketCommission({
-        ticketPriceInBTC,
-        ticketCommissionPercentage,
-      });
-
-      expect(ticketCommission).toEqual(0.0025);
+      expect(ticketsAvailable).toEqual(113637);
     });
   });
 
@@ -79,7 +51,6 @@ describe('createLot', () => {
       });
 
       expect(dependencies.firebaseFetchLot).toHaveBeenCalledWith(lotId);
-      expect(dependencies.getBTCUSDPrice).toHaveBeenCalled();
       expect(dependencies.createStore).toHaveBeenCalledWith(
         makeBtcPayServerStore({ name: lotId }),
       );
@@ -106,9 +77,6 @@ describe('createLot', () => {
         ...makeLot({
           id: lotId,
           dateCreated: expect.any(String),
-          BTCPriceInUSD,
-          ticketPriceInBTC: expect.any(Number), // tested above
-          ticketCommissionInBTC: expect.any(Number),
           ticketsAvailable: expect.any(Number),
         }),
       });

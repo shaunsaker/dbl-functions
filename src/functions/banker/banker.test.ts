@@ -19,7 +19,6 @@ describe('banker', () => {
     const lot = makeLot({});
     const tickets = [
       makeTicket({
-        price: lot.ticketPriceInBTC,
         status: TicketStatus.paymentReceived,
       }),
     ];

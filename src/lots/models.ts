@@ -18,10 +18,7 @@ export type LotId = string;
 export interface Lot {
   id: LotId; // it's not present when created but is present when fetched
   active: boolean; // only one lot is active at a time
-  ticketPriceInBTC: number;
-  BTCPriceInUSD: number;
-  ticketCommissionInBTC: number;
-  totalInBTC: number;
+  totalBTC: number;
   confirmedTicketCount: number;
   ticketsAvailable: number;
   perUserTicketLimit: number;
@@ -43,11 +40,12 @@ export type TicketId = string;
 export interface Ticket {
   id: TicketId;
   uid: UserId;
-  price: number;
+  priceBTC: number;
   status: TicketStatus;
   dateCreated: string;
   invoicePaymentAddress: string;
-  invoicePaymentTotal: number;
+  invoicePaymentAmountBTC: number;
+  invoicePaymentRate: number; // USD/BTC
   invoicePaymentExpiry: string;
   invoiceTicketIds: TicketId[];
 }

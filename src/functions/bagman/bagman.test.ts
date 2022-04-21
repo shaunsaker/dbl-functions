@@ -26,9 +26,10 @@ describe('bagman', () => {
 
   it('handles a single exact payment', async () => {
     const lot = makeLot({});
+    const ticketPriceBTC = 0.00025;
     const tickets = [
       makeTicket({
-        price: lot.ticketPriceInBTC,
+        priceBTC: ticketPriceBTC,
         status: TicketStatus.reserved,
       }),
     ];
@@ -40,7 +41,7 @@ describe('bagman', () => {
         ticketIds: tickets.map((ticket) => ticket.id),
       },
     });
-    const paymentAmountBTC = lot.ticketPriceInBTC;
+    const paymentAmountBTC = ticketPriceBTC;
     const { response, dependencies } = await setupBagmanTest({
       lot,
       tickets,
@@ -73,13 +74,14 @@ describe('bagman', () => {
 
   it('handles multiple exact payments', async () => {
     const lot = makeLot({});
+    const ticketPriceBTC = 0.00025;
     const tickets = [
       makeTicket({
-        price: lot.ticketPriceInBTC,
+        priceBTC: ticketPriceBTC,
         status: TicketStatus.reserved,
       }),
       makeTicket({
-        price: lot.ticketPriceInBTC,
+        priceBTC: ticketPriceBTC,
         status: TicketStatus.reserved,
       }),
     ];
@@ -91,7 +93,7 @@ describe('bagman', () => {
         ticketIds: tickets.map((ticket) => ticket.id),
       },
     });
-    const paymentAmountBTC = 2 * lot.ticketPriceInBTC;
+    const paymentAmountBTC = 2 * ticketPriceBTC;
     const { response, dependencies } = await setupBagmanTest({
       lot,
       tickets,
@@ -124,13 +126,14 @@ describe('bagman', () => {
 
   it('handles under payments when they can afford at least one ticket', async () => {
     const lot = makeLot({});
+    const ticketPriceBTC = 0.00025;
     const tickets = [
       makeTicket({
-        price: lot.ticketPriceInBTC,
+        priceBTC: ticketPriceBTC,
         status: TicketStatus.reserved,
       }),
       makeTicket({
-        price: lot.ticketPriceInBTC,
+        priceBTC: ticketPriceBTC,
         status: TicketStatus.reserved,
       }),
     ];
@@ -142,7 +145,7 @@ describe('bagman', () => {
         ticketIds: tickets.map((ticket) => ticket.id),
       },
     });
-    const paymentAmountBTC = lot.ticketPriceInBTC; // only 1 of the 2
+    const paymentAmountBTC = ticketPriceBTC; // only 1 of the 2
     const { response, dependencies } = await setupBagmanTest({
       lot,
       tickets,
@@ -174,13 +177,14 @@ describe('bagman', () => {
 
   it('handles under payments when they cant afford any tickets', async () => {
     const lot = makeLot({});
+    const ticketPriceBTC = 0.00025;
     const tickets = [
       makeTicket({
-        price: lot.ticketPriceInBTC,
+        priceBTC: ticketPriceBTC,
         status: TicketStatus.reserved,
       }),
       makeTicket({
-        price: lot.ticketPriceInBTC,
+        priceBTC: ticketPriceBTC,
         status: TicketStatus.reserved,
       }),
     ];
@@ -192,7 +196,7 @@ describe('bagman', () => {
         ticketIds: tickets.map((ticket) => ticket.id),
       },
     });
-    const paymentAmountBTC = lot.ticketPriceInBTC / 2; // only 1/2 a ticket
+    const paymentAmountBTC = ticketPriceBTC / 2; // only 1/2 a ticket
     const { response, dependencies } = await setupBagmanTest({
       lot,
       tickets,

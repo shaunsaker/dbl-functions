@@ -106,7 +106,7 @@ describe('boss', () => {
 
     it('returns an error if there is not enough BTC in the wallet', async () => {
       const lotTotalInBTC = 10;
-      const lot = makeLot({ totalInBTC: lotTotalInBTC });
+      const lot = makeLot({ totalBTC: lotTotalInBTC });
       const walletBalanceBTC = 5; // less than the lot total
       const { response } = await setupBossTest({ lot, walletBalanceBTC });
 
@@ -131,7 +131,7 @@ describe('boss', () => {
     });
 
     it('does the nitty gritty', async () => {
-      const lot = makeLot({ totalInBTC: 1 });
+      const lot = makeLot({ totalBTC: 1 });
       const store = { ...makeBtcPayServerStore({}), id: getUuid() };
       const winnerUid = getUuid();
       const winnerUserProfileData = makeUserProfileData({});

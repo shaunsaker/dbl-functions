@@ -12,7 +12,7 @@ export const getLotStats = ({
 }) => {
   let newTicketsAvailable = lot.ticketsAvailable;
   let newConfirmedTicketCount = lot.confirmedTicketCount;
-  let newTotalInBTC = lot.totalInBTC;
+  let newTotalInBTC = lot.totalBTC;
 
   const ticketWasAdded = !ticketBefore;
   const ticketWasDeleted = !ticketAfter;
@@ -33,7 +33,7 @@ export const getLotStats = ({
       // if a confirmed ticket was added also do the following
       if (newTicketIsConfirmed) {
         newConfirmedTicketCount += 1;
-        newTotalInBTC += lot.ticketPriceInBTC;
+        newTotalInBTC += ticketAfter.priceBTC;
       }
     }
   } else if (ticketWasDeleted) {
@@ -49,7 +49,7 @@ export const getLotStats = ({
 
       if (ticketWasConfirmed) {
         newConfirmedTicketCount -= 1;
-        newTotalInBTC -= lot.ticketPriceInBTC;
+        newTotalInBTC -= ticketBefore.priceBTC;
       }
     }
   } else if (ticketChanged) {
@@ -84,7 +84,7 @@ export const getLotStats = ({
 
     if (ticketBecameConfirmed) {
       newConfirmedTicketCount += 1;
-      newTotalInBTC += lot.ticketPriceInBTC;
+      newTotalInBTC += ticketAfter.priceBTC;
 
       if (ticketWasExpired) {
         newTicketsAvailable -= 1;
@@ -94,11 +94,11 @@ export const getLotStats = ({
 
       if (ticketWasConfirmed) {
         newConfirmedTicketCount -= 1;
-        newTotalInBTC -= lot.ticketPriceInBTC;
+        newTotalInBTC -= ticketAfter.priceBTC;
       }
     } else if (ticketWasConfirmed && !ticketIsConfirmed) {
       newConfirmedTicketCount -= 1;
-      newTotalInBTC -= lot.ticketPriceInBTC;
+      newTotalInBTC -= ticketAfter.priceBTC;
     } else if (ticketWasExpired && !ticketIsExpired) {
       newTicketsAvailable -= 1;
     }
@@ -107,7 +107,7 @@ export const getLotStats = ({
   const newLotStats = {
     ticketsAvailable: newTicketsAvailable,
     confirmedTicketCount: newConfirmedTicketCount,
-    totalInBTC: newTotalInBTC,
+    totalBTC: newTotalInBTC,
   };
 
   return newLotStats;

@@ -1,12 +1,10 @@
 import moment = require('moment');
 import {
   LotId,
-  MAX_BTC_DIGITS,
   TARGET_LOT_VALUE_USD,
   TARGET_TICKET_VALUE_USD,
   TICKET_COMMISSION_PERCENTAGE,
 } from '../lots/models';
-import { getBTCUSDPrice } from '../services/coinGecko/getBTCUSDPrice';
 import { createStore } from '../services/btcPayServer/createStore';
 import { createStoreWallet } from '../services/btcPayServer/createStoreWallet';
 import { createWebhook } from '../services/btcPayServer/createWebhook';
@@ -14,7 +12,6 @@ import { firebaseCreateLot } from '../services/firebase/firebaseCreateLot';
 import { firebaseSaveStoreData } from '../services/firebase/firebaseSaveStoreData';
 import { createMnemonic } from '../utils/createMnemonic';
 import { encrypt } from '../utils/crypto';
-import { numberToDigits } from '../utils/numberToDigits';
 import {
   makeBtcPayServerStore,
   makeBtcPayServerWebhook,
@@ -26,55 +23,32 @@ import { FirebaseFunctionResponse } from '../services/firebase/models';
 
 require('dotenv').config();
 
+// we want each lot to be valued at a certain USD amount
+// we also want to set the price of a ticket to a reasonable USD amount
+// we also want to make a commission
+// there is also fluctuation that happens
+// therefore, we need to calculate the number of tickets that we should make available
+// after giving the winner their USD lot value (after our commission)
 export const getTicketsAvailable = ({
   targetLotValueUSD,
   targetTicketValueUSD,
+  ticketCommissionPercentage,
+  avgBTCDailyFluctuationPercentage,
 }: {
   targetLotValueUSD: number;
   targetTicketValueUSD: number;
-}): number => {
-  // calculate the amount of tickets available
-  return Math.ceil(targetLotValueUSD / targetTicketValueUSD);
-};
-
-export const getTicketPrice = ({
-  targetLotValueUSD,
-  BTCPriceInUSD,
-  ticketsAvailable,
-  ticketCommissionPercentage,
-}: {
-  targetLotValueUSD: number;
-  BTCPriceInUSD: number;
-  ticketsAvailable: number;
   ticketCommissionPercentage: number;
+  avgBTCDailyFluctuationPercentage: number;
 }): number => {
-  // calculate the ticket price
-  const targetLotValueBTC = targetLotValueUSD / BTCPriceInUSD;
-  const ticketPriceWithoutCommissionInBTC =
-    targetLotValueBTC / ticketsAvailable;
-  const ticketPriceInBTC = numberToDigits(
-    ticketPriceWithoutCommissionInBTC *
-      ((100 + ticketCommissionPercentage) / 100),
-    MAX_BTC_DIGITS,
+  const targetTicketValueUSDAfterCommission =
+    (targetTicketValueUSD *
+      (100 - ticketCommissionPercentage - avgBTCDailyFluctuationPercentage)) /
+    100;
+  const ticketsAvailable = Math.ceil(
+    targetLotValueUSD / targetTicketValueUSDAfterCommission,
   );
 
-  return ticketPriceInBTC;
-};
-
-export const getTicketCommission = ({
-  ticketPriceInBTC,
-  ticketCommissionPercentage,
-}: {
-  ticketPriceInBTC: number;
-  ticketCommissionPercentage: number;
-}): number => {
-  // calculate the commission
-  const ticketCommissionInBTC = numberToDigits(
-    (ticketPriceInBTC * ticketCommissionPercentage) / 100,
-    MAX_BTC_DIGITS,
-  );
-
-  return ticketCommissionInBTC;
+  return ticketsAvailable;
 };
 
 export const getLotId = () => moment().endOf('day').format('YYYY-MM-DD'); // the id is the day
@@ -111,7 +85,6 @@ type Response = FirebaseFunctionResponse<void>;
 export const createLot = async (
   dependencies: {
     firebaseFetchLot: typeof firebaseFetchLot;
-    getBTCUSDPrice: typeof getBTCUSDPrice;
     createStore: typeof createStore;
     createStoreWallet: typeof createStoreWallet;
     firebaseSaveStoreData: typeof firebaseSaveStoreData;
@@ -119,7 +92,6 @@ export const createLot = async (
     firebaseCreateLot: typeof firebaseCreateLot;
   } = {
     firebaseFetchLot,
-    getBTCUSDPrice,
     createStore,
     createStoreWallet,
     firebaseSaveStoreData,
@@ -143,22 +115,11 @@ export const createLot = async (
     };
   }
 
-  // fetch the btc price in usd
-  const BTCPriceInUSD = await dependencies.getBTCUSDPrice();
-
   const ticketsAvailable = getTicketsAvailable({
     targetLotValueUSD: TARGET_LOT_VALUE_USD,
     targetTicketValueUSD: TARGET_TICKET_VALUE_USD,
-  });
-  const ticketPriceInBTC = getTicketPrice({
-    targetLotValueUSD: TARGET_LOT_VALUE_USD,
-    BTCPriceInUSD,
-    ticketsAvailable,
     ticketCommissionPercentage: TICKET_COMMISSION_PERCENTAGE,
-  });
-  const ticketCommissionInBTC = getTicketCommission({
-    ticketPriceInBTC,
-    ticketCommissionPercentage: TICKET_COMMISSION_PERCENTAGE,
+    avgBTCDailyFluctuationPercentage: 2, // FIXME: in the future we could make this dynamic
   });
 
   // create the store
@@ -192,15 +153,12 @@ export const createLot = async (
   // create the lot
   const lot = makeLot({
     id: lotId,
-    BTCPriceInUSD,
-    ticketPriceInBTC,
-    ticketCommissionInBTC,
     ticketsAvailable,
   });
   await dependencies.firebaseCreateLot(lot);
 
   console.log(
-    `successfully created lot with id, ${lotId}, ${ticketsAvailable} available tickets and ticket price of ${ticketPriceInBTC} BTC. The BTC price is $${BTCPriceInUSD}.`,
+    `successfully created lot with id ${lotId} and ${ticketsAvailable} available tickets.`,
   );
 
   return {

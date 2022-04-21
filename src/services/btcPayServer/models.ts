@@ -174,7 +174,7 @@ export interface BtcPayServerInvoicePayload {
     requiresRefundEmail?: boolean;
     defaultLanguage?: 'en-US';
   };
-  amount: number;
+  amount: number; // corresponds to currency below, e.g. USD 5
   currency?: string;
   additionalSearchTerms?: string[];
 }
@@ -183,7 +183,7 @@ export interface BtcPayServerInvoice
   extends Omit<BtcPayServerInvoicePayload, 'amount'> {
   id: BtcPayServerInvoiceId;
   storeId: BtcPayServerStoreId;
-  amount: string;
+  amount: string; // corresponds to currency below, e.g. USD 5
   currency: string;
   type: string;
   checkoutLink: string;
@@ -204,6 +204,8 @@ export interface BtcPayServerStoreWalletBalance {
 
 export interface BtcPayServerPaymentMethod {
   destination: string;
+  rate: string;
+  amount: string;
   // ...other unused fields
 }
 

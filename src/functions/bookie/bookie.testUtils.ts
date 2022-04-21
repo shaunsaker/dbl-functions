@@ -3,6 +3,7 @@ import { makeInvoice, makeLot, makeTicket } from '../../lots/data';
 import { Lot, LotId, Ticket } from '../../lots/models';
 import {
   BtcPayServerInvoice,
+  BtcPayServerPaymentMethods,
   BtcPayServerStore,
 } from '../../services/btcPayServer/models';
 import { makeBtcPayServerStore } from '../../services/btcPayServer/data';
@@ -19,6 +20,8 @@ export const setupBookieTest = async ({
   tickets = [makeTicket({})],
   invoice = makeInvoice({}),
   invoicePaymentAddress = getUuid(),
+  invoicePaymentAmountBTC = 0,
+  invoicePaymentRate = 0,
 }: {
   uid?: UserId;
   lotId?: LotId;
@@ -29,6 +32,8 @@ export const setupBookieTest = async ({
   tickets?: Ticket[];
   invoice?: BtcPayServerInvoice;
   invoicePaymentAddress?: string;
+  invoicePaymentAmountBTC?: number;
+  invoicePaymentRate?: number;
 }) => {
   const firebaseGetUser = jest.fn();
   const firebaseFetchLot = jest.fn();
@@ -66,9 +71,15 @@ export const setupBookieTest = async ({
   }
 
   if (invoicePaymentAddress) {
-    getInvoicePaymentMethods.mockReturnValue([
-      { destination: invoicePaymentAddress },
-    ]);
+    const paymentMethods: BtcPayServerPaymentMethods = [
+      {
+        destination: invoicePaymentAddress,
+        amount: invoicePaymentAmountBTC.toString(),
+        rate: invoicePaymentRate.toString(),
+      },
+    ];
+
+    getInvoicePaymentMethods.mockReturnValue(paymentMethods);
   }
 
   const dependencies = {

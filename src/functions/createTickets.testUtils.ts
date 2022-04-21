@@ -10,16 +10,20 @@ export const setupCreateTicketsTests = async ({
   uid = getUuid(),
   existingTickets = [],
   ticketCount = 1,
+  ticketPriceBTC = 0.00025,
   invoicePaymentAddress = getUuid(),
-  invoicePaymentTotal = 0.00025,
+  invoicePaymentAmountBTC = 0.00025,
+  invoicePaymentRate = 50000,
   invoicePaymentExpiry = getTimeAsISOString(),
 }: {
   lot?: Lot;
   uid?: UserId;
   existingTickets?: Ticket[];
   ticketCount?: number;
+  ticketPriceBTC?: number;
   invoicePaymentAddress?: string;
-  invoicePaymentTotal?: number;
+  invoicePaymentAmountBTC?: number;
+  invoicePaymentRate?: number;
   invoicePaymentExpiry?: string;
 }) => {
   const firebaseFetchTickets = jest.fn();
@@ -37,10 +41,12 @@ export const setupCreateTicketsTests = async ({
     lot,
     uid,
     ticketCount,
-    dependencies,
+    ticketPriceBTC,
     invoicePaymentAddress,
-    invoicePaymentTotal,
+    invoicePaymentAmountBTC,
+    invoicePaymentRate,
     invoicePaymentExpiry,
+    dependencies,
   });
 
   return { response, dependencies };

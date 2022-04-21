@@ -51,7 +51,7 @@ export const drawWinner = async (
 
 export const getAdminPaymentAmountBTC = (lot: Lot): number => {
   const adminPaymentAmountBTC = numberToDigits(
-    (lot.totalInBTC * TICKET_COMMISSION_PERCENTAGE) / 100,
+    (lot.totalBTC * TICKET_COMMISSION_PERCENTAGE) / 100,
     MAX_BTC_DIGITS,
   );
 
@@ -61,7 +61,7 @@ export const getAdminPaymentAmountBTC = (lot: Lot): number => {
 export const getWinnerPaymentAmountBTC = (lot: Lot): number => {
   const adminPaymentAmountBTC = getAdminPaymentAmountBTC(lot);
   const paymentAmountBTC = numberToDigits(
-    lot.totalInBTC - adminPaymentAmountBTC,
+    lot.totalBTC - adminPaymentAmountBTC,
     MAX_BTC_DIGITS,
   );
 
@@ -175,10 +175,10 @@ export const runBoss = async (
     };
   }
 
-  // validate that activeLot.totalInBTC at least matches our wallet balance
+  // validate that activeLot.totalBTC at least matches our wallet balance
   const storeWalletBalance = await dependencies.getStoreWalletBalance(store.id);
   const isLotTotalValid =
-    parseFloat(storeWalletBalance.confirmedBalance) >= activeLot.totalInBTC;
+    parseFloat(storeWalletBalance.confirmedBalance) >= activeLot.totalBTC;
 
   if (!isLotTotalValid) {
     const message =

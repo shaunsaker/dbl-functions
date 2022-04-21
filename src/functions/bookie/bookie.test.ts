@@ -4,6 +4,7 @@ import { makeBtcPayServerStore } from '../../services/btcPayServer/data';
 import { arrayFromNumber } from '../../utils/arrayFromNumber';
 import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import { getUuid } from '../../utils/getUuid';
+import { numberToDigits } from '../../utils/numberToDigits';
 import { setupBookieTest } from './bookie.testUtils';
 
 describe('bookie', () => {
@@ -67,8 +68,15 @@ describe('bookie', () => {
     const uid = getUuid();
     const ticketCount = 5;
     const store = { ...makeBtcPayServerStore({}), id: getUuid() };
-    const tickets = arrayFromNumber(5).map(() => makeTicket({}));
+    const ticketPriceUSD = 10;
+    const invoicePaymentTotalUSD = numberToDigits(ticketCount * ticketPriceUSD);
+    const invoicePaymentRate = 50000;
+    const ticketPriceBTC = ticketPriceUSD / invoicePaymentRate;
+    const tickets = arrayFromNumber(5).map(() =>
+      makeTicket({ priceBTC: ticketPriceBTC }),
+    );
     const invoice = makeInvoice({
+      amount: invoicePaymentTotalUSD.toString(),
       metadata: {
         ticketIds: tickets.map((ticket) => ticket.id),
         uid: getUuid(),
@@ -76,6 +84,11 @@ describe('bookie', () => {
       },
     });
     const invoicePaymentAddress = getUuid();
+    const invoicePaymentAmountBTC = ticketCount * ticketPriceBTC;
+    const invoicePaymentExpiry = getTimeAsISOString(
+      invoice.expirationTime * 1000,
+    );
+
     const { response, dependencies } = await setupBookieTest({
       lotId,
       uid,
@@ -85,16 +98,14 @@ describe('bookie', () => {
       tickets,
       invoice,
       invoicePaymentAddress,
+      invoicePaymentAmountBTC,
+      invoicePaymentRate,
     });
-    const invoicePaymentTotal = ticketCount * lot.ticketPriceInBTC;
-    const invoicePaymentExpiry = getTimeAsISOString(
-      invoice.expirationTime * 1000,
-    );
 
     expect(dependencies.createInvoice).toHaveBeenCalledWith(
       store.id,
       makeBtcPayServerInvoicePayload({
-        amount: invoicePaymentTotal * lot.BTCPriceInUSD,
+        amount: invoicePaymentAmountBTC * invoicePaymentRate,
         uid,
         lotId: lot.id,
         ticketIds: [],
@@ -110,8 +121,10 @@ describe('bookie', () => {
       lot,
       uid,
       ticketCount,
+      ticketPriceBTC,
       invoicePaymentAddress,
-      invoicePaymentTotal,
+      invoicePaymentAmountBTC,
+      invoicePaymentRate,
       invoicePaymentExpiry,
     });
 

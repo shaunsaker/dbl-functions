@@ -119,13 +119,14 @@ export const runBagman = async (
   // handle partial payments by only reserving the tickets to the value of the payment
   // e.g. if I reserved 5 tickets but only paid for 3, only reserve 3
   // NOTE: keep in mind that this could also be an over payment
-
-  // when we save the ticket price, we round up to 8 digits
   const paymentAmountBTC = parseFloat(data.payment.value);
-  const paymentAmountUSD = paymentAmountBTC * lot.BTCPriceInUSD;
+
+  // get the ticket price in btc
+  // NOTE: all of the reservedTickets will have the same price so we just grab the first one
+  const ticketPriceBTC = reservedTickets[0].priceBTC;
 
   const quantityTicketsReservable = Math.floor(
-    paymentAmountBTC / lot.ticketPriceInBTC,
+    paymentAmountBTC / ticketPriceBTC,
   );
 
   const reservableTickets = reservedTickets.slice(0, quantityTicketsReservable);
@@ -137,7 +138,7 @@ export const runBagman = async (
   );
 
   console.log(
-    `bagman: ${uid} paid ${paymentAmountBTC} BTC ($${paymentAmountUSD}) of the invoice total, $${invoice.amount}, and we are marking ${paidTickets.length} / ${reservedTickets.length} tickets as Payment Received.`,
+    `bagman: ${uid} paid ${paymentAmountBTC} BTC of the invoice total, $${invoice.amount}, and we are marking ${paidTickets.length} / ${reservedTickets.length} tickets as Payment Received.`,
   );
 
   // update the tickets in firebase
