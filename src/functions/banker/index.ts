@@ -71,14 +71,15 @@ export const runBanker = async (
   const { uid, lotId, ticketIds } = invoice.metadata;
 
   // fetch the tickets using the ticketIds in the invoice
-  const paymentReceivedTickets = await dependencies.firebaseFetchTickets({
+  const tickets = await dependencies.firebaseFetchTickets({
     lotId,
     uid,
     ticketIds,
-    ticketStatuses: [TicketStatus.paymentReceived],
+    // we fetch reserved tickets too in case there was a manual settlement
+    ticketStatuses: [TicketStatus.reserved, TicketStatus.paymentReceived],
   });
 
-  if (!paymentReceivedTickets.length) {
+  if (!tickets.length) {
     // should not be possible
     const message = 'tickets missing fool.';
 
@@ -96,7 +97,7 @@ export const runBanker = async (
   // NOTE: it should also not be possible to get an over payment at this stage
   // that will be handled in the InvoiceReceivedPayment webhook
   const confirmedTickets: Ticket[] = dependencies.changeTicketsStatus(
-    paymentReceivedTickets,
+    tickets,
     TicketStatus.confirmed,
   );
 
