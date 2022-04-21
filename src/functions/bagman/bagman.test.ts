@@ -45,7 +45,7 @@ describe('bagman', () => {
       lot,
       tickets,
       invoice,
-      paymentValueUSD: paymentAmountBTC * lot.BTCPriceInUSD,
+      paymentAmountBTC,
     });
 
     const expectedPaidTickets = changeTicketsStatus(
@@ -60,7 +60,7 @@ describe('bagman', () => {
     expect(dependencies.sendNotification).toHaveBeenCalledWith({
       uid,
       notification: getBagmanNotification({
-        paymentAmountBTC: paymentAmountBTC,
+        paymentAmountBTC,
         paidTickets: expectedPaidTickets,
       }),
     });
@@ -96,7 +96,7 @@ describe('bagman', () => {
       lot,
       tickets,
       invoice,
-      paymentValueUSD: paymentAmountBTC * lot.BTCPriceInUSD,
+      paymentAmountBTC,
     });
 
     const expectedPaidTickets = changeTicketsStatus(
@@ -147,7 +147,7 @@ describe('bagman', () => {
       lot,
       tickets,
       invoice,
-      paymentValueUSD: paymentAmountBTC * lot.BTCPriceInUSD,
+      paymentAmountBTC,
     });
 
     const expectedPaidTickets = changeTicketsStatus(
@@ -197,7 +197,7 @@ describe('bagman', () => {
       lot,
       tickets,
       invoice,
-      paymentValueUSD: paymentAmountBTC * lot.BTCPriceInUSD,
+      paymentAmountBTC,
     });
 
     const expectedPaidTickets = changeTicketsStatus(

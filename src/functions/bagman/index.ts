@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import { MAX_BTC_DIGITS, Ticket, TicketStatus } from '../../lots/models';
+import { Ticket, TicketStatus } from '../../lots/models';
 import {
   BtcPayServerInvoice,
   BtcPayServerInvoiceReceivedPaymentEventData,
@@ -14,7 +14,6 @@ import { changeTicketsStatus } from '../changeTicketsStatus';
 import { validateWebookEventData } from '../validateWebhookEventData';
 import { sendNotification } from '../sendNotification';
 import { verifyWebhookSignature } from '../verifyWebhookSignature';
-import { numberToDigits } from '../../utils/numberToDigits';
 
 require('dotenv').config();
 
@@ -120,13 +119,10 @@ export const runBagman = async (
   // handle partial payments by only reserving the tickets to the value of the payment
   // e.g. if I reserved 5 tickets but only paid for 3, only reserve 3
   // NOTE: keep in mind that this could also be an over payment
-  const paymentAmountUSD = parseFloat(data.payment.value);
 
   // when we save the ticket price, we round up to 8 digits
-  const paymentAmountBTC = numberToDigits(
-    paymentAmountUSD / lot.BTCPriceInUSD,
-    MAX_BTC_DIGITS,
-  );
+  const paymentAmountBTC = parseFloat(data.payment.value);
+  const paymentAmountUSD = paymentAmountBTC * lot.BTCPriceInUSD;
 
   const quantityTicketsReservable = Math.floor(
     paymentAmountBTC / lot.ticketPriceInBTC,

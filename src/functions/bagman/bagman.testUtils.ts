@@ -16,14 +16,14 @@ export const setupBagmanTest = async ({
   invoice = makeInvoice({}),
   lot = makeLot({}),
   tickets = [makeTicket({})],
-  paymentValueUSD = 10,
+  paymentAmountBTC = 0.00025,
 }: {
   storeId?: BtcPayServerStoreId;
   invoiceId?: BtcPayServerInvoiceId;
   invoice?: BtcPayServerInvoice | null;
   lot?: Lot | null;
   tickets?: Ticket[];
-  paymentValueUSD?: number;
+  paymentAmountBTC?: number;
 }) => {
   const validateWebookEventData = jest.fn();
   const firebaseFetchLot = jest.fn();
@@ -52,7 +52,7 @@ export const setupBagmanTest = async ({
   const eventData = makeBtcPayServerInvoiceReceivedPaymentEventData({
     storeId,
     invoiceId,
-    value: paymentValueUSD,
+    value: paymentAmountBTC,
   });
 
   const dependencies = {
