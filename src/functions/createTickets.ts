@@ -92,7 +92,7 @@ export const createTickets = async ({
     };
   }
 
-  const ticketDocs = arrayFromNumber(ticketCount).map(() => {
+  let tickets = arrayFromNumber(ticketCount).map(() => {
     const id = getUuid();
     const ticket = makeTicket({
       id,
@@ -103,20 +103,28 @@ export const createTickets = async ({
       invoicePaymentExpiry,
     });
 
-    return {
-      ref: firebase
-        .firestore()
-        .collection('lots')
-        .doc(lot.id)
-        .collection('tickets')
-        .doc(id),
-      data: ticket,
-    };
+    return ticket;
   });
 
-  await dependencies.firebaseWriteBatch(ticketDocs);
+  // attach the group of ticket ids to each ticket for invoicing purposes
+  const ticketIds = tickets.map((ticket) => ticket.id);
 
-  const ticketIds = ticketDocs.map((ticket) => ticket.data.id);
+  tickets = tickets.map((ticket) => ({
+    ...ticket,
+    invoiceTicketIds: ticketIds,
+  }));
+
+  const ticketDocs = tickets.map((ticket) => ({
+    ref: firebase
+      .firestore()
+      .collection('lots')
+      .doc(lot.id)
+      .collection('tickets')
+      .doc(ticket.id),
+    data: ticket,
+  }));
+
+  await dependencies.firebaseWriteBatch(ticketDocs);
 
   return {
     error: false,

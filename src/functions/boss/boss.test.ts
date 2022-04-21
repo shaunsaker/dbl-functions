@@ -24,7 +24,7 @@ describe('boss', () => {
 
       firebaseFetchTickets.mockReturnValue(
         arrayFromNumber(100).map(() =>
-          makeTicket({ status: TicketStatus.confirmed }),
+          makeTicket({ uid: getUuid(), status: TicketStatus.confirmed }),
         ),
       );
 
