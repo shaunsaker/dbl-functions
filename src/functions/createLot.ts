@@ -77,7 +77,7 @@ export const getTicketCommission = ({
   return ticketCommissionInBTC;
 };
 
-export const getLotId = () => moment().startOf('day').format('YYYY-MM-DD'); // the id is the day
+export const getLotId = () => moment().endOf('day').format('YYYY-MM-DD'); // the id is the day
 
 export const getPaymentReceivedWebhook = () =>
   makeBtcPayServerWebhook({
