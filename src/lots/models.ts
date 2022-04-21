@@ -26,6 +26,7 @@ export interface Lot {
   lastCallTime: string;
   dateCreated: string;
   winnerUsername?: Username;
+  ticketPriceUSD: number;
 }
 
 export enum TicketStatus {

@@ -5,6 +5,7 @@ import { getUuid } from '../utils/getUuid';
 import {
   Lot,
   PER_USER_TICKET_LIMIT,
+  TARGET_TICKET_VALUE_USD,
   Ticket,
   TicketStatus,
   TICKET_TIMEOUT_MS,
@@ -20,6 +21,7 @@ export const makeLot = ({
   confirmedTicketCount,
   perUserTicketLimit,
   ticketsAvailable,
+  ticketPriceUSD,
 }: Partial<Lot>): Lot => {
   // get the draw time, ie. 00h00 tonight
   const now = moment();
@@ -44,6 +46,7 @@ export const makeLot = ({
     confirmedTicketCount: confirmedTicketCount || 0,
     perUserTicketLimit: perUserTicketLimit || PER_USER_TICKET_LIMIT,
     ticketsAvailable: ticketsAvailable || 100000,
+    ticketPriceUSD: ticketPriceUSD || TARGET_TICKET_VALUE_USD,
   };
 };
 
