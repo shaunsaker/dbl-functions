@@ -18,9 +18,9 @@ export const makeLot = ({
   drawTime,
   active,
   totalBTC,
-  confirmedTicketCount,
+  totalConfirmedTickets,
   perUserTicketLimit,
-  ticketsAvailable,
+  totalAvailableTickets,
   ticketPriceUSD,
 }: Partial<Lot>): Lot => {
   // get the draw time, ie. 00h00 tonight
@@ -43,9 +43,10 @@ export const makeLot = ({
     drawTime: drawTimeString,
     active: active || true,
     totalBTC: totalBTC || 0,
-    confirmedTicketCount: confirmedTicketCount || 0,
+    totalTickets: totalAvailableTickets || 100000,
+    totalConfirmedTickets: totalConfirmedTickets || 0,
     perUserTicketLimit: perUserTicketLimit || PER_USER_TICKET_LIMIT,
-    ticketsAvailable: ticketsAvailable || 100000,
+    totalAvailableTickets: totalAvailableTickets || 100000,
     ticketPriceUSD: ticketPriceUSD || TARGET_TICKET_VALUE_USD,
   };
 };

@@ -10,8 +10,8 @@ export const getLotStats = ({
   ticketBefore: Ticket | undefined;
   ticketAfter: Ticket | undefined;
 }) => {
-  let newTicketsAvailable = lot.ticketsAvailable;
-  let newConfirmedTicketCount = lot.confirmedTicketCount;
+  let newTicketsAvailable = lot.totalAvailableTickets;
+  let newConfirmedTicketCount = lot.totalConfirmedTickets;
   let newTotalInBTC = lot.totalBTC;
 
   const ticketWasAdded = !ticketBefore;
@@ -105,8 +105,8 @@ export const getLotStats = ({
   }
 
   const newLotStats = {
-    ticketsAvailable: newTicketsAvailable,
-    confirmedTicketCount: newConfirmedTicketCount,
+    totalAvailableTickets: newTicketsAvailable,
+    totalConfirmedTickets: newConfirmedTicketCount,
     totalBTC: newTotalInBTC,
   };
 

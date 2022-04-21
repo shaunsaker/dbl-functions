@@ -4,8 +4,8 @@ import { getLotStats } from './getLotStats';
 
 describe('getLotStats', () => {
   const lot = makeLot({
-    ticketsAvailable: 100000,
-    confirmedTicketCount: 0,
+    totalAvailableTickets: 100000,
+    totalConfirmedTickets: 0,
     totalBTC: 0,
   });
 
@@ -13,14 +13,15 @@ describe('getLotStats', () => {
     it('reserved', () => {
       const ticketBefore = undefined;
       const ticketAfter = makeTicket({ status: TicketStatus.reserved });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable - 1);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets - 1);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets);
       expect(totalBTC).toEqual(lot.totalBTC);
     });
 
@@ -29,43 +30,46 @@ describe('getLotStats', () => {
       const ticketAfter = makeTicket({
         status: TicketStatus.paymentReceived,
       });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable - 1);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets - 1);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets);
       expect(totalBTC).toEqual(lot.totalBTC);
     });
 
     it('confirmed', () => {
       const ticketBefore = undefined;
       const ticketAfter = makeTicket({ status: TicketStatus.confirmed });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable - 1);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount + 1);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets - 1);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets + 1);
       expect(totalBTC).toEqual(lot.totalBTC + ticketAfter.priceBTC);
     });
 
     it('expired', () => {
       const ticketBefore = undefined;
       const ticketAfter = makeTicket({ status: TicketStatus.expired });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
       // nothing should change
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets);
       expect(totalBTC).toEqual(lot.totalBTC);
     });
   });
@@ -74,14 +78,15 @@ describe('getLotStats', () => {
     it('reserved', () => {
       const ticketBefore = makeTicket({ status: TicketStatus.reserved });
       const ticketAfter = undefined;
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable + 1);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets + 1);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets);
       expect(totalBTC).toEqual(lot.totalBTC);
     });
 
@@ -90,43 +95,46 @@ describe('getLotStats', () => {
         status: TicketStatus.paymentReceived,
       });
       const ticketAfter = undefined;
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable + 1);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets + 1);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets);
       expect(totalBTC).toEqual(lot.totalBTC);
     });
 
     it('confirmed', () => {
       const ticketBefore = makeTicket({ status: TicketStatus.confirmed });
       const ticketAfter = undefined;
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable + 1);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount - 1);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets + 1);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets - 1);
       expect(totalBTC).toEqual(lot.totalBTC - ticketBefore.priceBTC);
     });
 
     it('expired', () => {
       const ticketBefore = makeTicket({ status: TicketStatus.expired });
       const ticketAfter = undefined;
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
       // nothing should change
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets);
       expect(totalBTC).toEqual(lot.totalBTC);
     });
   });
@@ -135,15 +143,16 @@ describe('getLotStats', () => {
     it('reserved => reserved', () => {
       const ticketBefore = makeTicket({ status: TicketStatus.reserved });
       const ticketAfter = makeTicket({ status: TicketStatus.reserved });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
       // nothing should change
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets);
       expect(totalBTC).toEqual(lot.totalBTC);
     });
 
@@ -152,15 +161,16 @@ describe('getLotStats', () => {
       const ticketAfter = makeTicket({
         status: TicketStatus.paymentReceived,
       });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
       // nothing should change
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets);
       expect(totalBTC).toEqual(lot.totalBTC);
     });
 
@@ -169,14 +179,15 @@ describe('getLotStats', () => {
       const ticketAfter = makeTicket({
         status: TicketStatus.confirmed,
       });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount + 1);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets + 1);
       expect(totalBTC).toEqual(lot.totalBTC + ticketAfter.priceBTC);
     });
 
@@ -185,14 +196,15 @@ describe('getLotStats', () => {
       const ticketAfter = makeTicket({
         status: TicketStatus.expired,
       });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable + 1);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets + 1);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets);
       expect(totalBTC).toEqual(lot.totalBTC);
     });
 
@@ -203,15 +215,16 @@ describe('getLotStats', () => {
       const ticketAfter = makeTicket({
         status: TicketStatus.reserved,
       });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
       // nothing should change
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets);
       expect(totalBTC).toEqual(lot.totalBTC);
     });
 
@@ -222,15 +235,16 @@ describe('getLotStats', () => {
       const ticketAfter = makeTicket({
         status: TicketStatus.paymentReceived,
       });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
       // nothing should change
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets);
       expect(totalBTC).toEqual(lot.totalBTC);
     });
 
@@ -241,14 +255,15 @@ describe('getLotStats', () => {
       const ticketAfter = makeTicket({
         status: TicketStatus.confirmed,
       });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount + 1);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets + 1);
       expect(totalBTC).toEqual(lot.totalBTC + ticketAfter.priceBTC);
     });
 
@@ -259,14 +274,15 @@ describe('getLotStats', () => {
       const ticketAfter = makeTicket({
         status: TicketStatus.expired,
       });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable + 1);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets + 1);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets);
       expect(totalBTC).toEqual(lot.totalBTC);
     });
 
@@ -277,14 +293,15 @@ describe('getLotStats', () => {
       const ticketAfter = makeTicket({
         status: TicketStatus.reserved,
       });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount - 1);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets - 1);
       expect(totalBTC).toEqual(lot.totalBTC - ticketAfter.priceBTC);
     });
 
@@ -295,14 +312,15 @@ describe('getLotStats', () => {
       const ticketAfter = makeTicket({
         status: TicketStatus.paymentReceived,
       });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount - 1);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets - 1);
       expect(totalBTC).toEqual(lot.totalBTC - ticketAfter.priceBTC);
     });
 
@@ -313,15 +331,16 @@ describe('getLotStats', () => {
       const ticketAfter = makeTicket({
         status: TicketStatus.confirmed,
       });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
       // nothing should change
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets);
       expect(totalBTC).toEqual(lot.totalBTC);
     });
 
@@ -332,14 +351,15 @@ describe('getLotStats', () => {
       const ticketAfter = makeTicket({
         status: TicketStatus.expired,
       });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable + 1);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount - 1);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets + 1);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets - 1);
       expect(totalBTC).toEqual(lot.totalBTC - ticketAfter.priceBTC);
     });
 
@@ -350,14 +370,15 @@ describe('getLotStats', () => {
       const ticketAfter = makeTicket({
         status: TicketStatus.reserved,
       });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable - 1);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets - 1);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets);
       expect(totalBTC).toEqual(lot.totalBTC);
     });
 
@@ -368,14 +389,15 @@ describe('getLotStats', () => {
       const ticketAfter = makeTicket({
         status: TicketStatus.paymentReceived,
       });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable - 1);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets - 1);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets);
       expect(totalBTC).toEqual(lot.totalBTC);
     });
 
@@ -386,14 +408,15 @@ describe('getLotStats', () => {
       const ticketAfter = makeTicket({
         status: TicketStatus.confirmed,
       });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable - 1);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount + 1);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets - 1);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets + 1);
       expect(totalBTC).toEqual(lot.totalBTC + ticketAfter.priceBTC);
     });
 
@@ -404,15 +427,16 @@ describe('getLotStats', () => {
       const ticketAfter = makeTicket({
         status: TicketStatus.expired,
       });
-      const { ticketsAvailable, confirmedTicketCount, totalBTC } = getLotStats({
-        lot,
-        ticketBefore,
-        ticketAfter,
-      });
+      const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
+        getLotStats({
+          lot,
+          ticketBefore,
+          ticketAfter,
+        });
 
       // nothing should change
-      expect(ticketsAvailable).toEqual(lot.ticketsAvailable);
-      expect(confirmedTicketCount).toEqual(lot.confirmedTicketCount);
+      expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets);
+      expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets);
       expect(totalBTC).toEqual(lot.totalBTC);
     });
   });

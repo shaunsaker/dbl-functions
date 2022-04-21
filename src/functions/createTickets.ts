@@ -10,14 +10,14 @@ import { getUuid } from '../utils/getUuid';
 
 export const getNotEnoughTicketsAvailableResponseMessage = ({
   ticketCount,
-  ticketsAvailable,
+  totalAvailableTickets,
 }: {
   ticketCount: number;
-  ticketsAvailable: number;
+  totalAvailableTickets: number;
 }) =>
-  ticketsAvailable === 0
+  totalAvailableTickets === 0
     ? 'There are no more tickets available for this lot. Please try again tomorrow.'
-    : `There are only ${ticketsAvailable} and you are attempting to reserve ${ticketCount} tickets. please try again with ${ticketsAvailable} tickets.`;
+    : `There are only ${totalAvailableTickets} and you are attempting to reserve ${ticketCount} tickets. please try again with ${totalAvailableTickets} tickets.`;
 
 export const getReachedUserTicketLimitResponseMessage = ({
   existingUserTicketCount,
@@ -60,11 +60,11 @@ export const createTickets = async ({
     firebaseWriteBatch: typeof firebaseWriteBatch;
   };
 }): Promise<FirebaseFunctionResponse<TicketId[]>> => {
-  // validate against ticketsAvailable
-  if (ticketCount > lot.ticketsAvailable) {
+  // validate against totalAvailableTickets
+  if (ticketCount > lot.totalAvailableTickets) {
     const message = getNotEnoughTicketsAvailableResponseMessage({
       ticketCount,
-      ticketsAvailable: lot.ticketsAvailable,
+      totalAvailableTickets: lot.totalAvailableTickets,
     });
 
     console.log(`createTickets: ${message}`);

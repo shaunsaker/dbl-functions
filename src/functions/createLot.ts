@@ -44,11 +44,11 @@ export const getTicketsAvailable = ({
     (targetTicketValueUSD *
       (100 - ticketCommissionPercentage - avgBTCDailyFluctuationPercentage)) /
     100;
-  const ticketsAvailable = Math.ceil(
+  const totalAvailableTickets = Math.ceil(
     targetLotValueUSD / targetTicketValueUSDAfterCommission,
   );
 
-  return ticketsAvailable;
+  return totalAvailableTickets;
 };
 
 export const getLotId = () => moment().endOf('day').format('YYYY-MM-DD'); // the id is the day
@@ -115,7 +115,7 @@ export const createLot = async (
     };
   }
 
-  const ticketsAvailable = getTicketsAvailable({
+  const totalAvailableTickets = getTicketsAvailable({
     targetLotValueUSD: TARGET_LOT_VALUE_USD,
     targetTicketValueUSD: TARGET_TICKET_VALUE_USD,
     ticketCommissionPercentage: TICKET_COMMISSION_PERCENTAGE,
@@ -153,12 +153,12 @@ export const createLot = async (
   // create the lot
   const lot = makeLot({
     id: lotId,
-    ticketsAvailable,
+    totalAvailableTickets,
   });
   await dependencies.firebaseCreateLot(lot);
 
   console.log(
-    `successfully created lot with id ${lotId} and ${ticketsAvailable} available tickets.`,
+    `successfully created lot with id ${lotId} and ${totalAvailableTickets} available tickets.`,
   );
 
   return {

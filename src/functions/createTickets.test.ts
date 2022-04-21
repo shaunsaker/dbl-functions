@@ -7,9 +7,9 @@ import { setupCreateTicketsTests } from './createTickets.testUtils';
 
 describe('createTickets', () => {
   it('returns an error if there are no more tickets available', async () => {
-    const ticketsAvailable = 1;
-    const lot = makeLot({ ticketsAvailable });
-    const ticketCount = 2; // more than the lot.ticketsAvailable
+    const totalAvailableTickets = 1;
+    const lot = makeLot({ totalAvailableTickets });
+    const ticketCount = 2; // more than the lot.totalAvailableTickets
     const { response } = await setupCreateTicketsTests({
       lot,
       ticketCount,
@@ -19,15 +19,15 @@ describe('createTickets', () => {
       error: true,
       message: getNotEnoughTicketsAvailableResponseMessage({
         ticketCount,
-        ticketsAvailable,
+        totalAvailableTickets,
       }),
     });
   });
 
   it('returns an error if the user has reached their ticket limit', async () => {
-    const ticketsAvailable = 10;
+    const totalAvailableTickets = 10;
     const perUserTicketLimit = 5;
-    const lot = makeLot({ ticketsAvailable, perUserTicketLimit });
+    const lot = makeLot({ totalAvailableTickets, perUserTicketLimit });
     const ticketCount = 10;
     const { response, dependencies } = await setupCreateTicketsTests({
       lot,
@@ -45,9 +45,9 @@ describe('createTickets', () => {
   });
 
   it('creates tickets', async () => {
-    const ticketsAvailable = 10;
+    const totalAvailableTickets = 10;
     const perUserTicketLimit = 5;
-    const lot = makeLot({ ticketsAvailable, perUserTicketLimit });
+    const lot = makeLot({ totalAvailableTickets, perUserTicketLimit });
     const ticketCount = 2;
     const { dependencies } = await setupCreateTicketsTests({
       lot,

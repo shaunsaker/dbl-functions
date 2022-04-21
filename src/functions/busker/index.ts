@@ -8,7 +8,7 @@ import { getLotStats } from './getLotStats';
 type Response = FirebaseFunctionResponse<void>;
 
 // when a lot's tickets change, ie. status change, it's added, it's removed
-// we need to update that lot's stats, ie. ticketsAvailable, confirmedTicketCount, totalBTC
+// we need to update that lot's stats, ie. totalAvailableTickets, totalConfirmedTickets, totalBTC
 export const runBusker = async ({
   lotId,
   ticketBefore,

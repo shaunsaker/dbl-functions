@@ -17,14 +17,14 @@ describe('createLot', () => {
       const targetTicketValueUSD = 10;
       const ticketCommissionPercentage = 10;
       const avgBTCDailyFluctuationPercentage = 2;
-      const ticketsAvailable = getTicketsAvailable({
+      const totalAvailableTickets = getTicketsAvailable({
         targetLotValueUSD,
         targetTicketValueUSD,
         ticketCommissionPercentage,
         avgBTCDailyFluctuationPercentage,
       });
 
-      expect(ticketsAvailable).toEqual(113637);
+      expect(totalAvailableTickets).toEqual(113637);
     });
   });
 
@@ -77,7 +77,8 @@ describe('createLot', () => {
         ...makeLot({
           id: lotId,
           dateCreated: expect.any(String),
-          ticketsAvailable: expect.any(Number),
+          totalAvailableTickets: expect.any(Number),
+          totalTickets: expect.any(Number),
         }),
       });
     });
