@@ -1,6 +1,11 @@
 import * as functions from 'firebase-functions';
 import { CallableContext } from 'firebase-functions/v1/https';
-import { LotId, TARGET_TICKET_VALUE_USD, TicketId } from '../../lots/models';
+import {
+  LotId,
+  MAX_BTC_DIGITS,
+  TARGET_TICKET_VALUE_USD,
+  TicketId,
+} from '../../lots/models';
 import { createInvoice } from '../../services/btcPayServer/createInvoice';
 import { makeBtcPayServerInvoicePayload } from '../../services/btcPayServer/data';
 import { getInvoicePaymentMethods } from '../../services/btcPayServer/getInvoicePaymentMethods';
@@ -142,7 +147,10 @@ export const runBookie = async ({
   const invoicePaymentAddress = defaultPaymentMethod.destination;
   const invoicePaymentAmountBTC = parseFloat(defaultPaymentMethod.amount);
   const invoicePaymentRate = parseFloat(defaultPaymentMethod.rate);
-  const ticketPriceBTC = ticketPriceUSD / invoicePaymentRate;
+  const ticketPriceBTC = numberToDigits(
+    ticketPriceUSD / invoicePaymentRate,
+    MAX_BTC_DIGITS,
+  );
 
   // get the invoice payment expiry
   const invoicePaymentExpiry = getTimeAsISOString(
