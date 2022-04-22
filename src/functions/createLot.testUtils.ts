@@ -1,10 +1,15 @@
+import { LotId } from '../lots/models';
 import { getUuid } from '../utils/getUuid';
 import { createLot } from './createLot';
 
 export const setupCreateLotTest = async ({
+  lotId = getUuid(),
+  active = true,
   lotExists = false,
   storeId = getUuid(),
 }: {
+  lotId?: LotId;
+  active?: boolean;
   lotExists?: boolean;
   BTCPriceInUSD?: number;
   storeId?: string;
@@ -32,7 +37,7 @@ export const setupCreateLotTest = async ({
     createWebhook,
     firebaseCreateLot,
   };
-  const response = await createLot(dependencies);
+  const response = await createLot(lotId, active, dependencies);
 
   return { response, dependencies };
 };

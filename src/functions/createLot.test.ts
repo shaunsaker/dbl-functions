@@ -4,7 +4,6 @@ import { getUuid } from '../utils/getUuid';
 import {
   getInvoiceExpiredWebhook,
   getInvoiceSettledWebhook,
-  getLotId,
   getPaymentReceivedWebhook,
   getTicketsAvailable,
 } from './createLot';
@@ -29,10 +28,13 @@ describe('createLot', () => {
   });
 
   describe('createLot', () => {
-    const lotId = getLotId();
+    const lotId = '2018-08-26';
+    const active = true;
 
     it('returns an error if a lot already exists', async () => {
       const { response } = await setupCreateLotTest({
+        lotId,
+        active,
         lotExists: true,
       });
 
@@ -46,6 +48,8 @@ describe('createLot', () => {
       const BTCPriceInUSD = 50000;
       const storeId = getUuid();
       const { dependencies } = await setupCreateLotTest({
+        lotId,
+        active,
         BTCPriceInUSD,
         storeId,
       });

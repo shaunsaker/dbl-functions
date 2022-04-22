@@ -1,4 +1,3 @@
-import moment = require('moment');
 import {
   LotId,
   TARGET_LOT_VALUE_USD,
@@ -51,8 +50,6 @@ export const getTicketsAvailable = ({
   return totalAvailableTickets;
 };
 
-export const getLotId = () => moment().format('YYYY-MM-DD'); // the id is the day
-
 export const getPaymentReceivedWebhook = () =>
   makeBtcPayServerWebhook({
     url: process.env.INVOICE_RECEIVED_PAYMENT_WEBHOOK_URL,
@@ -83,6 +80,8 @@ export const getInvoiceExpiredWebhook = () =>
 type Response = FirebaseFunctionResponse<void>;
 
 export const createLot = async (
+  lotId: LotId,
+  active: boolean,
   dependencies: {
     firebaseFetchLot: typeof firebaseFetchLot;
     createStore: typeof createStore;
@@ -99,8 +98,6 @@ export const createLot = async (
     firebaseCreateLot,
   },
 ): Promise<Response> => {
-  const lotId: LotId = getLotId();
-
   // check if the lot already exists
   const lotExists = await dependencies.firebaseFetchLot(lotId);
 
@@ -153,6 +150,7 @@ export const createLot = async (
   // create the lot
   const lot = makeLot({
     id: lotId,
+    active,
     totalAvailableTickets,
   });
   await dependencies.firebaseCreateLot(lot);
