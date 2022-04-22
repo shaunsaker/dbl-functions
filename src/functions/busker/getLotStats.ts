@@ -1,4 +1,5 @@
-import { Lot, Ticket, TicketStatus } from '../../lots/models';
+import { Lot, MAX_BTC_DIGITS, Ticket, TicketStatus } from '../../lots/models';
+import { numberToDigits } from '../../utils/numberToDigits';
 
 // NOTE: this covers a lot of scenarios and looks complicated, see tests for clarity
 export const getLotStats = ({
@@ -107,7 +108,7 @@ export const getLotStats = ({
   const newLotStats = {
     totalAvailableTickets: newTicketsAvailable,
     totalConfirmedTickets: newConfirmedTicketCount,
-    totalBTC: newTotalInBTC,
+    totalBTC: numberToDigits(newTotalInBTC, MAX_BTC_DIGITS),
   };
 
   return newLotStats;
