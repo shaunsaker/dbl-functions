@@ -264,7 +264,7 @@ export const runBoss = async (
 
 export const boss = functions.pubsub
   .schedule('0 0 * * *')
-  .timeZone('Europe/Belfast') // any GMT+0200
+  .timeZone('Africa/Johannesburg')
   .onRun(async () => {
     return await runBoss();
   });
