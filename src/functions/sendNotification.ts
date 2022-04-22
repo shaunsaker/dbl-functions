@@ -50,10 +50,17 @@ export const sendNotification = async (
   // send notification(s)
   // NOTE: the user may have multiple devices/fcmToken's
   for await (const fcmToken of userProfileData.fcmTokens) {
-    await dependencies.firebaseSendNotification({
-      ...notification,
-      token: fcmToken,
-    });
+    // we use a try catch to allow this to continue in case on the tokens fail
+    try {
+      await dependencies.firebaseSendNotification({
+        ...notification,
+        token: fcmToken,
+      });
+    } catch (error) {
+      const message = (error as Error).message;
+
+      console.log(`sendNotification: ${message}`);
+    }
   }
 
   return {
