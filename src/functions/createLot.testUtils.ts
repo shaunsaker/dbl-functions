@@ -12,7 +12,7 @@ export const setupCreateLotTest = async ({
   const firebaseFetchLot = jest.fn();
   const createStore = jest.fn();
   const createStoreWallet = jest.fn();
-  const firebaseSaveStoreData = jest.fn();
+  const firebaseSaveStoreWalletKeyData = jest.fn();
   const createWebhook = jest.fn();
   const firebaseCreateLot = jest.fn();
 
@@ -28,7 +28,7 @@ export const setupCreateLotTest = async ({
     firebaseFetchLot,
     createStore,
     createStoreWallet,
-    firebaseSaveStoreData,
+    firebaseSaveStoreWalletKeyData,
     createWebhook,
     firebaseCreateLot,
   };

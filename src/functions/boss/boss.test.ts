@@ -152,7 +152,7 @@ describe('boss', () => {
       expect(dependencies.firebaseFetchUserProfile).toHaveBeenCalledWith(
         winnerUid,
       );
-      expect(dependencies.firebaseSaveStoreData).toHaveBeenCalledWith(
+      expect(dependencies.firebaseSaveStoreWalletKeyData).toHaveBeenCalledWith(
         store.id,
         { winnerUid },
       );

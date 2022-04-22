@@ -1,6 +1,6 @@
 import { UserId } from '../userProfile/models';
 
-export interface StoreData {
+export interface StoreWalletKeyData {
   hash: {
     iv: string;
     content: string;

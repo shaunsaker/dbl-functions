@@ -1,18 +1,18 @@
 import { firebase } from '.';
-import { StoreData } from '../../stores/models';
+import { StoreWalletKeyData } from '../../storeWalletKeys/models';
 import { BtcPayServerStoreId } from '../btcPayServer/models';
 
-export const firebaseFetchStoreData = async (
+export const firebaseFetchStoreWalletKeyData = async (
   storeId: BtcPayServerStoreId,
-): Promise<StoreData> => {
+): Promise<StoreWalletKeyData> => {
   return new Promise(async (resolve, reject) => {
     try {
       const document = await firebase
         .firestore()
-        .collection('stores')
+        .collection('storeWalletKeys')
         .doc(storeId)
         .get();
-      const store = document.data() as StoreData;
+      const store = document.data() as StoreWalletKeyData;
 
       resolve(store);
     } catch (error) {

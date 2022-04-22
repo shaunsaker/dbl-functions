@@ -27,7 +27,7 @@ import { UserId, Username } from '../../userProfile/models';
 import { selectRandomItemFromArray } from '../../utils/selectRandomItemFromArray';
 import { createLot } from '../createLot';
 import { numberToDigits } from '../../utils/numberToDigits';
-import { firebaseSaveStoreData } from '../../services/firebase/firebaseSaveStoreData';
+import { firebaseSaveStoreWalletKeyData } from '../../services/firebase/firebaseSaveStoreWalletKeyData';
 
 export const drawWinner = async (
   lotId: LotId,
@@ -125,7 +125,7 @@ export const runBoss = async (
     getStoreWalletBalance: typeof getStoreWalletBalance;
     drawWinner: typeof drawWinner;
     firebaseFetchUserProfile: typeof firebaseFetchUserProfile;
-    firebaseSaveStoreData: typeof firebaseSaveStoreData;
+    firebaseSaveStoreWalletKeyData: typeof firebaseSaveStoreWalletKeyData;
     createWinnerPullPayment: typeof createWinnerPullPayment;
     firebaseUpdateUserProfile: typeof firebaseUpdateUserProfile;
     firebaseSendNotification: typeof firebaseSendNotification;
@@ -138,7 +138,7 @@ export const runBoss = async (
     getStoreWalletBalance,
     drawWinner,
     firebaseFetchUserProfile,
-    firebaseSaveStoreData,
+    firebaseSaveStoreWalletKeyData,
     createWinnerPullPayment,
     firebaseUpdateUserProfile,
     firebaseSendNotification,
@@ -245,7 +245,7 @@ export const runBoss = async (
   }
 
   // save the winner's uid to the stores data (so that we don't expose it publicly)
-  await dependencies.firebaseSaveStoreData(store.id, { winnerUid });
+  await dependencies.firebaseSaveStoreWalletKeyData(store.id, { winnerUid });
 
   // mark active lot as inactive and save the winner username
   await dependencies.firebaseUpdateLot(activeLot.id, {
