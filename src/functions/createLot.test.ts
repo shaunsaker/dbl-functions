@@ -58,9 +58,12 @@ describe('createLot', () => {
         existingMnemonic: expect.any(String),
         passphrase: expect.any(String),
       });
-      expect(dependencies.firebaseSaveStoreData).toHaveBeenCalledWith(storeId, {
-        hash: expect.any(Object),
-      });
+      expect(dependencies.firebaseSaveStoreWalletKeyData).toHaveBeenCalledWith(
+        storeId,
+        {
+          hash: expect.any(Object),
+        },
+      );
       expect(dependencies.createWebhook).toHaveBeenCalledWith(storeId, {
         ...getPaymentReceivedWebhook(),
         id: expect.any(String),

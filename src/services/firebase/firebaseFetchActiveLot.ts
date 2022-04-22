@@ -1,7 +1,7 @@
 import { firebase } from '.';
 import { Lot } from '../../lots/models';
 
-export const firebaseFetchActiveLot = async (): Promise<Lot> => {
+export const firebaseFetchActiveLot = async (): Promise<Lot | void> => {
   return new Promise(async (resolve, reject) => {
     try {
       const documents = await firebase
@@ -16,6 +16,11 @@ export const firebaseFetchActiveLot = async (): Promise<Lot> => {
 
       // for now there is only one
       const document = documents.docs[0];
+
+      if (!document) {
+        resolve();
+      }
+
       const lot = document.data() as Lot;
 
       resolve(lot);

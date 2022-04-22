@@ -1,16 +1,16 @@
 import { firebase } from '.';
-import { StoreData } from '../../stores/models';
+import { StoreWalletKeyData } from '../../storeWalletKeys/models';
 import { BtcPayServerStoreId } from '../btcPayServer/models';
 
-export const firebaseSaveStoreData = (
+export const firebaseSaveStoreWalletKeyData = (
   storeId: BtcPayServerStoreId,
-  data: Partial<StoreData>,
+  data: Partial<StoreWalletKeyData>,
 ): Promise<void> => {
   return new Promise(async (resolve, reject) => {
     try {
       await firebase
         .firestore()
-        .collection('stores')
+        .collection('storeWalletKeys')
         .doc(storeId)
         .set(data, { merge: true });
 
