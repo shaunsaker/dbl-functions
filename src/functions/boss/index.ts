@@ -245,7 +245,7 @@ export const runBoss = async (
   }
 
   // save the winner's uid to the stores data (so that we don't expose it publicly)
-  await dependencies.firebaseSaveWinnerData(store.id, { uid: winnerUid });
+  await dependencies.firebaseSaveWinnerData(activeLot.id, { uid: winnerUid });
 
   // mark active lot as inactive and save the winner username
   await dependencies.firebaseUpdateLot(activeLot.id, {

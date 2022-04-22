@@ -1,9 +1,9 @@
 import { firebase } from '.';
+import { LotId } from '../../lots/models';
 import { WinnerData } from '../../winners/models';
-import { BtcPayServerStoreId } from '../btcPayServer/models';
 
 export const firebaseSaveWinnerData = (
-  storeId: BtcPayServerStoreId,
+  lotId: LotId,
   data: Partial<WinnerData>,
 ): Promise<void> => {
   return new Promise(async (resolve, reject) => {
@@ -11,7 +11,7 @@ export const firebaseSaveWinnerData = (
       await firebase
         .firestore()
         .collection('winners')
-        .doc(storeId)
+        .doc(lotId)
         .set(data, { merge: true });
 
       resolve();
