@@ -147,8 +147,10 @@ export const runBookie = async ({
   const invoicePaymentAddress = defaultPaymentMethod.destination;
   const invoicePaymentAmountBTC = parseFloat(defaultPaymentMethod.amount);
   const invoicePaymentRate = parseFloat(defaultPaymentMethod.rate);
+
+  // use the invoice as the source of truth, ie. ticketPriceBTC should correspond exactly to invoicePaymentAmountBTC
   const ticketPriceBTC = numberToDigits(
-    ticketPriceUSD / invoicePaymentRate,
+    invoicePaymentAmountBTC / ticketCount,
     MAX_BTC_DIGITS,
   );
 
