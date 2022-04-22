@@ -181,8 +181,6 @@ export const runBookie = async ({
     },
   });
 
-  console.log(invoice);
-
   if (createTicketsResponse.error) {
     const message = createTicketsResponse.message;
 
