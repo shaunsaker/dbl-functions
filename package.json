@@ -13,7 +13,7 @@
     "lint:prettier": "prettier -c \"**/*.{ts,tsx}\"",
     "lint:tsc": "tsc",
     "test": "jest",
-    "predeploy": "yarn lint && rimraf ./dist && yarn run build",
+    "predeploy": "rimraf ./dist && yarn run build",
     "deploy": "firebase deploy --only functions"
   },
   "main": "dist/index.js",
