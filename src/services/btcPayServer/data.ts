@@ -142,7 +142,7 @@ export const makeBtcPayServerStore = ({
     website: '', // website is only for the BtcPayServer UI which we don't use
     defaultPaymentMethod: 'BTC',
     speedPolicy: 'LowSpeed', // 6 confirmations
-    networkFeeMode: 'MultiplePaymentsOnly',
+    networkFeeMode: 'Never', // NOTE: if user's make multiple partial payments, fees will be higher when moving the funds
     monitoringExpiration: 60 * 60 * 2, // monitor for 2 hours (default is 1 hour which I have found not to be enough, at least on testnet)
   };
 };
