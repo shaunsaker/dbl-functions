@@ -8,7 +8,7 @@ import {
   TARGET_TICKET_VALUE_USD,
   Ticket,
   TicketStatus,
-  TICKET_TIMEOUT_MS,
+  TICKET_TIMEOUT_MINUTES,
 } from './models';
 
 export const makeLot = ({
@@ -23,22 +23,21 @@ export const makeLot = ({
   totalAvailableTickets,
   ticketPriceUSD,
 }: Partial<Lot>): Lot => {
-  // get the draw time, ie. 00h00 tonight
-  const now = moment();
-  const drawTimeMoment = now.clone().endOf('day');
+  // get the draw time from the lotId
+  // NOTE: this will not work if we're doing multiple lots on the same day
+  const drawTimeMoment = moment(id).clone().endOf('day');
   const drawTimeString = drawTime || getTimeAsISOString(drawTimeMoment);
 
-  // get the last call time, ie. ticketTimeoutMs before 00h00 tonight
-  const ticketTimeoutMs = TICKET_TIMEOUT_MS;
+  // get the last call time, ie. TICKET_TIMEOUT_MINUTES before 00h00 tonight
   const lastCallTimeString =
     lastCallTime ||
     getTimeAsISOString(
-      drawTimeMoment.clone().subtract({ milliseconds: ticketTimeoutMs }),
+      drawTimeMoment.clone().subtract({ minutes: TICKET_TIMEOUT_MINUTES }),
     );
 
   return {
     id: id || getUuid(),
-    dateCreated: dateCreated || getTimeAsISOString(now),
+    dateCreated: dateCreated || getTimeAsISOString(moment()),
     lastCallTime: lastCallTimeString,
     drawTime: drawTimeString,
     active: active || true,

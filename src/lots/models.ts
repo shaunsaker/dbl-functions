@@ -2,7 +2,7 @@ import { UserId, Username } from '../userProfile/models';
 
 export const PER_USER_TICKET_LIMIT = 250;
 
-export const TICKET_TIMEOUT_MS = 1000 * 60 * 60; // 60 minutes
+export const TICKET_TIMEOUT_MINUTES = 60;
 
 export const TARGET_LOT_VALUE_USD = 1000000;
 
