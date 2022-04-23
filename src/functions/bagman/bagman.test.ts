@@ -42,11 +42,18 @@ describe('bagman', () => {
       },
     });
     const paymentAmountBTC = ticketPriceBTC;
+    const invoiceTotalBTC = paymentAmountBTC;
     const { response, dependencies } = await setupBagmanTest({
       lot,
       tickets,
       invoice,
       paymentAmountBTC,
+      invoiceTotalBTC,
+    });
+
+    expect(dependencies.getInvoicePaymentMethods).toHaveBeenCalledWith({
+      storeId: invoice.storeId,
+      invoiceId: invoice.id,
     });
 
     const expectedPaidTickets = changeTicketsStatus(
@@ -61,8 +68,11 @@ describe('bagman', () => {
     expect(dependencies.sendNotification).toHaveBeenCalledWith({
       uid,
       notification: getBagmanNotification({
+        hasPaidInFull: true,
         paymentAmountBTC,
-        paidTickets: expectedPaidTickets,
+        totalPaidBTC: paymentAmountBTC,
+        invoiceTotalBTC: paymentAmountBTC,
+        paidTicketCount: tickets.length,
       }),
     });
 
@@ -94,11 +104,18 @@ describe('bagman', () => {
       },
     });
     const paymentAmountBTC = 2 * ticketPriceBTC;
+    const invoiceTotalBTC = paymentAmountBTC;
     const { response, dependencies } = await setupBagmanTest({
       lot,
       tickets,
       invoice,
       paymentAmountBTC,
+      invoiceTotalBTC,
+    });
+
+    expect(dependencies.getInvoicePaymentMethods).toHaveBeenCalledWith({
+      storeId: invoice.storeId,
+      invoiceId: invoice.id,
     });
 
     const expectedPaidTickets = changeTicketsStatus(
@@ -113,8 +130,11 @@ describe('bagman', () => {
     expect(dependencies.sendNotification).toHaveBeenCalledWith({
       uid,
       notification: getBagmanNotification({
-        paymentAmountBTC: paymentAmountBTC,
-        paidTickets: expectedPaidTickets,
+        hasPaidInFull: true,
+        paymentAmountBTC,
+        totalPaidBTC: paymentAmountBTC,
+        invoiceTotalBTC: paymentAmountBTC,
+        paidTicketCount: tickets.length,
       }),
     });
 
@@ -124,7 +144,7 @@ describe('bagman', () => {
     });
   });
 
-  it('handles under payments when they can afford at least one ticket', async () => {
+  it('handles partial payments', async () => {
     const lot = makeLot({});
     const ticketPriceBTC = 0.00025;
     const tickets = [
@@ -146,83 +166,26 @@ describe('bagman', () => {
       },
     });
     const paymentAmountBTC = ticketPriceBTC; // only 1 of the 2
-    const { response, dependencies } = await setupBagmanTest({
+    const invoiceTotalBTC = ticketPriceBTC * 2;
+    const { dependencies } = await setupBagmanTest({
       lot,
       tickets,
       invoice,
       paymentAmountBTC,
+      invoiceTotalBTC,
     });
 
-    const expectedPaidTickets = changeTicketsStatus(
-      [tickets[0]], // only 1 of the 2
-      TicketStatus.paymentReceived,
-    );
-    expect(dependencies.firebaseSaveTickets).toHaveBeenCalledWith(
-      lot.id,
-      expectedPaidTickets,
-    );
+    expect(dependencies.firebaseSaveTickets).not.toHaveBeenCalled();
 
     expect(dependencies.sendNotification).toHaveBeenCalledWith({
       uid,
       notification: getBagmanNotification({
-        paymentAmountBTC: paymentAmountBTC,
-        paidTickets: expectedPaidTickets,
+        hasPaidInFull: false,
+        paymentAmountBTC,
+        totalPaidBTC: paymentAmountBTC,
+        invoiceTotalBTC,
+        paidTicketCount: tickets.length,
       }),
-    });
-    expect(response).toEqual({
-      error: false,
-      message: 'great success!',
-    });
-  });
-
-  it('handles under payments when they cant afford any tickets', async () => {
-    const lot = makeLot({});
-    const ticketPriceBTC = 0.00025;
-    const tickets = [
-      makeTicket({
-        priceBTC: ticketPriceBTC,
-        status: TicketStatus.reserved,
-      }),
-      makeTicket({
-        priceBTC: ticketPriceBTC,
-        status: TicketStatus.reserved,
-      }),
-    ];
-    const uid = getUuid();
-    const invoice = makeInvoice({
-      metadata: {
-        lotId: lot.id,
-        uid,
-        ticketIds: tickets.map((ticket) => ticket.id),
-      },
-    });
-    const paymentAmountBTC = ticketPriceBTC / 2; // only 1/2 a ticket
-    const { response, dependencies } = await setupBagmanTest({
-      lot,
-      tickets,
-      invoice,
-      paymentAmountBTC,
-    });
-
-    const expectedPaidTickets = changeTicketsStatus(
-      [], // only paid for half a ticket, we should not be saving anything
-      TicketStatus.paymentReceived,
-    );
-    expect(dependencies.firebaseSaveTickets).toHaveBeenCalledWith(
-      lot.id,
-      expectedPaidTickets,
-    );
-
-    expect(dependencies.sendNotification).toHaveBeenCalledWith({
-      uid,
-      notification: getBagmanNotification({
-        paymentAmountBTC: paymentAmountBTC,
-        paidTickets: expectedPaidTickets,
-      }),
-    });
-    expect(response).toEqual({
-      error: false,
-      message: 'great success!',
     });
   });
 });

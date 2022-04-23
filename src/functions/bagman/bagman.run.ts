@@ -1,12 +1,22 @@
 import { runBagman } from '.';
 import { makeBtcPayServerInvoiceReceivedPaymentEventData } from '../../services/btcPayServer/data';
+import { getStoreByStoreName } from '../../services/btcPayServer/getStoreByStoreName';
 
 const doAsync = async () => {
-  const storeId = process.argv[2];
+  // get the store id using the name
+  const storeName = process.argv[2];
+  const store = await getStoreByStoreName(storeName);
+
+  if (!store) {
+    console.log('Could not find store with name', storeName);
+
+    return;
+  }
+
   const invoiceId = process.argv[3];
   const value = process.argv[4];
   const webhookEvent = makeBtcPayServerInvoiceReceivedPaymentEventData({
-    storeId,
+    storeId: store.id,
     invoiceId,
     value: parseFloat(value),
   });

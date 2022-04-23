@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import { Ticket, TicketStatus } from '../../lots/models';
+import { MAX_BTC_DIGITS, Ticket, TicketStatus } from '../../lots/models';
 import {
   BtcPayServerInvoice,
   BtcPayServerInvoiceReceivedPaymentEventData,
@@ -14,44 +14,52 @@ import { changeTicketsStatus } from '../changeTicketsStatus';
 import { validateWebookEventData } from '../validateWebhookEventData';
 import { sendNotification } from '../sendNotification';
 import { verifyWebhookSignature } from '../verifyWebhookSignature';
+import { numberToDigits } from '../../utils/numberToDigits';
+import { getInvoicePaymentMethods } from '../../services/btcPayServer/getInvoicePaymentMethods';
 
 require('dotenv').config();
 
 // FIXME: improve and test this
 export const getBagmanNotification = ({
+  hasPaidInFull,
   paymentAmountBTC,
-  paidTickets,
+  totalPaidBTC,
+  invoiceTotalBTC,
+  paidTicketCount,
 }: {
+  hasPaidInFull: boolean;
   paymentAmountBTC: number;
-  paidTickets: Ticket[];
+  totalPaidBTC: number;
+  invoiceTotalBTC: number;
+  paidTicketCount: number;
 }): {
   title: string;
   body: string;
 } => {
   return {
-    title: `We've just received payment of ${paymentAmountBTC} BTC from you 😎`,
-    body:
-      paidTickets.length > 0
-        ? `This was enough for ${maybePluralise(
-            paidTickets.length,
-            'ticket',
-          )}. Once your transaction has received 6 confirmations on the blockchain, we'll enter your ticket${
-            paidTickets.length > 1 ? 's' : ''
-          } into today's draw 🤞`
-        : "Unfortunately, this wasn't enough for any of your reserved tickets. please deposit more.",
+    title: `We've just received a payment from you 😎`,
+    body: hasPaidInFull
+      ? `You paid ${paymentAmountBTC} BTC. Once your transaction has received 6 confirmations on the blockchain, we'll enter your ${maybePluralise(
+          paidTicketCount,
+          'ticket',
+        )} into today's draw 🤞`
+      : `You paid ${paymentAmountBTC} BTC. We now have ${totalPaidBTC} out of ${invoiceTotalBTC} BTC. Please send the remainder of ${numberToDigits(
+          invoiceTotalBTC - totalPaidBTC,
+          MAX_BTC_DIGITS,
+        )} BTC soon to avoid expiration of your tickets.`,
   };
 };
 
 export type BagmanResponse = FirebaseFunctionResponse<void>;
 
 // bagman is a webhook for the InvoiceReceivedPaymentEvent
-// he'll mark an invoices ticket statuses as Payment Received
-// he also handles partial payments
+// he'll mark an invoices ticket statuses as Payment Received if we have the full payment
 export const runBagman = async (
   data: BtcPayServerInvoiceReceivedPaymentEventData,
   dependencies: {
     validateWebookEventData: typeof validateWebookEventData;
     firebaseFetchLot: typeof firebaseFetchLot;
+    getInvoicePaymentMethods: typeof getInvoicePaymentMethods;
     firebaseFetchTickets: typeof firebaseFetchTickets;
     changeTicketsStatus: typeof changeTicketsStatus;
     firebaseSaveTickets: typeof firebaseSaveTickets;
@@ -59,6 +67,7 @@ export const runBagman = async (
   } = {
     validateWebookEventData,
     firebaseFetchLot,
+    getInvoicePaymentMethods,
     firebaseFetchTickets,
     changeTicketsStatus,
     firebaseSaveTickets,
@@ -116,29 +125,45 @@ export const runBagman = async (
     };
   }
 
-  // handle partial payments by only reserving the tickets to the value of the payment
-  // e.g. if I reserved 5 tickets but only paid for 3, only reserve 3
-  // NOTE: keep in mind that this could also be an over payment
+  const paymentMethods = await dependencies.getInvoicePaymentMethods({
+    storeId: invoice.storeId,
+    invoiceId: invoice.id,
+  });
+  const defaultPaymentMethod = paymentMethods[0];
+  const totalPaidBTC = parseFloat(defaultPaymentMethod.totalPaid);
+  const invoiceTotalBTC = parseFloat(defaultPaymentMethod.amount);
   const paymentAmountBTC = parseFloat(data.payment.value);
+  const hasPaidInFull = !parseFloat(defaultPaymentMethod.due);
 
-  // get the ticket price in btc
-  // NOTE: all of the reservedTickets will have the same price so we just grab the first one
-  const ticketPriceBTC = reservedTickets[0].priceBTC;
+  if (!hasPaidInFull) {
+    console.log(
+      `bagman: ${uid} partially paid ${paymentAmountBTC} BTC of the invoice total, $${invoice.amount}.`,
+    );
 
-  const quantityTicketsReservable = Math.floor(
-    paymentAmountBTC / ticketPriceBTC,
-  );
+    // notify the user
+    const notification = getBagmanNotification({
+      hasPaidInFull,
+      paymentAmountBTC,
+      totalPaidBTC,
+      invoiceTotalBTC,
+      paidTicketCount: 0,
+    });
+    const sendNotificationResponse = await dependencies.sendNotification({
+      uid,
+      notification,
+    });
 
-  const reservableTickets = reservedTickets.slice(0, quantityTicketsReservable);
+    return sendNotificationResponse;
+  }
 
   // mark the ticket's statuses
   const paidTickets: Ticket[] = dependencies.changeTicketsStatus(
-    reservableTickets,
+    reservedTickets,
     TicketStatus.paymentReceived,
   );
 
   console.log(
-    `bagman: ${uid} paid ${paymentAmountBTC} BTC of the invoice total, $${invoice.amount}, and we are marking ${paidTickets.length} / ${reservedTickets.length} tickets as Payment Received.`,
+    `bagman: ${uid} paid ${paymentAmountBTC} BTC of the invoice total, $${invoice.amount} and we are marking ${reservedTickets.length} tickets as Payment Received.`,
   );
 
   // update the tickets in firebase
@@ -146,8 +171,11 @@ export const runBagman = async (
 
   // notify the user that their payment was received
   const notification = getBagmanNotification({
+    hasPaidInFull: true,
     paymentAmountBTC,
-    paidTickets,
+    totalPaidBTC,
+    invoiceTotalBTC,
+    paidTicketCount: paidTickets.length,
   });
   const sendNotificationResponse = await dependencies.sendNotification({
     uid,

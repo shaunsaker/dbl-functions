@@ -206,6 +206,8 @@ export interface BtcPayServerPaymentMethod {
   destination: string;
   rate: string;
   amount: string;
+  totalPaid: string;
+  due: string;
   // ...other unused fields
 }
 
