@@ -56,22 +56,14 @@ export const makeTicket = ({
   priceBTC = 0,
   status = TicketStatus.reserved,
   dateCreated = getTimeAsISOString(),
-  invoicePaymentAddress = '',
-  invoicePaymentAmountBTC = 0,
-  invoicePaymentRate = 0,
-  invoicePaymentExpiry = '',
-  invoiceTicketIds = [],
+  invoiceId = getUuid(),
 }: Partial<Ticket>): Ticket => ({
   id,
   uid,
   priceBTC,
   status,
   dateCreated,
-  invoicePaymentAddress,
-  invoicePaymentAmountBTC,
-  invoicePaymentRate,
-  invoicePaymentExpiry,
-  invoiceTicketIds,
+  invoiceId,
 });
 
 export const makeInvoice = ({

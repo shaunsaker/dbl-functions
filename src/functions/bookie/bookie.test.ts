@@ -126,10 +126,7 @@ describe('bookie', () => {
       uid,
       ticketCount,
       ticketPriceBTC,
-      invoicePaymentAddress,
-      invoicePaymentAmountBTC,
-      invoicePaymentRate,
-      invoicePaymentExpiry,
+      invoiceId: invoice.id,
     });
 
     const ticketIds = tickets.map((ticket) => ticket.id);
@@ -144,10 +141,20 @@ describe('bookie', () => {
       },
     );
 
+    expect(dependencies.firebaseCreateInvoice).toHaveBeenCalledWith(lot.id, {
+      id: invoice.id,
+      uid,
+      address: invoicePaymentAddress,
+      amountBTC: invoicePaymentAmountBTC,
+      rate: invoicePaymentRate,
+      expiry: invoicePaymentExpiry,
+      ticketIds,
+    });
+
     expect(response).toEqual({
       error: false,
       message: 'great success!',
-      data: ticketIds,
+      data: invoice.id,
     });
   });
 });

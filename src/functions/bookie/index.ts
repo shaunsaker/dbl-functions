@@ -1,5 +1,6 @@
 import * as functions from 'firebase-functions';
 import { CallableContext } from 'firebase-functions/v1/https';
+import { Invoice, InvoiceId } from '../../invoices/models';
 import {
   LotId,
   MAX_BTC_DIGITS,
@@ -11,6 +12,7 @@ import { makeBtcPayServerInvoicePayload } from '../../services/btcPayServer/data
 import { getInvoicePaymentMethods } from '../../services/btcPayServer/getInvoicePaymentMethods';
 import { getStoreByStoreName } from '../../services/btcPayServer/getStoreByStoreName';
 import { updateInvoice } from '../../services/btcPayServer/updateInvoice';
+import { firebaseCreateInvoice } from '../../services/firebase/firebaseCreateInvoice';
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseGetUser } from '../../services/firebase/firebaseGetUser';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
@@ -18,7 +20,7 @@ import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import { numberToDigits } from '../../utils/numberToDigits';
 import { createTickets } from '../createTickets';
 
-type Response = FirebaseFunctionResponse<TicketId[]>;
+type Response = FirebaseFunctionResponse<InvoiceId>;
 
 export const runBookie = async ({
   uid,
@@ -32,6 +34,7 @@ export const runBookie = async ({
     createInvoice,
     getInvoicePaymentMethods,
     updateInvoice,
+    firebaseCreateInvoice,
   },
 }: {
   uid: string | undefined;
@@ -45,6 +48,7 @@ export const runBookie = async ({
     createInvoice: typeof createInvoice;
     getInvoicePaymentMethods: typeof getInvoicePaymentMethods;
     updateInvoice: typeof updateInvoice;
+    firebaseCreateInvoice: typeof firebaseCreateInvoice;
   };
 }): Promise<Response> => {
   if (!uid) {
@@ -128,7 +132,7 @@ export const runBookie = async ({
   // NOTE: we do this before creating the tickets so that we can attach invoice data to the tickets
   // that way, we don't have to fetch invoices on the client
   const invoicePaymentTotalUSD = numberToDigits(ticketCount * ticketPriceUSD);
-  let invoice = await dependencies.createInvoice(
+  const invoice = await dependencies.createInvoice(
     store.id,
     makeBtcPayServerInvoicePayload({
       amount: invoicePaymentTotalUSD,
@@ -137,11 +141,12 @@ export const runBookie = async ({
       ticketIds: [], // we don't know this yet, we'll update it after the step below
     }),
   );
+  const invoiceId = invoice.id;
 
   // get the invoice payment address
   const paymentMethods = await dependencies.getInvoicePaymentMethods({
     storeId: store.id,
-    invoiceId: invoice.id,
+    invoiceId,
   });
   const defaultPaymentMethod = paymentMethods[0];
   const invoicePaymentAddress = defaultPaymentMethod.destination;
@@ -165,20 +170,7 @@ export const runBookie = async ({
     uid,
     ticketCount,
     ticketPriceBTC,
-    invoicePaymentAddress,
-    invoicePaymentAmountBTC,
-    invoicePaymentRate,
-    invoicePaymentExpiry,
-  });
-  const ticketIds = createTicketsResponse.data as TicketId[]; // these are definitely defined
-
-  // update the original invoice with the created ticket ids
-  // and payment info (the invoice doesn't keep the BTC value attached)
-  invoice = await dependencies.updateInvoice(store.id, invoice.id, {
-    metadata: {
-      ...invoice.metadata,
-      ticketIds,
-    },
+    invoiceId,
   });
 
   if (createTicketsResponse.error) {
@@ -192,10 +184,34 @@ export const runBookie = async ({
     };
   }
 
+  const ticketIds = createTicketsResponse.data as TicketId[]; // these are definitely defined
+
+  // update the original invoice with the created ticket ids
+  // and payment info (the invoice doesn't keep the BTC value attached)
+  await dependencies.updateInvoice(store.id, invoiceId, {
+    metadata: {
+      ...invoice.metadata,
+      ticketIds,
+    },
+  });
+
+  // create the client invoice
+  const clientInvoice: Invoice = {
+    id: invoiceId,
+    uid,
+    address: invoicePaymentAddress,
+    amountBTC: invoicePaymentAmountBTC,
+    rate: invoicePaymentRate,
+    expiry: invoicePaymentExpiry,
+    ticketIds,
+  };
+
+  await dependencies.firebaseCreateInvoice(lotId, clientInvoice);
+
   return {
     error: false,
     message: 'great success!',
-    data: ticketIds,
+    data: invoiceId,
   };
 };
 

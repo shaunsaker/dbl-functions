@@ -1,11 +1,12 @@
-import { makeTicket } from '../lots/data';
-import { Lot, TicketId } from '../lots/models';
+import { InvoiceId } from '../invoices/models';
+import { Lot, Ticket, TicketId, TicketStatus } from '../lots/models';
 import { firebase } from '../services/firebase';
 import { firebaseFetchTickets } from '../services/firebase/firebaseFetchTickets';
 import { firebaseWriteBatch } from '../services/firebase/firebaseWriteBatch';
 import { FirebaseFunctionResponse } from '../services/firebase/models';
 import { UserId } from '../userProfile/models';
 import { arrayFromNumber } from '../utils/arrayFromNumber';
+import { getTimeAsISOString } from '../utils/getTimeAsISOString';
 import { getUuid } from '../utils/getUuid';
 
 export const getNotEnoughTicketsAvailableResponseMessage = ({
@@ -38,10 +39,7 @@ export const createTickets = async ({
   uid,
   ticketCount,
   ticketPriceBTC,
-  invoicePaymentAddress,
-  invoicePaymentAmountBTC,
-  invoicePaymentRate,
-  invoicePaymentExpiry,
+  invoiceId,
   dependencies = {
     firebaseFetchTickets,
     firebaseWriteBatch,
@@ -51,10 +49,7 @@ export const createTickets = async ({
   uid: UserId;
   ticketCount: number;
   ticketPriceBTC: number;
-  invoicePaymentAddress: string;
-  invoicePaymentAmountBTC: number;
-  invoicePaymentRate: number;
-  invoicePaymentExpiry: string;
+  invoiceId: InvoiceId;
   dependencies?: {
     firebaseFetchTickets: typeof firebaseFetchTickets;
     firebaseWriteBatch: typeof firebaseWriteBatch;
@@ -96,29 +91,19 @@ export const createTickets = async ({
     };
   }
 
-  let tickets = arrayFromNumber(ticketCount).map(() => {
+  const tickets = arrayFromNumber(ticketCount).map(() => {
     const id = getUuid();
-    const ticket = makeTicket({
+    const ticket: Ticket = {
       id,
       uid,
       priceBTC: ticketPriceBTC,
-      invoicePaymentAddress,
-      invoicePaymentAmountBTC,
-      invoicePaymentRate,
-      invoicePaymentExpiry,
-    });
+      status: TicketStatus.reserved,
+      dateCreated: getTimeAsISOString(),
+      invoiceId,
+    };
 
     return ticket;
   });
-
-  // attach the group of ticket ids to each ticket for invoicing purposes
-  const ticketIds = tickets.map((ticket) => ticket.id);
-
-  tickets = tickets.map((ticket) => ({
-    ...ticket,
-    invoiceTicketIds: ticketIds,
-  }));
-
   const ticketDocs = tickets.map((ticket) => ({
     ref: firebase
       .firestore()
@@ -134,6 +119,6 @@ export const createTickets = async ({
   return {
     error: false,
     message: 'great success!',
-    data: ticketIds,
+    data: tickets.map((ticket) => ticket.id),
   };
 };

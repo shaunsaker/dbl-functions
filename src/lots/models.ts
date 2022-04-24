@@ -1,3 +1,4 @@
+import { InvoiceId } from '../invoices/models';
 import { UserId, Username } from '../userProfile/models';
 
 export const PER_USER_TICKET_LIMIT = 250;
@@ -45,9 +46,5 @@ export interface Ticket {
   priceBTC: number;
   status: TicketStatus;
   dateCreated: string;
-  invoicePaymentAddress: string;
-  invoicePaymentAmountBTC: number;
-  invoicePaymentRate: number; // USD/BTC
-  invoicePaymentExpiry: string;
-  invoiceTicketIds: TicketId[];
+  invoiceId: InvoiceId;
 }

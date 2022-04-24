@@ -42,6 +42,7 @@ export const setupBookieTest = async ({
   const createInvoice = jest.fn();
   const getInvoicePaymentMethods = jest.fn();
   const updateInvoice = jest.fn();
+  const firebaseCreateInvoice = jest.fn();
 
   if (isAuthUser) {
     firebaseGetUser.mockReturnValue(true);
@@ -92,6 +93,7 @@ export const setupBookieTest = async ({
     createInvoice,
     getInvoicePaymentMethods,
     updateInvoice,
+    firebaseCreateInvoice,
   };
   const response = await runBookie({
     uid,

@@ -1,7 +1,7 @@
+import { InvoiceId } from '../invoices/models';
 import { makeLot } from '../lots/data';
 import { Lot, Ticket } from '../lots/models';
 import { UserId } from '../userProfile/models';
-import { getTimeAsISOString } from '../utils/getTimeAsISOString';
 import { getUuid } from '../utils/getUuid';
 import { createTickets } from './createTickets';
 
@@ -11,20 +11,14 @@ export const setupCreateTicketsTests = async ({
   existingTickets = [],
   ticketCount = 1,
   ticketPriceBTC = 0.00025,
-  invoicePaymentAddress = getUuid(),
-  invoicePaymentAmountBTC = 0.00025,
-  invoicePaymentRate = 50000,
-  invoicePaymentExpiry = getTimeAsISOString(),
+  invoiceId = getUuid(),
 }: {
   lot?: Lot;
   uid?: UserId;
   existingTickets?: Ticket[];
   ticketCount?: number;
   ticketPriceBTC?: number;
-  invoicePaymentAddress?: string;
-  invoicePaymentAmountBTC?: number;
-  invoicePaymentRate?: number;
-  invoicePaymentExpiry?: string;
+  invoiceId?: InvoiceId;
 }) => {
   const firebaseFetchTickets = jest.fn();
   const firebaseWriteBatch = jest.fn();
@@ -42,10 +36,7 @@ export const setupCreateTicketsTests = async ({
     uid,
     ticketCount,
     ticketPriceBTC,
-    invoicePaymentAddress,
-    invoicePaymentAmountBTC,
-    invoicePaymentRate,
-    invoicePaymentExpiry,
+    invoiceId,
     dependencies,
   });
 
