@@ -84,6 +84,7 @@ describe('createLot', () => {
         ...makeLot({
           id: lotId,
           dateCreated: expect.any(String),
+          drawTime: expect.any(String),
           totalAvailableTickets: expect.any(Number),
           totalTickets: expect.any(Number),
         }),
