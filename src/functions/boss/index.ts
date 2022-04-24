@@ -29,6 +29,7 @@ import { createLot } from '../createLot';
 import { numberToDigits } from '../../utils/numberToDigits';
 import { firebaseSaveWinnerData } from '../../services/firebase/firebaseSaveWinnerData';
 import moment = require('moment');
+import { getLotIdFromDate } from '../../utils/getLotIdFromDate';
 
 export const drawWinner = async (
   lotId: LotId,
@@ -255,7 +256,7 @@ export const runBoss = async (
   });
 
   // create a new lot
-  const lotId = moment(activeLot.id).add({ days: 1 }).format('YYYY-MM-DD');
+  const lotId = getLotIdFromDate(moment(activeLot.id).add({ days: 1 }));
   const active = true;
   await dependencies.createLot({ lotId, active });
 
