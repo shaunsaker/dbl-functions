@@ -257,7 +257,7 @@ export const runBoss = async (
   // create a new lot
   const lotId = moment(activeLot.id).add({ days: 1 }).format('YYYY-MM-DD');
   const active = true;
-  await dependencies.createLot(lotId, active);
+  await dependencies.createLot({ lotId, active });
 
   return {
     error: false,

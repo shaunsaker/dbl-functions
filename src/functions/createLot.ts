@@ -79,17 +79,11 @@ export const getInvoiceExpiredWebhook = () =>
 
 type Response = FirebaseFunctionResponse<void>;
 
-export const createLot = async (
-  lotId: LotId,
-  active: boolean,
-  dependencies: {
-    firebaseFetchLot: typeof firebaseFetchLot;
-    createStore: typeof createStore;
-    createStoreWallet: typeof createStoreWallet;
-    firebaseSaveStoreWalletKeyData: typeof firebaseSaveStoreWalletKeyData;
-    createWebhook: typeof createWebhook;
-    firebaseCreateLot: typeof firebaseCreateLot;
-  } = {
+export const createLot = async ({
+  lotId,
+  active,
+  dryRun = false,
+  dependencies = {
     firebaseFetchLot,
     createStore,
     createStoreWallet,
@@ -97,7 +91,19 @@ export const createLot = async (
     createWebhook,
     firebaseCreateLot,
   },
-): Promise<Response> => {
+}: {
+  lotId: LotId;
+  active: boolean;
+  dryRun?: boolean; // allows us to create the lot without creating the store, wallet and webhooks
+  dependencies?: {
+    firebaseFetchLot: typeof firebaseFetchLot;
+    createStore: typeof createStore;
+    createStoreWallet: typeof createStoreWallet;
+    firebaseSaveStoreWalletKeyData: typeof firebaseSaveStoreWalletKeyData;
+    createWebhook: typeof createWebhook;
+    firebaseCreateLot: typeof firebaseCreateLot;
+  };
+}): Promise<Response> => {
   // check if the lot already exists
   const lotExists = await dependencies.firebaseFetchLot(lotId);
 
@@ -119,34 +125,6 @@ export const createLot = async (
     avgBTCDailyFluctuationPercentage: 2, // FIXME: in the future we could make this dynamic
   });
 
-  // create the store
-  const store = makeBtcPayServerStore({ name: lotId });
-  const { id: storeId } = await dependencies.createStore(store);
-
-  // create the store wallet
-  const mnemonic = createMnemonic();
-
-  await dependencies.createStoreWallet(storeId, {
-    existingMnemonic: mnemonic,
-    passphrase: process.env.STORE_WALLET_SECRET_KEY,
-  });
-
-  // save the mnemonic created above in case we need to retrieve it later
-  const hash = encrypt(mnemonic, process.env.STORE_MNEMONIC_SECRET_KEY);
-  await dependencies.firebaseSaveStoreWalletKeyData(storeId, { hash });
-
-  // create an invoice payment webhook
-  const invoicePaymentReceivedWebhook = getPaymentReceivedWebhook();
-  await dependencies.createWebhook(storeId, invoicePaymentReceivedWebhook);
-
-  // create an invoice settled webhook
-  const invoiceSettledWebhook = getInvoiceSettledWebhook();
-  await dependencies.createWebhook(storeId, invoiceSettledWebhook);
-
-  // create an invoice expiry webhook
-  const invoiceExpiredWebhook = getInvoiceExpiredWebhook();
-  await dependencies.createWebhook(storeId, invoiceExpiredWebhook);
-
   // create the lot
   const lot = makeLot({
     id: lotId,
@@ -158,6 +136,36 @@ export const createLot = async (
   console.log(
     `successfully created lot with id ${lotId} and ${totalAvailableTickets} available tickets.`,
   );
+
+  if (!dryRun) {
+    // create the store
+    const store = makeBtcPayServerStore({ name: lotId });
+    const { id: storeId } = await dependencies.createStore(store);
+
+    // create the store wallet
+    const mnemonic = createMnemonic();
+
+    await dependencies.createStoreWallet(storeId, {
+      existingMnemonic: mnemonic,
+      passphrase: process.env.STORE_WALLET_SECRET_KEY,
+    });
+
+    // save the mnemonic created above in case we need to retrieve it later
+    const hash = encrypt(mnemonic, process.env.STORE_MNEMONIC_SECRET_KEY);
+    await dependencies.firebaseSaveStoreWalletKeyData(storeId, { hash });
+
+    // create an invoice payment webhook
+    const invoicePaymentReceivedWebhook = getPaymentReceivedWebhook();
+    await dependencies.createWebhook(storeId, invoicePaymentReceivedWebhook);
+
+    // create an invoice settled webhook
+    const invoiceSettledWebhook = getInvoiceSettledWebhook();
+    await dependencies.createWebhook(storeId, invoiceSettledWebhook);
+
+    // create an invoice expiry webhook
+    const invoiceExpiredWebhook = getInvoiceExpiredWebhook();
+    await dependencies.createWebhook(storeId, invoiceExpiredWebhook);
+  }
 
   return {
     error: false,

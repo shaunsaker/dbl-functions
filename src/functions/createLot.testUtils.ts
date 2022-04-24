@@ -37,7 +37,7 @@ export const setupCreateLotTest = async ({
     createWebhook,
     firebaseCreateLot,
   };
-  const response = await createLot(lotId, active, dependencies);
+  const response = await createLot({ lotId, active, dependencies });
 
   return { response, dependencies };
 };
