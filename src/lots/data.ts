@@ -52,6 +52,7 @@ export const makeLot = ({
 
 export const makeTicket = ({
   id = getUuid(),
+  lotId = getUuid(),
   uid = '',
   priceBTC = 0,
   status = TicketStatus.reserved,
@@ -59,6 +60,7 @@ export const makeTicket = ({
   invoiceId = getUuid(),
 }: Partial<Ticket>): Ticket => ({
   id,
+  lotId,
   uid,
   priceBTC,
   status,
@@ -66,6 +68,7 @@ export const makeTicket = ({
   invoiceId,
 });
 
+// TODO: SS move this to btcPayServer/models
 export const makeInvoice = ({
   metadata: { uid, lotId, ticketIds } = {
     uid: getUuid(),

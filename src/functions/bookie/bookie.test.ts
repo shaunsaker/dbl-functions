@@ -143,6 +143,7 @@ describe('bookie', () => {
 
     expect(dependencies.firebaseCreateInvoice).toHaveBeenCalledWith(lot.id, {
       id: invoice.id,
+      lotId,
       uid,
       address: invoicePaymentAddress,
       amountBTC: invoicePaymentAmountBTC,

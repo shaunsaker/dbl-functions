@@ -71,6 +71,7 @@ describe('createTickets', () => {
         data: {
           ...makeTicket({}),
           id: expect.any(String),
+          lotId: lot.id,
           uid: expect.any(String),
           dateCreated: expect.any(String),
           priceBTC: expect.any(Number),
@@ -82,6 +83,7 @@ describe('createTickets', () => {
         data: {
           ...makeTicket({}),
           id: expect.any(String),
+          lotId: lot.id,
           uid: expect.any(String),
           dateCreated: expect.any(String),
           priceBTC: expect.any(Number),

@@ -1,10 +1,11 @@
-import { TicketId } from '../lots/models';
+import { LotId, TicketId } from '../lots/models';
 import { UserId } from '../userProfile/models';
 
 export type InvoiceId = string;
 
 export interface Invoice {
   id: InvoiceId;
+  lotId: LotId;
   uid: UserId;
   address: string;
   amountBTC: number;

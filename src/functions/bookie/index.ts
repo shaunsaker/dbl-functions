@@ -198,6 +198,7 @@ export const runBookie = async ({
   // create the client invoice
   const clientInvoice: Invoice = {
     id: invoiceId,
+    lotId,
     uid,
     address: invoicePaymentAddress,
     amountBTC: invoicePaymentAmountBTC,

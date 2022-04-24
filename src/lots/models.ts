@@ -42,6 +42,7 @@ export type TicketId = string;
 
 export interface Ticket {
   id: TicketId;
+  lotId: LotId;
   uid: UserId;
   priceBTC: number;
   status: TicketStatus;

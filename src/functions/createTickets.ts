@@ -71,8 +71,9 @@ export const createTickets = async ({
   }
 
   // validate against perUserTicketLimit
+  const lotId = lot.id;
   const existingUserTicketCount = (
-    await dependencies.firebaseFetchTickets({ lotId: lot.id, uid })
+    await dependencies.firebaseFetchTickets({ lotId, uid })
   ).length;
   const remainingUserTicketLimit =
     lot.perUserTicketLimit - existingUserTicketCount;
@@ -95,6 +96,7 @@ export const createTickets = async ({
     const id = getUuid();
     const ticket: Ticket = {
       id,
+      lotId,
       uid,
       priceBTC: ticketPriceBTC,
       status: TicketStatus.reserved,
@@ -108,7 +110,7 @@ export const createTickets = async ({
     ref: firebase
       .firestore()
       .collection('lots')
-      .doc(lot.id)
+      .doc(lotId)
       .collection('tickets')
       .doc(ticket.id),
     data: ticket,
