@@ -7,6 +7,7 @@ import {
   BtcPayServerInvoiceId,
   BtcPayServerStoreId,
 } from '../../services/btcPayServer/models';
+import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import { getUuid } from '../../utils/getUuid';
 import { changeTicketsStatus } from '../changeTicketsStatus';
 
@@ -30,6 +31,7 @@ export const setupBagmanTest = async ({
   const validateWebookEventData = jest.fn();
   const firebaseFetchLot = jest.fn();
   const getInvoicePaymentMethods = jest.fn();
+  const firebaseCreatePayment = jest.fn();
   const firebaseFetchTickets = jest.fn();
   const firebaseSaveTickets = jest.fn();
   const sendNotification = jest.fn();
@@ -53,6 +55,18 @@ export const setupBagmanTest = async ({
         totalPaid: paymentAmountBTC.toString(),
         amount: invoiceTotalBTC.toString(),
         due: (invoiceTotalBTC - paymentAmountBTC).toString(),
+        payments: [
+          {
+            id: getUuid(),
+            uid: getUuid(),
+            txId: getUuid(),
+            lotId: getUuid(),
+            invoiceId: getUuid(),
+            amountBTC: paymentAmountBTC,
+            receivedDate: getTimeAsISOString(),
+            destination: getUuid(),
+          },
+        ],
       },
     ]);
   }
@@ -72,6 +86,7 @@ export const setupBagmanTest = async ({
     validateWebookEventData,
     firebaseFetchLot,
     getInvoicePaymentMethods,
+    firebaseCreatePayment,
     firebaseFetchTickets,
     changeTicketsStatus,
     firebaseSaveTickets,

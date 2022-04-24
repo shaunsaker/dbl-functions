@@ -16,6 +16,11 @@ import { sendNotification } from '../sendNotification';
 import { verifyWebhookSignature } from '../verifyWebhookSignature';
 import { numberToDigits } from '../../utils/numberToDigits';
 import { getInvoicePaymentMethods } from '../../services/btcPayServer/getInvoicePaymentMethods';
+import { Payment } from '../../payments/models';
+import { sortArrayOfObjectsByKey } from '../../utils/sortArrayOfObjectsByKey';
+import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
+import moment = require('moment');
+import { firebaseCreatePayment } from '../../services/firebase/firebaseCreatePayment';
 
 require('dotenv').config();
 
@@ -60,6 +65,7 @@ export const runBagman = async (
     validateWebookEventData: typeof validateWebookEventData;
     firebaseFetchLot: typeof firebaseFetchLot;
     getInvoicePaymentMethods: typeof getInvoicePaymentMethods;
+    firebaseCreatePayment: typeof firebaseCreatePayment;
     firebaseFetchTickets: typeof firebaseFetchTickets;
     changeTicketsStatus: typeof changeTicketsStatus;
     firebaseSaveTickets: typeof firebaseSaveTickets;
@@ -68,6 +74,7 @@ export const runBagman = async (
     validateWebookEventData,
     firebaseFetchLot,
     getInvoicePaymentMethods,
+    firebaseCreatePayment,
     firebaseFetchTickets,
     changeTicketsStatus,
     firebaseSaveTickets,
@@ -125,15 +132,36 @@ export const runBagman = async (
     };
   }
 
+  const invoiceId = invoice.id;
   const paymentMethods = await dependencies.getInvoicePaymentMethods({
     storeId: invoice.storeId,
-    invoiceId: invoice.id,
+    invoiceId,
   });
   const defaultPaymentMethod = paymentMethods[0];
   const totalPaidBTC = parseFloat(defaultPaymentMethod.totalPaid);
   const invoiceTotalBTC = parseFloat(defaultPaymentMethod.amount);
   const paymentAmountBTC = parseFloat(data.payment.value);
   const hasPaidInFull = !parseFloat(defaultPaymentMethod.due);
+
+  // save the payment
+  const latestPayment = sortArrayOfObjectsByKey(
+    defaultPaymentMethod.payments,
+    'receivedDate',
+    true,
+  )[0];
+  const txId = latestPayment.id.split('-')[0]; // btcPayServer concats a "-INT" onto the txId for some reason
+  const payment: Payment = {
+    id: latestPayment.id,
+    uid,
+    txId,
+    lotId,
+    invoiceId,
+    amountBTC: paymentAmountBTC,
+    receivedDate: getTimeAsISOString(moment(latestPayment.receivedDate)),
+    destination: latestPayment.destination,
+  };
+
+  await dependencies.firebaseCreatePayment({ lotId, invoiceId, payment });
 
   if (!hasPaidInFull) {
     console.log(

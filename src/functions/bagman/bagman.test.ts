@@ -60,6 +60,21 @@ describe('bagman', () => {
       invoiceId: invoice.id,
     });
 
+    expect(dependencies.firebaseCreatePayment).toHaveBeenCalledWith({
+      lotId: lot.id,
+      invoiceId: invoice.id,
+      payment: {
+        id: expect.any(String),
+        uid: expect.any(String),
+        txId: expect.any(String),
+        lotId: expect.any(String),
+        invoiceId: expect.any(String),
+        amountBTC: paymentAmountBTC,
+        receivedDate: expect.any(String),
+        destination: expect.any(String),
+      },
+    });
+
     const expectedPaidTickets = changeTicketsStatus(
       tickets,
       TicketStatus.paymentReceived,
@@ -126,6 +141,20 @@ describe('bagman', () => {
       invoiceId: invoice.id,
     });
 
+    expect(dependencies.firebaseCreatePayment).toHaveBeenCalledWith({
+      lotId: lot.id,
+      invoiceId: invoice.id,
+      payment: {
+        id: expect.any(String),
+        uid: expect.any(String),
+        txId: expect.any(String),
+        lotId: expect.any(String),
+        invoiceId: expect.any(String),
+        amountBTC: paymentAmountBTC,
+        receivedDate: expect.any(String),
+        destination: expect.any(String),
+      },
+    });
     const expectedPaidTickets = changeTicketsStatus(
       tickets,
       TicketStatus.paymentReceived,
@@ -185,6 +214,26 @@ describe('bagman', () => {
       invoice,
       paymentAmountBTC,
       invoiceTotalBTC,
+    });
+
+    expect(dependencies.getInvoicePaymentMethods).toHaveBeenCalledWith({
+      storeId: invoice.storeId,
+      invoiceId: invoice.id,
+    });
+
+    expect(dependencies.firebaseCreatePayment).toHaveBeenCalledWith({
+      lotId: lot.id,
+      invoiceId: invoice.id,
+      payment: {
+        id: expect.any(String),
+        uid: expect.any(String),
+        txId: expect.any(String),
+        lotId: expect.any(String),
+        invoiceId: expect.any(String),
+        amountBTC: paymentAmountBTC,
+        receivedDate: expect.any(String),
+        destination: expect.any(String),
+      },
     });
 
     expect(dependencies.firebaseSaveTickets).not.toHaveBeenCalled();

@@ -202,12 +202,22 @@ export interface BtcPayServerStoreWalletBalance {
   confirmedBalance: string;
 }
 
+export interface BtcPayServerPayment {
+  id: string;
+  receivedDate: number;
+  value: string;
+  fee: string;
+  status: string;
+  destination: string;
+}
+
 export interface BtcPayServerPaymentMethod {
   destination: string;
   rate: string;
   amount: string;
   totalPaid: string;
   due: string;
+  payments: BtcPayServerPayment[];
   // ...other unused fields
 }
 

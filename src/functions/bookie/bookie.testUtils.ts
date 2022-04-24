@@ -79,6 +79,7 @@ export const setupBookieTest = async ({
         rate: invoicePaymentRate.toString(),
         totalPaid: invoicePaymentAmountBTC.toString(),
         due: '0',
+        payments: [],
       },
     ];
 
