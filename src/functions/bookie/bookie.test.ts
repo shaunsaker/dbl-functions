@@ -64,7 +64,11 @@ describe('bookie', () => {
 
   it('creates an invoice', async () => {
     const lotId = getUuid();
-    const lot = makeLot({ id: lotId });
+    const lot = makeLot({
+      id: lotId,
+      active: true,
+      totalAvailableTickets: 100000,
+    });
     const uid = getUuid();
     const ticketCount = 5;
     const store = { ...makeBtcPayServerStore({}), id: getUuid() };

@@ -18,7 +18,11 @@ describe('busker', () => {
 
   it('updates the lot stats', async () => {
     const lotId = getUuid();
-    const lot = makeLot({ id: lotId });
+    const lot = makeLot({
+      id: lotId,
+      active: true,
+      totalAvailableTickets: 100000,
+    });
     const ticketBefore = makeTicket({ status: TicketStatus.reserved });
     const ticketAfter = makeTicket({ status: TicketStatus.confirmed }); // add a confirmed ticket
     const { response, dependencies } = await setupBuskerTest({

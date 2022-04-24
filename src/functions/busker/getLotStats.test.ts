@@ -1,9 +1,12 @@
 import { makeLot, makeTicket } from '../../lots/data';
 import { TicketStatus } from '../../lots/models';
+import { getUuid } from '../../utils/getUuid';
 import { getLotStats } from './getLotStats';
 
 describe('getLotStats', () => {
   const lot = makeLot({
+    id: getUuid(),
+    active: true,
     totalAvailableTickets: 100000,
     totalConfirmedTickets: 0,
     totalBTC: 0,

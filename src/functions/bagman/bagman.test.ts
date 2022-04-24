@@ -25,7 +25,11 @@ describe('bagman', () => {
   });
 
   it('handles a single exact payment', async () => {
-    const lot = makeLot({});
+    const lot = makeLot({
+      id: getUuid(),
+      active: true,
+      totalAvailableTickets: 100000,
+    });
     const ticketPriceBTC = 0.00025;
     const tickets = [
       makeTicket({
@@ -83,7 +87,11 @@ describe('bagman', () => {
   });
 
   it('handles multiple exact payments', async () => {
-    const lot = makeLot({});
+    const lot = makeLot({
+      id: getUuid(),
+      active: true,
+      totalAvailableTickets: 100000,
+    });
     const ticketPriceBTC = 0.00025;
     const tickets = [
       makeTicket({
@@ -145,7 +153,11 @@ describe('bagman', () => {
   });
 
   it('handles partial payments', async () => {
-    const lot = makeLot({});
+    const lot = makeLot({
+      id: getUuid(),
+      active: true,
+      totalAvailableTickets: 100000,
+    });
     const ticketPriceBTC = 0.00025;
     const tickets = [
       makeTicket({

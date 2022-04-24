@@ -12,7 +12,7 @@ import { UserId, UserProfileData } from '../../userProfile/models';
 import { getUuid } from '../../utils/getUuid';
 
 export const setupBossTest = async ({
-  lot = makeLot({}),
+  lot = makeLot({ id: getUuid(), active: true, totalAvailableTickets: 100000 }),
   store = { ...makeBtcPayServerStore({}), id: getUuid() },
   walletBalanceBTC = 10,
   winnerUid = getUuid(),

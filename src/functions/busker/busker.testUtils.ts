@@ -7,7 +7,7 @@ export const setupBuskerTest = async ({
   lotId = getUuid(),
   ticketBefore = makeTicket({}),
   ticketAfter = makeTicket({}),
-  lot = makeLot({}),
+  lot = makeLot({ id: getUuid(), active: true, totalAvailableTickets: 100000 }),
 }: {
   lotId?: string;
   ticketBefore?: Ticket | undefined;

@@ -41,7 +41,11 @@ describe('boss', () => {
     it('creates a pull payment for the winner', async () => {
       const storeId = getUuid();
       const username = getUuid();
-      const lot = makeLot({});
+      const lot = makeLot({
+        id: getUuid(),
+        active: true,
+        totalAvailableTickets: 100000,
+      });
       await createWinnerPullPayment({
         storeId,
         username,
@@ -65,7 +69,11 @@ describe('boss', () => {
 
     it('creates a pull payment for admin', async () => {
       const storeId = getUuid();
-      const lot = makeLot({});
+      const lot = makeLot({
+        id: getUuid(),
+        active: true,
+        totalAvailableTickets: 100000,
+      });
       await createAdminPullPayment({
         storeId,
         lot,
@@ -106,7 +114,12 @@ describe('boss', () => {
 
     it('returns an error if there is not enough BTC in the wallet', async () => {
       const lotTotalInBTC = 10;
-      const lot = makeLot({ totalBTC: lotTotalInBTC });
+      const lot = makeLot({
+        id: getUuid(),
+        active: true,
+        totalAvailableTickets: 100000,
+        totalBTC: lotTotalInBTC,
+      });
       const walletBalanceBTC = 5; // less than the lot total
       const { response } = await setupBossTest({ lot, walletBalanceBTC });
 
@@ -131,7 +144,12 @@ describe('boss', () => {
     });
 
     it('does the nitty gritty', async () => {
-      const lot = makeLot({ totalBTC: 1 });
+      const lot = makeLot({
+        id: getUuid(),
+        active: true,
+        totalAvailableTickets: 100000,
+        totalBTC: 1,
+      });
       const store = { ...makeBtcPayServerStore({}), id: getUuid() };
       const winnerUid = getUuid();
       const winnerUserProfileData = makeUserProfileData({});

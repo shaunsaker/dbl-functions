@@ -6,7 +6,7 @@ import { getUuid } from '../utils/getUuid';
 import { createTickets } from './createTickets';
 
 export const setupCreateTicketsTests = async ({
-  lot = makeLot({}),
+  lot = makeLot({ id: getUuid(), active: true, totalAvailableTickets: 100000 }),
   uid = getUuid(),
   existingTickets = [],
   ticketCount = 1,

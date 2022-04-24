@@ -104,18 +104,21 @@ export const createLot = async ({
     firebaseCreateLot: typeof firebaseCreateLot;
   };
 }): Promise<Response> => {
-  // check if the lot already exists
-  const lotExists = await dependencies.firebaseFetchLot(lotId);
+  // check if the lot already exists (if it's not a dry run)
+  // dry run will overwrite existing lots
+  if (!dryRun) {
+    const lotExists = await dependencies.firebaseFetchLot(lotId);
 
-  if (lotExists) {
-    const message = `lot with id ${lotId} already exists fool.`;
+    if (lotExists) {
+      const message = `lot with id ${lotId} already exists fool.`;
 
-    console.log('createLot:', message);
+      console.log('createLot:', message);
 
-    return {
-      error: true,
-      message,
-    };
+      return {
+        error: true,
+        message,
+      };
+    }
   }
 
   const totalAvailableTickets = getTicketsAvailable({

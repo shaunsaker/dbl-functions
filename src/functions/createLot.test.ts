@@ -83,6 +83,7 @@ describe('createLot', () => {
       expect(dependencies.firebaseCreateLot).toHaveBeenCalledWith({
         ...makeLot({
           id: lotId,
+          active: true,
           dateCreated: expect.any(String),
           drawTime: expect.any(String),
           totalAvailableTickets: expect.any(Number),

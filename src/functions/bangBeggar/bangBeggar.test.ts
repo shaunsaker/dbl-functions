@@ -16,7 +16,11 @@ describe('bangBeggar', () => {
   });
 
   it('expires tickets', async () => {
-    const lot = makeLot({});
+    const lot = makeLot({
+      id: getUuid(),
+      active: true,
+      totalAvailableTickets: 100000,
+    });
     const tickets = [
       makeTicket({
         status: TicketStatus.reserved,

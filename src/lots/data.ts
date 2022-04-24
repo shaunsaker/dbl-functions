@@ -4,6 +4,7 @@ import { getTimeAsISOString } from '../utils/getTimeAsISOString';
 import { getUuid } from '../utils/getUuid';
 import {
   Lot,
+  LotId,
   PER_USER_TICKET_LIMIT,
   TARGET_TICKET_VALUE_USD,
   Ticket,
@@ -12,16 +13,18 @@ import {
 } from './models';
 
 export const makeLot = ({
-  id = getUuid(),
-  dateCreated = getTimeAsISOString(moment()),
-  drawTime = getTimeAsISOString(moment()),
-  active = true,
+  id,
+  active,
+  totalAvailableTickets,
+  dateCreated = getTimeAsISOString(),
+  drawTime = '',
   totalBTC = 0,
   totalConfirmedTickets = 0,
   perUserTicketLimit = PER_USER_TICKET_LIMIT,
-  totalAvailableTickets = 0,
   ticketPriceUSD = TARGET_TICKET_VALUE_USD,
-}: Partial<Lot>): Lot => {
+}: { id: LotId; active: boolean; totalAvailableTickets: number } & Partial<
+  Omit<Lot, 'id' | 'active' | 'totalAvailableTickets'>
+>): Lot => {
   // get the draw time from the lotId
   // NOTE: this will not work if we're doing multiple lots on the same day
   const drawTimeMoment = moment(id).clone().endOf('day');
@@ -34,15 +37,15 @@ export const makeLot = ({
 
   return {
     id,
+    active,
+    totalTickets: totalAvailableTickets,
+    totalAvailableTickets,
     dateCreated,
     lastCallTime: lastCallTimeString,
     drawTime: drawTimeString,
-    active,
     totalBTC,
-    totalTickets: totalAvailableTickets,
     totalConfirmedTickets,
     perUserTicketLimit,
-    totalAvailableTickets,
     ticketPriceUSD,
   };
 };
