@@ -157,7 +157,7 @@ export const runBagman = async (
     lotId,
     invoiceId,
     amountBTC: paymentAmountBTC,
-    receivedDate: getTimeAsISOString(moment(latestPayment.receivedDate)),
+    receivedDate: getTimeAsISOString(moment(latestPayment.receivedDate * 1000)),
     destination: latestPayment.destination,
   };
 
