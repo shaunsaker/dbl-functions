@@ -56,3 +56,8 @@ export interface LotStoreWalletKey {
     content: string;
   };
 }
+
+export interface LotWinner {
+  uid: UserId;
+  link: string;
+}

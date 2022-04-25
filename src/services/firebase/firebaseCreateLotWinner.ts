@@ -1,10 +1,10 @@
 import { firebase } from './';
 import { LotId } from '../../lots/models';
-import { WinnerData } from '../../lots/data';
+import { LotWinner } from '../../lots/models';
 
 export const firebaseCreateLotWinner = (
   lotId: LotId,
-  data: WinnerData,
+  data: LotWinner,
 ): Promise<void> => {
   return new Promise(async (resolve, reject) => {
     try {

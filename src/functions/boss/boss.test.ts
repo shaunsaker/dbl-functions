@@ -181,12 +181,6 @@ describe('boss', () => {
         username: winnerUserProfileData.username,
         lot,
       });
-      expect(dependencies.firebaseUpdateUserProfile).toHaveBeenCalledWith(
-        winnerUid,
-        {
-          winnerWithdrawalLink: winnerPullPayment.viewLink,
-        },
-      );
       expect(dependencies.firebaseSendNotification).toHaveBeenCalledWith({
         topic: FirebaseMessagingTopics.winner,
         title: 'We have a new Winner 👑🎉',
@@ -196,6 +190,13 @@ describe('boss', () => {
         storeId: store.id,
         lot,
       });
+      expect(dependencies.firebaseCreateLotWinner).toHaveBeenCalledWith(
+        lot.id,
+        {
+          uid: winnerUid,
+          link: expect.any(String),
+        },
+      );
       expect(dependencies.firebaseUpdateLot).toHaveBeenCalledWith(lot.id, {
         active: false,
         winnerUsername: winnerUserProfileData.username,

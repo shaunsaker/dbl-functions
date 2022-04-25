@@ -8,7 +8,6 @@ export const makeUserProfileData = ({
   email = getUuid(),
   hasCompletedOnboarding = true,
   fcmTokens = [getUuid()],
-  winnerWithdrawalLink = getUuid(),
 }: Partial<UserProfileData>): UserProfileData => {
   return {
     dateCreated,
@@ -16,6 +15,5 @@ export const makeUserProfileData = ({
     email,
     hasCompletedOnboarding,
     fcmTokens,
-    winnerWithdrawalLink,
   };
 };

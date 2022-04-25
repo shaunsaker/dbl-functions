@@ -2,6 +2,7 @@ import * as functions from 'firebase-functions';
 import {
   Lot,
   LotId,
+  LotWinner,
   MAX_BTC_DIGITS,
   TicketStatus,
   TICKET_COMMISSION_PERCENTAGE,
@@ -17,7 +18,6 @@ import { firebaseFetchActiveLot } from '../../services/firebase/firebaseFetchAct
 import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTickets';
 import { firebaseFetchUserProfile } from '../../services/firebase/firebaseFetchUserProfile';
 import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
-import { firebaseUpdateUserProfile } from '../../services/firebase/firebaseUpdateUserProfile';
 import {
   FirebaseFunctionResponse,
   FirebaseMessagingTopics,
@@ -129,7 +129,6 @@ export const runBoss = async (
     firebaseFetchUserProfile: typeof firebaseFetchUserProfile;
     firebaseCreateLotWinner: typeof firebaseCreateLotWinner;
     createWinnerPullPayment: typeof createWinnerPullPayment;
-    firebaseUpdateUserProfile: typeof firebaseUpdateUserProfile;
     firebaseSendNotification: typeof firebaseSendNotification;
     createAdminPullPayment: typeof createAdminPullPayment;
     firebaseUpdateLot: typeof firebaseUpdateLot;
@@ -142,7 +141,6 @@ export const runBoss = async (
     firebaseFetchUserProfile,
     firebaseCreateLotWinner,
     createWinnerPullPayment,
-    firebaseUpdateUserProfile,
     firebaseSendNotification,
     createAdminPullPayment,
     firebaseUpdateLot,
@@ -228,11 +226,6 @@ export const runBoss = async (
       lot: activeLot,
     });
 
-    // save the url to the user's data for in-app display
-    await dependencies.firebaseUpdateUserProfile(winnerUid, {
-      winnerWithdrawalLink: winnerPullPayment.viewLink,
-    });
-
     // notify the users
     await dependencies.firebaseSendNotification({
       topic: FirebaseMessagingTopics.winner,
@@ -244,16 +237,20 @@ export const runBoss = async (
       storeId: store.id,
       lot: activeLot,
     });
+
+    // save the winner's uid to the stores data (so that we don't expose it publicly)
+    const lotWinner: LotWinner = {
+      uid: winnerUid,
+      link: winnerPullPayment.viewLink,
+    };
+    await dependencies.firebaseCreateLotWinner(activeLot.id, lotWinner);
+
+    // mark active lot as inactive and save the winner username
+    await dependencies.firebaseUpdateLot(activeLot.id, {
+      active: false,
+      winnerUsername,
+    });
   }
-
-  // save the winner's uid to the stores data (so that we don't expose it publicly)
-  await dependencies.firebaseCreateLotWinner(activeLot.id, { uid: winnerUid });
-
-  // mark active lot as inactive and save the winner username
-  await dependencies.firebaseUpdateLot(activeLot.id, {
-    active: false,
-    winnerUsername,
-  });
 
   // create a new lot
   const lotId = getLotIdFromDate(moment(activeLot.id).add({ days: 1 }));
