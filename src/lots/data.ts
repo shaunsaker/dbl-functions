@@ -1,5 +1,6 @@
 import moment = require('moment');
 import { BtcPayServerInvoice } from '../services/btcPayServer/models';
+import { UserId } from '../userProfile/models';
 import { getTimeAsISOString } from '../utils/getTimeAsISOString';
 import { getUuid } from '../utils/getUuid';
 import {
@@ -99,3 +100,7 @@ export const makeInvoice = ({
   availableStatusesForManualMarking: [],
   archived: false,
 });
+
+export interface WinnerData {
+  uid: UserId;
+}

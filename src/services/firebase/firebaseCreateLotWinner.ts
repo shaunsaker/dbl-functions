@@ -1,17 +1,19 @@
-import { firebase } from '.';
+import { firebase } from './';
 import { LotId } from '../../lots/models';
-import { WinnerData } from '../../winners/models';
+import { WinnerData } from '../../lots/data';
 
-export const firebaseSaveWinnerData = (
+export const firebaseCreateLotWinner = (
   lotId: LotId,
-  data: Partial<WinnerData>,
+  data: WinnerData,
 ): Promise<void> => {
   return new Promise(async (resolve, reject) => {
     try {
       await firebase
         .firestore()
-        .collection('winners')
+        .collection('lots')
         .doc(lotId)
+        .collection('winners')
+        .doc(data.uid)
         .set(data, { merge: true });
 
       resolve();
