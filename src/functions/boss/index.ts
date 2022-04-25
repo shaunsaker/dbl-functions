@@ -30,6 +30,7 @@ import { numberToDigits } from '../../utils/numberToDigits';
 import { firebaseCreateLotWinner } from '../../services/firebase/firebaseCreateLotWinner';
 import moment = require('moment');
 import { getLotIdFromDate } from '../../utils/getLotIdFromDate';
+import { firebaseUpdateUserProfile } from '../../services/firebase/firebaseUpdateUserProfile';
 
 export const drawWinner = async (
   lotId: LotId,
@@ -133,6 +134,7 @@ export const runBoss = async (
     createAdminPullPayment: typeof createAdminPullPayment;
     firebaseUpdateLot: typeof firebaseUpdateLot;
     createLot: typeof createLot;
+    firebaseUpdateUserProfile: typeof firebaseUpdateUserProfile;
   } = {
     firebaseFetchActiveLot,
     getStoreByStoreName,
@@ -145,6 +147,7 @@ export const runBoss = async (
     createAdminPullPayment,
     firebaseUpdateLot,
     createLot,
+    firebaseUpdateUserProfile,
   },
 ): Promise<Response> => {
   // get the active lot id (in the future there may be a few)
@@ -217,38 +220,40 @@ export const runBoss = async (
       };
     }
 
+    // mark active lot as inactive and save the winner username
     winnerUsername = userProfileData.username;
+    await dependencies.firebaseUpdateLot(activeLot.id, {
+      active: false,
+      winnerUsername,
+    });
+
+    // save the winner's uid to the lot
+    // the alternative would be to save it to the lot but we don't want to expose the winner's uid publicly
+    const lotWinner: LotWinner = {
+      uid: winnerUid,
+    };
+    await dependencies.firebaseCreateLotWinner(activeLot.id, lotWinner);
 
     // send winner and commission BTC
+    await dependencies.createAdminPullPayment({
+      storeId: store.id,
+      lot: activeLot,
+    });
+
     const winnerPullPayment = await dependencies.createWinnerPullPayment({
       storeId: store.id,
       username: userProfileData.username,
       lot: activeLot,
     });
 
-    // notify the users
-    await dependencies.firebaseSendNotification({
-      topic: FirebaseMessagingTopics.winner,
-      title: 'We have a new Winner 👑🎉',
-      body: 'Open the app for more info 😎',
-    });
-
-    await dependencies.createAdminPullPayment({
-      storeId: store.id,
-      lot: activeLot,
-    });
-
-    // save the winner's uid to the stores data (so that we don't expose it publicly)
-    const lotWinner: LotWinner = {
-      uid: winnerUid,
+    // save the pull payment link to the user data
+    const existingUserWinnings = userProfileData.winnings || {};
+    existingUserWinnings[activeLot.id] = {
       link: winnerPullPayment.viewLink,
+      hasSeenLink: false,
     };
-    await dependencies.firebaseCreateLotWinner(activeLot.id, lotWinner);
-
-    // mark active lot as inactive and save the winner username
-    await dependencies.firebaseUpdateLot(activeLot.id, {
-      active: false,
-      winnerUsername,
+    await dependencies.firebaseUpdateUserProfile(winnerUid, {
+      winnings: existingUserWinnings,
     });
   }
 
@@ -256,6 +261,13 @@ export const runBoss = async (
   const lotId = getLotIdFromDate(moment(activeLot.id).add({ days: 1 }));
   const active = true;
   await dependencies.createLot({ lotId, active });
+
+  // notify the users
+  await dependencies.firebaseSendNotification({
+    topic: FirebaseMessagingTopics.winner,
+    title: 'We have a new Winner 👑🎉',
+    body: 'Open the app for more info 😎',
+  });
 
   return {
     error: false,

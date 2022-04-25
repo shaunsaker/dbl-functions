@@ -7,7 +7,6 @@ import {
   BtcPayServerInvoiceId,
   BtcPayServerStoreId,
 } from '../../services/btcPayServer/models';
-import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import { getUuid } from '../../utils/getUuid';
 import { changeTicketsStatus } from '../changeTicketsStatus';
 
@@ -63,7 +62,7 @@ export const setupBagmanTest = async ({
             lotId: getUuid(),
             invoiceId: getUuid(),
             amountBTC: paymentAmountBTC,
-            receivedDate: getTimeAsISOString(),
+            receivedDate: 1650898417,
             destination: getUuid(),
           },
         ],

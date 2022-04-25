@@ -194,13 +194,21 @@ describe('boss', () => {
         lot.id,
         {
           uid: winnerUid,
-          link: expect.any(String),
         },
       );
       expect(dependencies.firebaseUpdateLot).toHaveBeenCalledWith(lot.id, {
         active: false,
         winnerUsername: winnerUserProfileData.username,
       });
+
+      expect(dependencies.firebaseUpdateUserProfile).toHaveBeenCalledWith(
+        winnerUid,
+        {
+          winnings: {
+            [lot.id]: { link: winnerPullPayment.viewLink, hasSeenLink: false },
+          },
+        },
+      );
       expect(dependencies.createLot).toHaveBeenCalled();
       expect(response).toEqual({
         error: false,
