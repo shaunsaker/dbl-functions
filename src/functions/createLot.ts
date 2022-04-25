@@ -8,7 +8,7 @@ import { createStore } from '../services/btcPayServer/createStore';
 import { createStoreWallet } from '../services/btcPayServer/createStoreWallet';
 import { createWebhook } from '../services/btcPayServer/createWebhook';
 import { firebaseCreateLot } from '../services/firebase/firebaseCreateLot';
-import { firebaseSaveStoreWalletKeyData } from '../services/firebase/firebaseSaveStoreWalletKeyData';
+import { firebaseCreateLotStoreWalletKey } from '../services/firebase/firebaseCreateLotStoreWalletKey';
 import { createMnemonic } from '../utils/createMnemonic';
 import { encrypt } from '../utils/crypto';
 import {
@@ -87,7 +87,7 @@ export const createLot = async ({
     firebaseFetchLot,
     createStore,
     createStoreWallet,
-    firebaseSaveStoreWalletKeyData,
+    firebaseCreateLotStoreWalletKey,
     createWebhook,
     firebaseCreateLot,
   },
@@ -99,7 +99,7 @@ export const createLot = async ({
     firebaseFetchLot: typeof firebaseFetchLot;
     createStore: typeof createStore;
     createStoreWallet: typeof createStoreWallet;
-    firebaseSaveStoreWalletKeyData: typeof firebaseSaveStoreWalletKeyData;
+    firebaseCreateLotStoreWalletKey: typeof firebaseCreateLotStoreWalletKey;
     createWebhook: typeof createWebhook;
     firebaseCreateLot: typeof firebaseCreateLot;
   };
@@ -155,7 +155,11 @@ export const createLot = async ({
 
     // save the mnemonic created above in case we need to retrieve it later
     const hash = encrypt(mnemonic, process.env.STORE_MNEMONIC_SECRET_KEY);
-    await dependencies.firebaseSaveStoreWalletKeyData(storeId, { hash });
+    await dependencies.firebaseCreateLotStoreWalletKey({
+      lotId,
+      storeId,
+      data: { hash },
+    });
 
     // create an invoice payment webhook
     const invoicePaymentReceivedWebhook = getPaymentReceivedWebhook();
