@@ -3,7 +3,7 @@ import { createLot } from './createLot';
 const doAsync = async () => {
   const lotId = process.argv[2];
   const active = Boolean(parseInt(process.argv[3]));
-  const dryRun = true;
+  const dryRun = Boolean(parseInt(process.argv[4]));
 
   try {
     await createLot({ lotId, active, dryRun });

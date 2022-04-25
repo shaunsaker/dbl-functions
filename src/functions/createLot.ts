@@ -136,10 +136,6 @@ export const createLot = async ({
   });
   await dependencies.firebaseCreateLot(lot);
 
-  console.log(
-    `successfully created lot with id ${lotId} and ${totalAvailableTickets} available tickets.`,
-  );
-
   if (!dryRun) {
     // create the store
     const store = makeBtcPayServerStore({ name: lotId });
@@ -173,6 +169,10 @@ export const createLot = async ({
     const invoiceExpiredWebhook = getInvoiceExpiredWebhook();
     await dependencies.createWebhook(storeId, invoiceExpiredWebhook);
   }
+
+  console.log(
+    `successfully created lot with id ${lotId} and ${totalAvailableTickets} available tickets.`,
+  );
 
   return {
     error: false,
