@@ -1,4 +1,10 @@
-import { Lot, MAX_BTC_DIGITS, Ticket, TicketStatus } from '../../lots/models';
+import {
+  Lot,
+  MAX_BTC_DIGITS,
+  Ticket,
+  TicketStatus,
+  TICKET_COMMISSION_PERCENTAGE,
+} from '../../lots/models';
 import { numberToDigits } from '../../utils/numberToDigits';
 
 // NOTE: this covers a lot of scenarios and looks complicated, see tests for clarity
@@ -104,6 +110,9 @@ export const getLotStats = ({
       newTicketsAvailable -= 1;
     }
   }
+
+  // remove our commission from the total
+  newTotalInBTC = (newTotalInBTC * (100 - TICKET_COMMISSION_PERCENTAGE)) / 100;
 
   const newLotStats = {
     totalAvailableTickets: newTicketsAvailable,

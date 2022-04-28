@@ -53,22 +53,15 @@ export const drawWinner = async (
 };
 
 export const getAdminPaymentAmountBTC = (lot: Lot): number => {
-  const adminPaymentAmountBTC = numberToDigits(
-    (lot.totalBTC * TICKET_COMMISSION_PERCENTAGE) / 100,
-    MAX_BTC_DIGITS,
-  );
+  const adminPaymentAmountBTC =
+    lot.totalBTC / ((100 - TICKET_COMMISSION_PERCENTAGE) / 100);
 
-  return adminPaymentAmountBTC;
+  return numberToDigits(adminPaymentAmountBTC, MAX_BTC_DIGITS);
 };
 
 export const getWinnerPaymentAmountBTC = (lot: Lot): number => {
-  const adminPaymentAmountBTC = getAdminPaymentAmountBTC(lot);
-  const paymentAmountBTC = numberToDigits(
-    lot.totalBTC - adminPaymentAmountBTC,
-    MAX_BTC_DIGITS,
-  );
-
-  return paymentAmountBTC;
+  // we've already removed our commission by this stage
+  return lot.totalBTC;
 };
 
 export const createWinnerPullPayment = async ({
@@ -255,19 +248,19 @@ export const runBoss = async (
     await dependencies.firebaseUpdateUserProfile(winnerUid, {
       winnings: existingUserWinnings,
     });
+
+    // notify the users
+    await dependencies.firebaseSendNotification({
+      topic: FirebaseMessagingTopics.winner,
+      title: 'We have a new Winner 👑🎉',
+      body: 'Open the app for more info 😎',
+    });
   }
 
   // create a new lot
   const lotId = getLotIdFromDate(moment(activeLot.id).add({ days: 1 }));
   const active = true;
   await dependencies.createLot({ lotId, active });
-
-  // notify the users
-  await dependencies.firebaseSendNotification({
-    topic: FirebaseMessagingTopics.winner,
-    title: 'We have a new Winner 👑🎉',
-    body: 'Open the app for more info 😎',
-  });
 
   return {
     error: false,
