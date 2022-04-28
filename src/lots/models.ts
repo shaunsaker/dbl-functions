@@ -9,7 +9,7 @@ export const TARGET_LOT_VALUE_USD = 1000000;
 
 export const TARGET_TICKET_VALUE_USD = 10;
 
-export const TICKET_COMMISSION_PERCENTAGE = 10;
+export const TICKET_COMMISSION_PERCENTAGE = 4.7;
 
 export const MAX_BTC_DIGITS = 8; // when rounded up, this is equivalent to $0.004 which is negligible
 
