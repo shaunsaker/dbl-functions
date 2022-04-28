@@ -268,8 +268,9 @@ export const runBoss = async (
   };
 };
 
-export const boss = functions.pubsub
-  .schedule('0 0 * * *')
+export const boss = functions
+  .region('europe-west1')
+  .pubsub.schedule('0 0 * * *') // every day at midnight
   .timeZone('Africa/Johannesburg')
   .onRun(async () => {
     return await runBoss();
