@@ -125,8 +125,9 @@ export const runBangBeggar = async (
   };
 };
 
-const bangBeggar = functions.https.onRequest(
-  async (request, response): Promise<void> => {
+const bangBeggar = functions
+  .region('europe-west1')
+  .https.onRequest(async (request, response): Promise<void> => {
     const verifyWebhookSignatureResponse = verifyWebhookSignature(request);
 
     if (verifyWebhookSignatureResponse.error) {
@@ -166,7 +167,6 @@ const bangBeggar = functions.https.onRequest(
 
       response.status(200).send(message);
     }
-  },
-);
+  });
 
 export { bangBeggar };

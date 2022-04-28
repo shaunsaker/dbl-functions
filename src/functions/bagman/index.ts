@@ -227,8 +227,9 @@ export const runBagman = async (
   };
 };
 
-const bagman = functions.https.onRequest(
-  async (request, response): Promise<void> => {
+const bagman = functions
+  .region('europe-west1')
+  .https.onRequest(async (request, response): Promise<void> => {
     const verifyWebhookSignatureResponse = verifyWebhookSignature(request);
 
     if (verifyWebhookSignatureResponse.error) {
@@ -265,7 +266,6 @@ const bagman = functions.https.onRequest(
 
       response.status(200).send(message);
     }
-  },
-);
+  });
 
 export { bagman };

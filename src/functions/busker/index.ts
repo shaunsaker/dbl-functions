@@ -52,8 +52,9 @@ export const runBusker = async ({
   };
 };
 
-const busker = functions.firestore
-  .document('lots/{lotId}/tickets/{ticketId}')
+const busker = functions
+  .region('europe-west1')
+  .firestore.document('lots/{lotId}/tickets/{ticketId}')
   .onWrite(async (change, context): Promise<Response> => {
     const { lotId } = context.params;
 

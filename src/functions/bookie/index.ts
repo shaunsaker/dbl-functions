@@ -216,7 +216,7 @@ export const runBookie = async ({
   };
 };
 
-const bookie = functions.https.onCall(
+const bookie = functions.region('europe-west1').https.onCall(
   async (
     data: {
       lotId: LotId;

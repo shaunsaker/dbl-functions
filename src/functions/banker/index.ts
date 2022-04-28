@@ -130,8 +130,9 @@ export const runBanker = async (
   };
 };
 
-const banker = functions.https.onRequest(
-  async (request, response): Promise<void> => {
+const banker = functions
+  .region('europe-west1')
+  .https.onRequest(async (request, response): Promise<void> => {
     const verifyWebhookSignatureResponse = verifyWebhookSignature(request);
 
     if (verifyWebhookSignatureResponse.error) {
@@ -171,7 +172,6 @@ const banker = functions.https.onRequest(
 
       response.status(200).send(message);
     }
-  },
-);
+  });
 
 export { banker };
