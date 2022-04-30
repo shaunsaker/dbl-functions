@@ -22,7 +22,7 @@ export const setupBossTest = async ({
   lot?: Lot | null;
   store?: BtcPayServerStore | null;
   walletBalanceBTC?: number;
-  winnerUid?: UserId;
+  winnerUid?: UserId | null;
   winnerUserProfileData?: UserProfileData | null;
   winnerPullPayment?: BtcPayServerPullPayment | null;
 }) => {

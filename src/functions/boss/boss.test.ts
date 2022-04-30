@@ -143,7 +143,44 @@ describe('boss', () => {
       });
     });
 
-    it('does the nitty gritty', async () => {
+    it('does the nitty gritty when there were no participants', async () => {
+      const lot = makeLot({
+        id: getUuid(),
+        active: true,
+        totalAvailableTickets: 100000,
+        totalBTC: 1,
+      });
+      const store = { ...makeBtcPayServerStore({}), id: getUuid() };
+      const winnerUid = null; // no winner
+      const { response, dependencies } = await setupBossTest({
+        lot,
+        store,
+        walletBalanceBTC: 1.1, // more than lot total
+        winnerUid,
+      });
+
+      expect(dependencies.firebaseFetchActiveLot).toHaveBeenCalled();
+      expect(dependencies.getStoreByStoreName).toHaveBeenCalledWith(lot.id);
+      expect(dependencies.getStoreWalletBalance).toHaveBeenCalledWith(store.id);
+      expect(dependencies.drawWinner).toHaveBeenCalledWith(lot.id);
+      expect(dependencies.firebaseFetchUserProfile).not.toHaveBeenCalled();
+      expect(dependencies.firebaseCreateLotWinner).not.toHaveBeenCalled();
+      expect(dependencies.createWinnerPullPayment).not.toHaveBeenCalled();
+      expect(dependencies.firebaseSendNotification).not.toHaveBeenCalled();
+      expect(dependencies.createAdminPullPayment).not.toHaveBeenCalled();
+      expect(dependencies.firebaseCreateLotWinner).not.toHaveBeenCalled();
+      expect(dependencies.firebaseUpdateLot).toHaveBeenCalledWith(lot.id, {
+        active: false,
+        winnerUsername: '', // no winner, this should be empty
+      });
+      expect(dependencies.createLot).toHaveBeenCalled();
+      expect(response).toEqual({
+        error: false,
+        message: 'great success!',
+      });
+    });
+
+    it('does the nitty gritty when there were participants', async () => {
       const lot = makeLot({
         id: getUuid(),
         active: true,

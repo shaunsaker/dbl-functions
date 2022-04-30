@@ -213,12 +213,7 @@ export const runBoss = async (
       };
     }
 
-    // mark active lot as inactive and save the winner username
     winnerUsername = userProfileData.username;
-    await dependencies.firebaseUpdateLot(activeLot.id, {
-      active: false,
-      winnerUsername,
-    });
 
     // save the winner's uid to the lot
     // the alternative would be to save it to the lot but we don't want to expose the winner's uid publicly
@@ -256,6 +251,14 @@ export const runBoss = async (
       body: 'Open the app for more info 😎',
     });
   }
+
+  // mark active lot as inactive and save the winner username
+  // NOTE: we need to do this here because we may not have had a winner
+  // but we still want to mark the lot as inactive
+  await dependencies.firebaseUpdateLot(activeLot.id, {
+    active: false,
+    winnerUsername,
+  });
 
   // create a new lot
   const lotId = getLotIdFromDate(moment(activeLot.id).add({ days: 1 }));
