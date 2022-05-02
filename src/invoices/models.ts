@@ -7,6 +7,7 @@ export interface Invoice {
   id: InvoiceId;
   lotId: LotId;
   uid: UserId;
+  dateCreated: string;
   address: string;
   amountBTC: number;
   rate: number;

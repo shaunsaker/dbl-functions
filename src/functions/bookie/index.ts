@@ -200,6 +200,7 @@ export const runBookie = async ({
     id: invoiceId,
     lotId,
     uid,
+    dateCreated: getTimeAsISOString(invoice.dateCreated * 1000),
     address: invoicePaymentAddress,
     amountBTC: invoicePaymentAmountBTC,
     rate: invoicePaymentRate,
