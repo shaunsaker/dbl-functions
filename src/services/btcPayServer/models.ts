@@ -187,7 +187,7 @@ export interface BtcPayServerInvoice
   currency: string;
   type: string;
   checkoutLink: string;
-  dateCreated: number;
+  createdTime: number;
   expirationTime: number;
   monitoringTime: number;
   status: string;

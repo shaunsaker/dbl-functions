@@ -91,7 +91,7 @@ export const makeInvoice = ({
   currency: 'BTC',
   type: '',
   checkoutLink: '',
-  dateCreated: 0,
+  createdTime: 0,
   expirationTime: 0,
   monitoringTime: 0,
   status: '',
