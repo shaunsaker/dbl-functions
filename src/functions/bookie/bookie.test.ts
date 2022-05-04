@@ -147,6 +147,7 @@ describe('bookie', () => {
       uid,
       address: invoicePaymentAddress,
       amountBTC: invoicePaymentAmountBTC,
+      dateCreated: expect.any(String),
       rate: invoicePaymentRate,
       expiry: invoicePaymentExpiry,
       ticketIds,
