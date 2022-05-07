@@ -1,7 +1,10 @@
 import { runBanker } from '.';
-import { makeInvoice, makeTicket } from '../../lots/data';
+import { makeTicket } from '../../lots/data';
 import { Ticket } from '../../lots/models';
-import { makeBtcPayServerInvoiceSettledEventData } from '../../services/btcPayServer/data';
+import {
+  makeBtcPayServerInvoice,
+  makeBtcPayServerInvoiceSettledEventData,
+} from '../../services/btcPayServer/data';
 import {
   BtcPayServerInvoice,
   BtcPayServerInvoiceId,
@@ -13,7 +16,7 @@ import { changeTicketsStatus } from '../changeTicketsStatus';
 export const setupBankerTest = async ({
   storeId = getUuid(),
   invoiceId = getUuid(),
-  invoice = makeInvoice({}),
+  invoice = makeBtcPayServerInvoice({}),
   tickets = [makeTicket({})],
 }: {
   storeId?: BtcPayServerStoreId;

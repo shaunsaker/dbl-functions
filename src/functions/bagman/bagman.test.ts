@@ -1,6 +1,7 @@
 import { getBagmanNotification } from '.';
-import { makeInvoice, makeLot, makeTicket } from '../../lots/data';
+import { makeLot, makeTicket } from '../../lots/data';
 import { TicketStatus } from '../../lots/models';
+import { makeBtcPayServerInvoice } from '../../services/btcPayServer/data';
 import { getUuid } from '../../utils/getUuid';
 import { changeTicketsStatus } from '../changeTicketsStatus';
 import { setupBagmanTest } from './bagman.testUtils';
@@ -38,7 +39,7 @@ describe('bagman', () => {
       }),
     ];
     const uid = getUuid();
-    const invoice = makeInvoice({
+    const invoice = makeBtcPayServerInvoice({
       metadata: {
         lotId: lot.id,
         uid,
@@ -119,7 +120,7 @@ describe('bagman', () => {
       }),
     ];
     const uid = getUuid();
-    const invoice = makeInvoice({
+    const invoice = makeBtcPayServerInvoice({
       metadata: {
         lotId: lot.id,
         uid,
@@ -199,7 +200,7 @@ describe('bagman', () => {
       }),
     ];
     const uid = getUuid();
-    const invoice = makeInvoice({
+    const invoice = makeBtcPayServerInvoice({
       metadata: {
         lotId: lot.id,
         uid,

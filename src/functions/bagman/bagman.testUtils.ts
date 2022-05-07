@@ -1,7 +1,10 @@
 import { runBagman } from '.';
-import { makeInvoice, makeLot, makeTicket } from '../../lots/data';
+import { makeLot, makeTicket } from '../../lots/data';
 import { Lot, Ticket } from '../../lots/models';
-import { makeBtcPayServerInvoiceReceivedPaymentEventData } from '../../services/btcPayServer/data';
+import {
+  makeBtcPayServerInvoice,
+  makeBtcPayServerInvoiceReceivedPaymentEventData,
+} from '../../services/btcPayServer/data';
 import {
   BtcPayServerInvoice,
   BtcPayServerInvoiceId,
@@ -13,7 +16,7 @@ import { changeTicketsStatus } from '../changeTicketsStatus';
 export const setupBagmanTest = async ({
   storeId = getUuid(),
   invoiceId = getUuid(),
-  invoice = makeInvoice({}),
+  invoice = makeBtcPayServerInvoice({}),
   lot = makeLot({ id: getUuid(), active: true, totalAvailableTickets: 100000 }),
   tickets = [makeTicket({})],
   paymentAmountBTC = 0.00025,

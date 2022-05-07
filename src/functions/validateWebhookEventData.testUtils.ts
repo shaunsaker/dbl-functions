@@ -1,4 +1,4 @@
-import { makeInvoice } from '../lots/data';
+import { makeBtcPayServerInvoice } from '../services/btcPayServer/data';
 import { makeBtcPayServerInvoiceReceivedPaymentEventData } from '../services/btcPayServer/data';
 import {
   BtcPayServerInvoice,
@@ -11,7 +11,7 @@ import { validateWebookEventData } from './validateWebhookEventData';
 export const setupValidateWebhookEventDataTest = async ({
   storeId = getUuid(),
   invoiceId = getUuid(),
-  invoice = makeInvoice({}),
+  invoice = makeBtcPayServerInvoice({}),
   paymentValueUSD = 10,
 }: {
   storeId?: BtcPayServerStoreId;

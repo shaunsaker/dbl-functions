@@ -1,5 +1,8 @@
-import { makeInvoice, makeLot, makeTicket } from '../../lots/data';
-import { makeBtcPayServerInvoicePayload } from '../../services/btcPayServer/data';
+import { makeLot, makeTicket } from '../../lots/data';
+import {
+  makeBtcPayServerInvoice,
+  makeBtcPayServerInvoicePayload,
+} from '../../services/btcPayServer/data';
 import { makeBtcPayServerStore } from '../../services/btcPayServer/data';
 import { arrayFromNumber } from '../../utils/arrayFromNumber';
 import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
@@ -79,7 +82,7 @@ describe('bookie', () => {
     const tickets = arrayFromNumber(5).map(() =>
       makeTicket({ priceBTC: ticketPriceBTC }),
     );
-    const invoice = makeInvoice({
+    const invoice = makeBtcPayServerInvoice({
       amount: invoicePaymentTotalUSD.toString(),
       metadata: {
         ticketIds: tickets.map((ticket) => ticket.id),

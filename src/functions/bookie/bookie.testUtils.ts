@@ -1,12 +1,15 @@
 import { runBookie } from '.';
-import { makeInvoice, makeLot, makeTicket } from '../../lots/data';
+import { makeLot, makeTicket } from '../../lots/data';
 import { Lot, LotId, Ticket } from '../../lots/models';
 import {
   BtcPayServerInvoice,
   BtcPayServerPaymentMethods,
   BtcPayServerStore,
 } from '../../services/btcPayServer/models';
-import { makeBtcPayServerStore } from '../../services/btcPayServer/data';
+import {
+  makeBtcPayServerInvoice,
+  makeBtcPayServerStore,
+} from '../../services/btcPayServer/data';
 import { UserId } from '../../userProfile/models';
 import { getUuid } from '../../utils/getUuid';
 
@@ -18,7 +21,7 @@ export const setupBookieTest = async ({
   lot = makeLot({ id: getUuid(), active: true, totalAvailableTickets: 100000 }),
   store = { ...makeBtcPayServerStore({}), id: getUuid() },
   tickets = [makeTicket({})],
-  invoice = makeInvoice({}),
+  invoice = makeBtcPayServerInvoice({}),
   invoicePaymentAddress = getUuid(),
   invoicePaymentAmountBTC = 0,
   invoicePaymentRate = 0,

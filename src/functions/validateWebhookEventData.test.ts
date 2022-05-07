@@ -1,4 +1,4 @@
-import { makeInvoice } from '../lots/data';
+import { makeBtcPayServerInvoice } from '../services/btcPayServer/data';
 import { getUuid } from '../utils/getUuid';
 import { setupValidateWebhookEventDataTest } from './validateWebhookEventData.testUtils';
 
@@ -40,7 +40,7 @@ describe('validateWebhookEventData', () => {
   });
 
   it('returns an error when there is no lotId in the invoice', async () => {
-    const invoice = makeInvoice({
+    const invoice = makeBtcPayServerInvoice({
       metadata: { lotId: '', uid: getUuid(), ticketIds: [getUuid()] },
     });
     const { response } = await setupValidateWebhookEventDataTest({ invoice });
@@ -52,7 +52,7 @@ describe('validateWebhookEventData', () => {
   });
 
   it('returns an error when there is no uid in the invoice', async () => {
-    const invoice = makeInvoice({
+    const invoice = makeBtcPayServerInvoice({
       metadata: { lotId: getUuid(), uid: '', ticketIds: [getUuid()] },
     });
     const { response } = await setupValidateWebhookEventDataTest({ invoice });
@@ -64,7 +64,7 @@ describe('validateWebhookEventData', () => {
   });
 
   it('returns an error when there are no ticketIds in the invoice', async () => {
-    const invoice = makeInvoice({
+    const invoice = makeBtcPayServerInvoice({
       metadata: {
         lotId: getUuid(),
         uid: getUuid(),
@@ -81,7 +81,7 @@ describe('validateWebhookEventData', () => {
   });
 
   it('returns an error when there the ticketIds in the invoice are empty', async () => {
-    const invoice = makeInvoice({
+    const invoice = makeBtcPayServerInvoice({
       metadata: {
         lotId: getUuid(),
         uid: getUuid(),
@@ -97,7 +97,7 @@ describe('validateWebhookEventData', () => {
   });
 
   it('returns the invoice', async () => {
-    const invoice = makeInvoice({
+    const invoice = makeBtcPayServerInvoice({
       metadata: {
         lotId: getUuid(),
         uid: getUuid(),
