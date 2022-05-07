@@ -3,7 +3,6 @@ import {
   Lot,
   LotId,
   MAX_BTC_DIGITS,
-  TicketStatus,
   TICKET_COMMISSION_PERCENTAGE,
 } from '../../lots/models';
 import { createPullPayment } from '../../services/btcPayServer/createPullPayment';
@@ -31,6 +30,7 @@ import moment = require('moment');
 import { getLotIdFromDate } from '../../utils/getLotIdFromDate';
 import { firebaseUpdateUserProfile } from '../../services/firebase/firebaseUpdateUserProfile';
 import { LotWinner } from '../../winners/models';
+import { TicketStatus } from '../../tickets/models';
 
 export const drawWinner = async (
   lotId: LotId,

@@ -1,5 +1,4 @@
 import * as functions from 'firebase-functions';
-import { Ticket, TicketStatus } from '../../lots/models';
 import {
   BtcPayServerInvoice,
   BtcPayServerInvoiceExpiredEventData,
@@ -13,6 +12,7 @@ import { validateWebookEventData } from '../validateWebhookEventData';
 import { sendNotification } from '../sendNotification';
 import { maybePluralise } from '../../utils/maybePluralise';
 import { verifyWebhookSignature } from '../verifyWebhookSignature';
+import { Ticket, TicketStatus } from '../../tickets/models';
 
 require('dotenv').config();
 

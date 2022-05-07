@@ -1,6 +1,7 @@
 import { firebase } from './';
-import { LotId, Ticket, TicketId, TicketStatus } from '../../lots/models';
+import { LotId } from '../../lots/models';
 import { UserId } from '../../userProfile/models';
+import { TicketStatus, TicketId, Ticket } from '../../tickets/models';
 
 export const firebaseFetchTickets = async ({
   lotId,

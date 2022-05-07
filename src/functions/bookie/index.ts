@@ -5,7 +5,6 @@ import {
   LotId,
   MAX_BTC_DIGITS,
   TARGET_TICKET_VALUE_USD,
-  TicketId,
 } from '../../lots/models';
 import { createInvoice } from '../../services/btcPayServer/createInvoice';
 import { makeBtcPayServerInvoicePayload } from '../../services/btcPayServer/data';
@@ -16,6 +15,7 @@ import { firebaseCreateInvoice } from '../../services/firebase/firebaseCreateInv
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseGetUser } from '../../services/firebase/firebaseGetUser';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
+import { TicketId } from '../../tickets/models';
 import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import { numberToDigits } from '../../utils/numberToDigits';
 import { createTickets } from '../createTickets';

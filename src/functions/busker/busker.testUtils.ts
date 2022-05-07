@@ -1,7 +1,8 @@
 import { runBusker } from '.';
 import { makeLot } from '../../lots/data';
-import { Lot, Ticket } from '../../lots/models';
+import { Lot } from '../../lots/models';
 import { makeTicket } from '../../tickets/data';
+import { Ticket } from '../../tickets/models';
 import { getUuid } from '../../utils/getUuid';
 
 export const setupBuskerTest = async ({

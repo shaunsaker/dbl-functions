@@ -1,5 +1,4 @@
 import { runBanker } from '.';
-import { Ticket } from '../../lots/models';
 import {
   makeBtcPayServerInvoice,
   makeBtcPayServerInvoiceSettledEventData,
@@ -10,6 +9,7 @@ import {
   BtcPayServerStoreId,
 } from '../../services/btcPayServer/models';
 import { makeTicket } from '../../tickets/data';
+import { Ticket } from '../../tickets/models';
 import { getUuid } from '../../utils/getUuid';
 import { changeTicketsStatus } from '../changeTicketsStatus';
 

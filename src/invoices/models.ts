@@ -1,4 +1,5 @@
-import { LotId, TicketId } from '../lots/models';
+import { LotId } from '../lots/models';
+import { TicketId } from '../tickets/models';
 import { UserId } from '../userProfile/models';
 
 export type InvoiceId = string;

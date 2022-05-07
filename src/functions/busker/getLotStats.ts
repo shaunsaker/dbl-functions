@@ -1,10 +1,9 @@
 import {
   Lot,
   MAX_BTC_DIGITS,
-  Ticket,
-  TicketStatus,
   TICKET_COMMISSION_PERCENTAGE,
 } from '../../lots/models';
+import { Ticket, TicketStatus } from '../../tickets/models';
 import { numberToDigits } from '../../utils/numberToDigits';
 
 // NOTE: this covers a lot of scenarios and looks complicated, see tests for clarity

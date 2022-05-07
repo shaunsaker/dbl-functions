@@ -1,6 +1,6 @@
-import { TicketStatus, Ticket } from '../lots/models';
 import { getTimeAsISOString } from '../utils/getTimeAsISOString';
 import { getUuid } from '../utils/getUuid';
+import { TicketStatus, Ticket } from './models';
 
 export const makeTicket = ({
   id = getUuid(),

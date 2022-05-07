@@ -1,6 +1,7 @@
 import { InvoiceId } from '../invoices/models';
 import { makeLot } from '../lots/data';
-import { Lot, Ticket } from '../lots/models';
+import { Lot } from '../lots/models';
+import { Ticket } from '../tickets/models';
 import { UserId } from '../userProfile/models';
 import { getUuid } from '../utils/getUuid';
 import { createTickets } from './createTickets';

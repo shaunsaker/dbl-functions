@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import { MAX_BTC_DIGITS, Ticket, TicketStatus } from '../../lots/models';
+import { MAX_BTC_DIGITS } from '../../lots/models';
 import {
   BtcPayServerInvoice,
   BtcPayServerInvoiceReceivedPaymentEventData,
@@ -21,6 +21,7 @@ import { sortArrayOfObjectsByKey } from '../../utils/sortArrayOfObjectsByKey';
 import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import moment = require('moment');
 import { firebaseCreatePayment } from '../../services/firebase/firebaseCreatePayment';
+import { TicketStatus, Ticket } from '../../tickets/models';
 
 require('dotenv').config();
 
