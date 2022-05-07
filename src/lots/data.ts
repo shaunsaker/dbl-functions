@@ -1,13 +1,10 @@
 import moment = require('moment');
 import { getTimeAsISOString } from '../utils/getTimeAsISOString';
-import { getUuid } from '../utils/getUuid';
 import {
   Lot,
   LotId,
   PER_USER_TICKET_LIMIT,
   TARGET_TICKET_VALUE_USD,
-  Ticket,
-  TicketStatus,
   TICKET_TIMEOUT_MINUTES,
 } from './models';
 
@@ -48,21 +45,3 @@ export const makeLot = ({
     ticketPriceUSD,
   };
 };
-
-export const makeTicket = ({
-  id = getUuid(),
-  lotId = getUuid(),
-  uid = '',
-  priceBTC = 0,
-  status = TicketStatus.reserved,
-  dateCreated = getTimeAsISOString(),
-  invoiceId = getUuid(),
-}: Partial<Ticket>): Ticket => ({
-  id,
-  lotId,
-  uid,
-  priceBTC,
-  status,
-  dateCreated,
-  invoiceId,
-});

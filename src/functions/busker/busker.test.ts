@@ -1,5 +1,6 @@
-import { makeLot, makeTicket } from '../../lots/data';
+import { makeLot } from '../../lots/data';
 import { TicketStatus } from '../../lots/models';
+import { makeTicket } from '../../tickets/data';
 import { getUuid } from '../../utils/getUuid';
 import { setupBuskerTest } from './busker.testUtils';
 import { getLotStats } from './getLotStats';

@@ -1,4 +1,5 @@
-import { makeLot, makeTicket } from '../lots/data';
+import { makeLot } from '../lots/data';
+import { makeTicket } from '../tickets/data';
 import { getUuid } from '../utils/getUuid';
 import {
   getNotEnoughTicketsAvailableResponseMessage,

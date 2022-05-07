@@ -1,7 +1,8 @@
 import { getBagmanNotification } from '.';
-import { makeLot, makeTicket } from '../../lots/data';
+import { makeLot } from '../../lots/data';
 import { TicketStatus } from '../../lots/models';
 import { makeBtcPayServerInvoice } from '../../services/btcPayServer/data';
+import { makeTicket } from '../../tickets/data';
 import { getUuid } from '../../utils/getUuid';
 import { changeTicketsStatus } from '../changeTicketsStatus';
 import { setupBagmanTest } from './bagman.testUtils';

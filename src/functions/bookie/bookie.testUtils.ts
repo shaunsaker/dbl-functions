@@ -1,5 +1,5 @@
 import { runBookie } from '.';
-import { makeLot, makeTicket } from '../../lots/data';
+import { makeLot } from '../../lots/data';
 import { Lot, LotId, Ticket } from '../../lots/models';
 import {
   BtcPayServerInvoice,
@@ -12,6 +12,7 @@ import {
 } from '../../services/btcPayServer/data';
 import { UserId } from '../../userProfile/models';
 import { getUuid } from '../../utils/getUuid';
+import { makeTicket } from '../../tickets/data';
 
 export const setupBookieTest = async ({
   uid = getUuid(),

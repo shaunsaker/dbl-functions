@@ -1,5 +1,5 @@
 import { runBagman } from '.';
-import { makeLot, makeTicket } from '../../lots/data';
+import { makeLot } from '../../lots/data';
 import { Lot, Ticket } from '../../lots/models';
 import {
   makeBtcPayServerInvoice,
@@ -10,6 +10,7 @@ import {
   BtcPayServerInvoiceId,
   BtcPayServerStoreId,
 } from '../../services/btcPayServer/models';
+import { makeTicket } from '../../tickets/data';
 import { getUuid } from '../../utils/getUuid';
 import { changeTicketsStatus } from '../changeTicketsStatus';
 
