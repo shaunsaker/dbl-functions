@@ -2,7 +2,6 @@ import * as functions from 'firebase-functions';
 import {
   Lot,
   LotId,
-  LotWinner,
   MAX_BTC_DIGITS,
   TicketStatus,
   TICKET_COMMISSION_PERCENTAGE,
@@ -31,6 +30,7 @@ import { firebaseCreateLotWinner } from '../../services/firebase/firebaseCreateL
 import moment = require('moment');
 import { getLotIdFromDate } from '../../utils/getLotIdFromDate';
 import { firebaseUpdateUserProfile } from '../../services/firebase/firebaseUpdateUserProfile';
+import { LotWinner } from '../../winners/models';
 
 export const drawWinner = async (
   lotId: LotId,
