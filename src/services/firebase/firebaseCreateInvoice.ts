@@ -1,6 +1,6 @@
 import { firebase } from '.';
-import { Invoice } from '../../invoices/models';
-import { LotId } from '../../lots/models';
+import { Invoice } from '../../store/invoices/models';
+import { LotId } from '../../store/lots/models';
 
 export const firebaseCreateInvoice = (
   lotId: LotId,

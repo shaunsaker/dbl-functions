@@ -1,6 +1,6 @@
-import { makeLot } from '../../lots/data';
-import { makeTicket } from '../../tickets/data';
-import { TicketStatus } from '../../tickets/models';
+import { makeLot } from '../../store/lots/data';
+import { makeTicket } from '../../store/tickets/data';
+import { TicketStatus } from '../../store/tickets/models';
 import { getUuid } from '../../utils/getUuid';
 import { getLotStats } from './getLotStats';
 

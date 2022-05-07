@@ -5,16 +5,16 @@ import {
   getAdminPaymentAmountBTC,
   getWinnerPaymentAmountBTC,
 } from '.';
-import { makeLot } from '../../lots/data';
+import { makeLot } from '../../store/lots/data';
 import { makeBtcPayServerPullPayment } from '../../services/btcPayServer/data';
 import { FirebaseMessagingTopics } from '../../services/firebase/models';
 import { makeBtcPayServerStore } from '../../services/btcPayServer/data';
-import { makeUserProfileData } from '../../userProfile/data';
+import { makeUserProfileData } from '../../store/userProfile/data';
 import { arrayFromNumber } from '../../utils/arrayFromNumber';
 import { getUuid } from '../../utils/getUuid';
 import { setupBossTest } from './boss.testUtils';
-import { makeTicket } from '../../tickets/data';
-import { TicketStatus } from '../../tickets/models';
+import { makeTicket } from '../../store/tickets/data';
+import { TicketStatus } from '../../store/tickets/models';
 
 describe('boss', () => {
   describe('drawWinner', () => {

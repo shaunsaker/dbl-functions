@@ -3,7 +3,7 @@ import {
   TARGET_LOT_VALUE_USD,
   TARGET_TICKET_VALUE_USD,
   TICKET_COMMISSION_PERCENTAGE,
-} from '../lots/models';
+} from '../store/lots/models';
 import { createStore } from '../services/btcPayServer/createStore';
 import { createStoreWallet } from '../services/btcPayServer/createStoreWallet';
 import { createWebhook } from '../services/btcPayServer/createWebhook';
@@ -15,7 +15,7 @@ import {
   makeBtcPayServerStore,
   makeBtcPayServerWebhook,
 } from '../services/btcPayServer/data';
-import { makeLot } from '../lots/data';
+import { makeLot } from '../store/lots/data';
 import { BtcPayServerWebhookEvent } from '../services/btcPayServer/models';
 import { firebaseFetchLot } from '../services/firebase/firebaseFetchLot';
 import { FirebaseFunctionResponse } from '../services/firebase/models';

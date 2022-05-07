@@ -1,14 +1,14 @@
 import { runBoss } from '.';
-import { makeLot } from '../../lots/data';
-import { Lot } from '../../lots/models';
+import { makeLot } from '../../store/lots/data';
+import { Lot } from '../../store/lots/models';
 import { makeBtcPayServerPullPayment } from '../../services/btcPayServer/data';
 import {
   BtcPayServerPullPayment,
   BtcPayServerStore,
 } from '../../services/btcPayServer/models';
 import { makeBtcPayServerStore } from '../../services/btcPayServer/data';
-import { makeUserProfileData } from '../../userProfile/data';
-import { UserId, UserProfileData } from '../../userProfile/models';
+import { makeUserProfileData } from '../../store/userProfile/data';
+import { UserId, UserProfileData } from '../../store/userProfile/models';
 import { getUuid } from '../../utils/getUuid';
 
 export const setupBossTest = async ({

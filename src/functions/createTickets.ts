@@ -1,11 +1,11 @@
-import { InvoiceId } from '../invoices/models';
-import { Lot } from '../lots/models';
+import { InvoiceId } from '../store/invoices/models';
+import { Lot } from '../store/lots/models';
 import { firebase } from '../services/firebase';
 import { firebaseFetchTickets } from '../services/firebase/firebaseFetchTickets';
 import { firebaseWriteBatch } from '../services/firebase/firebaseWriteBatch';
 import { FirebaseFunctionResponse } from '../services/firebase/models';
-import { TicketId, Ticket, TicketStatus } from '../tickets/models';
-import { UserId } from '../userProfile/models';
+import { TicketId, Ticket, TicketStatus } from '../store/tickets/models';
+import { UserId } from '../store/userProfile/models';
 import { arrayFromNumber } from '../utils/arrayFromNumber';
 import { getTimeAsISOString } from '../utils/getTimeAsISOString';
 import { getUuid } from '../utils/getUuid';

@@ -1,6 +1,6 @@
 import { runBookie } from '.';
-import { makeLot } from '../../lots/data';
-import { Lot, LotId } from '../../lots/models';
+import { makeLot } from '../../store/lots/data';
+import { Lot, LotId } from '../../store/lots/models';
 import {
   BtcPayServerInvoice,
   BtcPayServerPaymentMethods,
@@ -10,10 +10,10 @@ import {
   makeBtcPayServerInvoice,
   makeBtcPayServerStore,
 } from '../../services/btcPayServer/data';
-import { UserId } from '../../userProfile/models';
+import { UserId } from '../../store/userProfile/models';
 import { getUuid } from '../../utils/getUuid';
-import { makeTicket } from '../../tickets/data';
-import { Ticket } from '../../tickets/models';
+import { makeTicket } from '../../store/tickets/data';
+import { Ticket } from '../../store/tickets/models';
 
 export const setupBookieTest = async ({
   uid = getUuid(),

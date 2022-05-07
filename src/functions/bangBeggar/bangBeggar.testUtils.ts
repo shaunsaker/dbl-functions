@@ -8,8 +8,8 @@ import {
   BtcPayServerInvoiceId,
   BtcPayServerStoreId,
 } from '../../services/btcPayServer/models';
-import { makeTicket } from '../../tickets/data';
-import { Ticket } from '../../tickets/models';
+import { makeTicket } from '../../store/tickets/data';
+import { Ticket } from '../../store/tickets/models';
 import { getUuid } from '../../utils/getUuid';
 import { changeTicketsStatus } from '../changeTicketsStatus';
 

@@ -1,5 +1,5 @@
 import moment = require('moment');
-import { getTimeAsISOString } from '../utils/getTimeAsISOString';
+import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import {
   Lot,
   LotId,

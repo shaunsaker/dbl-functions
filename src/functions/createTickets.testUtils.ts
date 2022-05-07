@@ -1,8 +1,8 @@
-import { InvoiceId } from '../invoices/models';
-import { makeLot } from '../lots/data';
-import { Lot } from '../lots/models';
-import { Ticket } from '../tickets/models';
-import { UserId } from '../userProfile/models';
+import { InvoiceId } from '../store/invoices/models';
+import { makeLot } from '../store/lots/data';
+import { Lot } from '../store/lots/models';
+import { Ticket } from '../store/tickets/models';
+import { UserId } from '../store/userProfile/models';
 import { getUuid } from '../utils/getUuid';
 import { createTickets } from './createTickets';
 

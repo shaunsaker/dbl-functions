@@ -1,5 +1,5 @@
-import { getTimeAsISOString } from '../utils/getTimeAsISOString';
-import { getUuid } from '../utils/getUuid';
+import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
+import { getUuid } from '../../utils/getUuid';
 import { UserProfileData } from './models';
 
 export const makeUserProfileData = ({

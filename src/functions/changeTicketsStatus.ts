@@ -1,4 +1,4 @@
-import { Ticket, TicketStatus } from '../tickets/models';
+import { Ticket, TicketStatus } from '../store/tickets/models';
 
 export const changeTicketsStatus = (
   tickets: Ticket[],

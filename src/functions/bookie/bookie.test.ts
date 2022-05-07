@@ -1,10 +1,10 @@
-import { makeLot } from '../../lots/data';
+import { makeLot } from '../../store/lots/data';
 import {
   makeBtcPayServerInvoice,
   makeBtcPayServerInvoicePayload,
 } from '../../services/btcPayServer/data';
 import { makeBtcPayServerStore } from '../../services/btcPayServer/data';
-import { makeTicket } from '../../tickets/data';
+import { makeTicket } from '../../store/tickets/data';
 import { arrayFromNumber } from '../../utils/arrayFromNumber';
 import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import { getUuid } from '../../utils/getUuid';

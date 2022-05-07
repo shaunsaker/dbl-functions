@@ -1,5 +1,5 @@
-import { LotId } from '../../lots/models';
-import { Ticket } from '../../tickets/models';
+import { LotId } from '../../store/lots/models';
+import { Ticket } from '../../store/tickets/models';
 import { firebase } from './';
 import { firebaseWriteBatch } from './firebaseWriteBatch';
 

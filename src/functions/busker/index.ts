@@ -1,9 +1,9 @@
 import * as functions from 'firebase-functions';
-import { LotId } from '../../lots/models';
+import { LotId } from '../../store/lots/models';
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
-import { Ticket } from '../../tickets/models';
+import { Ticket } from '../../store/tickets/models';
 import { getLotStats } from './getLotStats';
 
 type Response = FirebaseFunctionResponse<void>;

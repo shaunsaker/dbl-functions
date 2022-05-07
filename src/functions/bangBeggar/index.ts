@@ -12,7 +12,7 @@ import { validateWebookEventData } from '../validateWebhookEventData';
 import { sendNotification } from '../sendNotification';
 import { maybePluralise } from '../../utils/maybePluralise';
 import { verifyWebhookSignature } from '../verifyWebhookSignature';
-import { Ticket, TicketStatus } from '../../tickets/models';
+import { Ticket, TicketStatus } from '../../store/tickets/models';
 
 require('dotenv').config();
 

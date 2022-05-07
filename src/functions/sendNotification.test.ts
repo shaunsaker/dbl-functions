@@ -1,4 +1,4 @@
-import { makeUserProfileData } from '../userProfile/data';
+import { makeUserProfileData } from '../store/userProfile/data';
 import { getUuid } from '../utils/getUuid';
 import { setupSendNotificationTest } from './sendNotification.testUtils';
 

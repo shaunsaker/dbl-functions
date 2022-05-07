@@ -4,7 +4,7 @@ import {
   LotId,
   MAX_BTC_DIGITS,
   TICKET_COMMISSION_PERCENTAGE,
-} from '../../lots/models';
+} from '../../store/lots/models';
 import { createPullPayment } from '../../services/btcPayServer/createPullPayment';
 import { getStoreByStoreName } from '../../services/btcPayServer/getStoreByStoreName';
 import { getStoreWalletBalance } from '../../services/btcPayServer/getStoreWalletBalance';
@@ -21,7 +21,7 @@ import {
   FirebaseMessagingTopics,
 } from '../../services/firebase/models';
 import { firebaseSendNotification } from '../../services/firebase/firebaseSendNotification';
-import { UserId, Username } from '../../userProfile/models';
+import { UserId, Username } from '../../store/userProfile/models';
 import { selectRandomItemFromArray } from '../../utils/selectRandomItemFromArray';
 import { createLot } from '../createLot';
 import { numberToDigits } from '../../utils/numberToDigits';
@@ -29,8 +29,8 @@ import { firebaseCreateLotWinner } from '../../services/firebase/firebaseCreateL
 import moment = require('moment');
 import { getLotIdFromDate } from '../../utils/getLotIdFromDate';
 import { firebaseUpdateUserProfile } from '../../services/firebase/firebaseUpdateUserProfile';
-import { LotWinner } from '../../winners/models';
-import { TicketStatus } from '../../tickets/models';
+import { LotWinner } from '../../store/winners/models';
+import { TicketStatus } from '../../store/tickets/models';
 
 export const drawWinner = async (
   lotId: LotId,

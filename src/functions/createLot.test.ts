@@ -1,4 +1,4 @@
-import { makeLot } from '../lots/data';
+import { makeLot } from '../store/lots/data';
 import { makeBtcPayServerStore } from '../services/btcPayServer/data';
 import { getUuid } from '../utils/getUuid';
 import {

@@ -1,7 +1,7 @@
 import { firebase } from '.';
-import { InvoiceId } from '../../invoices/models';
-import { LotId } from '../../lots/models';
-import { Payment } from '../../payments/models';
+import { InvoiceId } from '../../store/invoices/models';
+import { LotId } from '../../store/lots/models';
+import { Payment } from '../../store/payments/models';
 
 export const firebaseCreatePayment = ({
   lotId,

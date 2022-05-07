@@ -1,5 +1,5 @@
 import { firebase } from '.';
-import { UserId, UserProfileData } from '../../userProfile/models';
+import { UserId, UserProfileData } from '../../store/userProfile/models';
 
 export const firebaseUpdateUserProfile = (
   uid: UserId,

@@ -12,7 +12,7 @@ import { changeTicketsStatus } from '../changeTicketsStatus';
 import { validateWebookEventData } from '../validateWebhookEventData';
 import { sendNotification } from '../sendNotification';
 import { verifyWebhookSignature } from '../verifyWebhookSignature';
-import { Ticket, TicketStatus } from '../../tickets/models';
+import { Ticket, TicketStatus } from '../../store/tickets/models';
 
 require('dotenv').config();
 

@@ -1,5 +1,5 @@
-import { makeUserProfileData } from '../userProfile/data';
-import { UserId, UserProfileData } from '../userProfile/models';
+import { makeUserProfileData } from '../store/userProfile/data';
+import { UserId, UserProfileData } from '../store/userProfile/models';
 import { getUuid } from '../utils/getUuid';
 import { sendNotification } from './sendNotification';
 

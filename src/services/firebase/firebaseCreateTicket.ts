@@ -1,6 +1,6 @@
 import { firebase } from '.';
-import { LotId } from '../../lots/models';
-import { Ticket } from '../../tickets/models';
+import { LotId } from '../../store/lots/models';
+import { Ticket } from '../../store/tickets/models';
 
 export const firebaseCreateTicket = (
   lotId: LotId,

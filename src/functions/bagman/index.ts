@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import { MAX_BTC_DIGITS } from '../../lots/models';
+import { MAX_BTC_DIGITS } from '../../store/lots/models';
 import {
   BtcPayServerInvoice,
   BtcPayServerInvoiceReceivedPaymentEventData,
@@ -16,12 +16,12 @@ import { sendNotification } from '../sendNotification';
 import { verifyWebhookSignature } from '../verifyWebhookSignature';
 import { numberToDigits } from '../../utils/numberToDigits';
 import { getInvoicePaymentMethods } from '../../services/btcPayServer/getInvoicePaymentMethods';
-import { Payment } from '../../payments/models';
+import { Payment } from '../../store/payments/models';
 import { sortArrayOfObjectsByKey } from '../../utils/sortArrayOfObjectsByKey';
 import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import moment = require('moment');
 import { firebaseCreatePayment } from '../../services/firebase/firebaseCreatePayment';
-import { TicketStatus, Ticket } from '../../tickets/models';
+import { TicketStatus, Ticket } from '../../store/tickets/models';
 
 require('dotenv').config();
 

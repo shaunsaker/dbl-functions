@@ -1,4 +1,4 @@
-import { LotId } from '../lots/models';
+import { LotId } from '../store/lots/models';
 import { getUuid } from '../utils/getUuid';
 import { createLot } from './createLot';
 

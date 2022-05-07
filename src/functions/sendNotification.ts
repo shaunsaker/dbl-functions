@@ -1,7 +1,7 @@
 import { firebaseFetchUserProfile } from '../services/firebase/firebaseFetchUserProfile';
 import { firebaseSendNotification } from '../services/firebase/firebaseSendNotification';
 import { FirebaseFunctionResponse } from '../services/firebase/models';
-import { UserId } from '../userProfile/models';
+import { UserId } from '../store/userProfile/models';
 
 export const sendNotification = async (
   {

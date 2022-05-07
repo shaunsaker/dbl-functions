@@ -1,6 +1,6 @@
 import { firebase } from './';
-import { LotId } from '../../lots/models';
-import { LotWinner } from '../../winners/models';
+import { LotId } from '../../store/lots/models';
+import { LotWinner } from '../../store/winners/models';
 
 export const firebaseCreateLotWinner = (
   lotId: LotId,

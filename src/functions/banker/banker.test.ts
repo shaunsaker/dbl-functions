@@ -1,8 +1,8 @@
 import { getBankerNotification } from '.';
-import { makeLot } from '../../lots/data';
+import { makeLot } from '../../store/lots/data';
 import { makeBtcPayServerInvoice } from '../../services/btcPayServer/data';
-import { makeTicket } from '../../tickets/data';
-import { TicketStatus } from '../../tickets/models';
+import { makeTicket } from '../../store/tickets/data';
+import { TicketStatus } from '../../store/tickets/models';
 import { getUuid } from '../../utils/getUuid';
 import { changeTicketsStatus } from '../changeTicketsStatus';
 import { setupBankerTest } from './banker.testUtils';

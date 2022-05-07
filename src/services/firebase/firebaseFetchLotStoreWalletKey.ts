@@ -1,7 +1,7 @@
 import { firebase } from './';
 import { BtcPayServerStoreId } from '../btcPayServer/models';
-import { LotId } from '../../lots/models';
-import { LotStoreWalletKey } from '../../keys/models';
+import { LotId } from '../../store/lots/models';
+import { LotStoreWalletKey } from '../../store/keys/models';
 
 export const firebaseFetchLotStoreWalletKey = async ({
   lotId,

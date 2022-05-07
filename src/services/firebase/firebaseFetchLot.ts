@@ -1,5 +1,5 @@
 import { firebase } from '.';
-import { Lot, LotId } from '../../lots/models';
+import { Lot, LotId } from '../../store/lots/models';
 
 export const firebaseFetchLot = async (lotId: LotId): Promise<Lot> => {
   return new Promise(async (resolve, reject) => {

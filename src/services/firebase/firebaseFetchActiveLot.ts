@@ -1,5 +1,5 @@
 import { firebase } from '.';
-import { Lot } from '../../lots/models';
+import { Lot } from '../../store/lots/models';
 
 export const firebaseFetchActiveLot = async (): Promise<Lot | void> => {
   return new Promise(async (resolve, reject) => {
