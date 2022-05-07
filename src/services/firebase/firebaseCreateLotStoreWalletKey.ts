@@ -1,6 +1,7 @@
 import { firebase } from './';
-import { LotId, LotStoreWalletKey } from '../../lots/models';
+import { LotId } from '../../lots/models';
 import { BtcPayServerStoreId } from '../btcPayServer/models';
+import { LotStoreWalletKey } from '../../keys/models';
 
 export const firebaseCreateLotStoreWalletKey = ({
   lotId,

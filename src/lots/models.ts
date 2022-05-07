@@ -49,10 +49,3 @@ export interface Ticket {
   dateCreated: string;
   invoiceId: InvoiceId;
 }
-
-export interface LotStoreWalletKey {
-  hash: {
-    iv: string;
-    content: string;
-  };
-}
