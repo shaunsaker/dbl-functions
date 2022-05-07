@@ -1,8 +1,8 @@
-import { runBookKeeper } from '.';
+import { runBackups } from './';
 
 const doAsync = async () => {
   try {
-    await runBookKeeper();
+    await runBackups();
   } catch (error) {
     console.log((error as Error).message);
   }

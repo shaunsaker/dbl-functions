@@ -5,7 +5,7 @@ import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 const client = new admin.firestore.v1.FirestoreAdminClient();
 const env = functions.config();
 
-export const runBookKeeper = async () => {
+export const runBackups = async () => {
   const projectId = process.env.GCP_PROJECT || process.env.GCLOUD_PROJECT;
 
   if (!projectId) {
@@ -33,10 +33,10 @@ export const runBookKeeper = async () => {
   }
 };
 
-export const bookKeeper = functions
+export const backups = functions
   .region('europe-west1')
   .pubsub.schedule('0 1 * * *') // every day at 1am
   .timeZone('Africa/Johannesburg')
   .onRun(async () => {
-    await runBookKeeper();
+    await runBackups();
   });
