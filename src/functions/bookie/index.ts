@@ -1,6 +1,6 @@
 import * as functions from 'firebase-functions';
 import { CallableContext } from 'firebase-functions/v1/https';
-import { Invoice, InvoiceId } from '../../store/invoices/models';
+import { Invoice, InvoiceId, InvoiceStatus } from '../../store/invoices/models';
 import {
   LotId,
   MAX_BTC_DIGITS,
@@ -206,6 +206,7 @@ export const runBookie = async ({
     rate: invoicePaymentRate,
     expiry: invoicePaymentExpiry,
     ticketIds,
+    status: InvoiceStatus.reserved,
   };
 
   await dependencies.firebaseCreateInvoice(lotId, clientInvoice);

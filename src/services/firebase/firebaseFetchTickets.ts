@@ -1,17 +1,15 @@
 import { firebase } from './';
 import { LotId } from '../../store/lots/models';
 import { UserId } from '../../store/userProfile/models';
-import { TicketStatus, TicketId, Ticket } from '../../store/tickets/models';
+import { TicketId, Ticket } from '../../store/tickets/models';
 
 export const firebaseFetchTickets = async ({
   lotId,
   uid,
-  ticketStatuses,
   ticketIds,
 }: {
   lotId: LotId;
   uid?: UserId;
-  ticketStatuses?: TicketStatus[];
   ticketIds?: TicketId[];
 }): Promise<Ticket[]> => {
   return new Promise(async (resolve, reject) => {
@@ -35,17 +33,9 @@ export const firebaseFetchTickets = async ({
         );
       }
 
-      let tickets = (await ref.get()).docs.map(
+      const tickets = (await ref.get()).docs.map(
         (doc) => ({ id: doc.id, ...doc.data() } as Ticket),
       );
-
-      // we're only allowed a single "in" per Firebase query
-      // so we need to filter manually here
-      if (ticketStatuses) {
-        tickets = tickets.filter((ticket) =>
-          ticketStatuses.includes(ticket.status),
-        );
-      }
 
       resolve(tickets);
     } catch (error) {

@@ -1,6 +1,6 @@
+import { makeInvoice } from '../../store/invoices/data';
+import { InvoiceStatus } from '../../store/invoices/models';
 import { makeLot } from '../../store/lots/data';
-import { makeTicket } from '../../store/tickets/data';
-import { TicketStatus } from '../../store/tickets/models';
 import { getUuid } from '../../utils/getUuid';
 import { setupBuskerTest } from './busker.testUtils';
 import { getLotStats } from './getLotStats';
@@ -24,19 +24,19 @@ describe('busker', () => {
       active: true,
       totalAvailableTickets: 100000,
     });
-    const ticketBefore = makeTicket({ status: TicketStatus.reserved });
-    const ticketAfter = makeTicket({ status: TicketStatus.confirmed }); // add a confirmed ticket
+    const invoiceBefore = makeInvoice({ status: InvoiceStatus.reserved });
+    const invoiceAfter = makeInvoice({ status: InvoiceStatus.confirmed }); // add a confirmed ticket
     const { response, dependencies } = await setupBuskerTest({
       lotId,
       lot,
-      ticketBefore,
-      ticketAfter,
+      invoiceBefore,
+      invoiceAfter,
     });
 
     expect(dependencies.firebaseFetchLot).toHaveBeenCalled();
     expect(dependencies.firebaseUpdateLot).toHaveBeenCalledWith(
       lotId,
-      getLotStats({ lot, ticketBefore, ticketAfter }),
+      getLotStats({ lot, invoiceBefore, invoiceAfter }),
     );
     expect(response).toEqual({
       error: false,

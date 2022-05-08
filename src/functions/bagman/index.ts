@@ -6,11 +6,8 @@ import {
   BtcPayServerWebhookEvent,
 } from '../../services/btcPayServer/models';
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
-import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTickets';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { maybePluralise } from '../../utils/maybePluralise';
-import { firebaseSaveTickets } from '../../services/firebase/firebaseSaveTickets';
-import { changeTicketsStatus } from '../changeTicketsStatus';
 import { validateWebookEventData } from '../validateWebhookEventData';
 import { sendNotification } from '../sendNotification';
 import { verifyWebhookSignature } from '../verifyWebhookSignature';
@@ -21,7 +18,8 @@ import { sortArrayOfObjectsByKey } from '../../utils/sortArrayOfObjectsByKey';
 import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import moment = require('moment');
 import { firebaseCreatePayment } from '../../services/firebase/firebaseCreatePayment';
-import { TicketStatus, Ticket } from '../../store/tickets/models';
+import { firebaseUpdateInvoice } from '../../services/firebase/firebaseUpdateInvoice';
+import { InvoiceStatus } from '../../store/invoices/models';
 
 require('dotenv').config();
 
@@ -59,7 +57,7 @@ export const getBagmanNotification = ({
 export type BagmanResponse = FirebaseFunctionResponse<void>;
 
 // bagman is a webhook for the InvoiceReceivedPaymentEvent
-// he'll mark an invoices ticket statuses as Payment Received if we have the full payment
+// he'll mark an invoices status as "Payment Received" if we have the full payment
 export const runBagman = async (
   data: BtcPayServerInvoiceReceivedPaymentEventData,
   dependencies: {
@@ -67,18 +65,14 @@ export const runBagman = async (
     firebaseFetchLot: typeof firebaseFetchLot;
     getInvoicePaymentMethods: typeof getInvoicePaymentMethods;
     firebaseCreatePayment: typeof firebaseCreatePayment;
-    firebaseFetchTickets: typeof firebaseFetchTickets;
-    changeTicketsStatus: typeof changeTicketsStatus;
-    firebaseSaveTickets: typeof firebaseSaveTickets;
+    firebaseUpdateInvoice: typeof firebaseUpdateInvoice;
     sendNotification: typeof sendNotification;
   } = {
     validateWebookEventData,
     firebaseFetchLot,
     getInvoicePaymentMethods,
     firebaseCreatePayment,
-    firebaseFetchTickets,
-    changeTicketsStatus,
-    firebaseSaveTickets,
+    firebaseUpdateInvoice,
     sendNotification,
   },
 ): Promise<BagmanResponse> => {
@@ -99,25 +93,6 @@ export const runBagman = async (
   // if there is no invoice, validateWebookEventData will return an error
   const invoice = validateWebhookEventDataResponse.data as BtcPayServerInvoice;
   const { uid, lotId, ticketIds } = invoice.metadata;
-
-  // fetch the tickets using the ticketIds in the invoice
-  const reservedTickets = await dependencies.firebaseFetchTickets({
-    lotId,
-    uid,
-    ticketIds,
-    ticketStatuses: [TicketStatus.reserved],
-  });
-
-  if (!reservedTickets.length) {
-    const message = 'tickets missing fool.';
-
-    console.log(`bagman: ${message}`);
-
-    return {
-      error: true,
-      message,
-    };
-  }
 
   // fetch the lot
   const lot = await dependencies.firebaseFetchLot(lotId);
@@ -185,18 +160,16 @@ export const runBagman = async (
     return sendNotificationResponse;
   }
 
-  // mark the ticket's statuses
-  const paidTickets: Ticket[] = dependencies.changeTicketsStatus(
-    reservedTickets,
-    TicketStatus.paymentReceived,
-  );
-
   console.log(
-    `bagman: ${uid} paid ${paymentAmountBTC} BTC of the invoice total, $${invoice.amount} and we are marking ${reservedTickets.length} tickets as Payment Received.`,
+    `bagman: ${uid} paid ${paymentAmountBTC} BTC of the invoice total, $${invoice.amount} and we are marking ${ticketIds.length} tickets as Payment Received.`,
   );
 
-  // update the tickets in firebase
-  await dependencies.firebaseSaveTickets(lotId, paidTickets);
+  // update the invoice status in firebase
+  await dependencies.firebaseUpdateInvoice({
+    lotId,
+    invoiceId,
+    data: { status: InvoiceStatus.paymentReceived },
+  });
 
   // notify the user that their payment was received
   const notification = getBagmanNotification({
@@ -204,7 +177,7 @@ export const runBagman = async (
     paymentAmountBTC,
     totalPaidBTC,
     invoiceTotalBTC,
-    paidTicketCount: paidTickets.length,
+    paidTicketCount: ticketIds.length,
   });
   const sendNotificationResponse = await dependencies.sendNotification({
     uid,

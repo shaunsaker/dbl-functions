@@ -30,21 +30,37 @@ import moment = require('moment');
 import { getLotIdFromDate } from '../../utils/getLotIdFromDate';
 import { firebaseUpdateUserProfile } from '../../services/firebase/firebaseUpdateUserProfile';
 import { LotWinner } from '../../store/winners/models';
-import { TicketStatus } from '../../store/tickets/models';
+import { Ticket } from '../../store/tickets/models';
+import { firebaseFetchInvoices } from '../../services/firebase/firebaseFetchInvoices';
+import { InvoiceStatus } from '../../store/invoices/models';
 
 export const drawWinner = async (
   lotId: LotId,
   dependencies: {
+    firebaseFetchInvoices: typeof firebaseFetchInvoices;
     firebaseFetchTickets: typeof firebaseFetchTickets;
   } = {
+    firebaseFetchInvoices,
     firebaseFetchTickets,
   },
 ): Promise<UserId | undefined> => {
-  // fetch the lot's confirmed tickets
-  const confirmedTickets = await dependencies.firebaseFetchTickets({
+  // fetch the lot's confirmed invoices
+  const confirmedInvoices = await dependencies.firebaseFetchInvoices({
     lotId,
-    ticketStatuses: [TicketStatus.confirmed],
+    status: InvoiceStatus.confirmed,
   });
+
+  // for each invoice, fetch the invoice's tickets
+  let confirmedTickets: Ticket[] = [];
+
+  for await (const invoice of confirmedInvoices) {
+    const tickets = await dependencies.firebaseFetchTickets({
+      lotId,
+      ticketIds: invoice.ticketIds,
+    });
+
+    confirmedTickets = [...confirmedTickets, ...tickets];
+  }
 
   // here come's a new millionaire 🎉
   const winningTicket = selectRandomItemFromArray(confirmedTickets);

@@ -1,67 +1,66 @@
-import {
-  Lot,
-  MAX_BTC_DIGITS,
-  TICKET_COMMISSION_PERCENTAGE,
-} from '../../store/lots/models';
-import { Ticket, TicketStatus } from '../../store/tickets/models';
+import { Invoice, InvoiceStatus } from '../../store/invoices/models';
+import { Lot, MAX_BTC_DIGITS } from '../../store/lots/models';
 import { numberToDigits } from '../../utils/numberToDigits';
 
 // NOTE: this covers a lot of scenarios and looks complicated, see tests for clarity
 export const getLotStats = ({
   lot,
-  ticketBefore,
-  ticketAfter,
+  invoiceBefore,
+  invoiceAfter,
 }: {
   lot: Lot;
-  ticketBefore: Ticket | undefined;
-  ticketAfter: Ticket | undefined;
+  invoiceBefore: Invoice | undefined;
+  invoiceAfter: Invoice | undefined;
 }) => {
   let newTicketsAvailable = lot.totalAvailableTickets;
   let newConfirmedTicketCount = lot.totalConfirmedTickets;
   let newTotalInBTC = lot.totalBTC;
 
-  const ticketWasAdded = !ticketBefore;
-  const ticketWasDeleted = !ticketAfter;
-  const ticketChanged = !ticketWasAdded && !ticketWasDeleted;
+  const invoiceWasAdded = !invoiceBefore;
+  const invoiceWasDeleted = !invoiceAfter;
+  const invoiceChanged = !invoiceWasAdded && !invoiceWasDeleted;
 
-  if (ticketWasAdded) {
+  if (invoiceWasAdded) {
     // reserved ✅
     // paymentReceived ✅
     // confirmed ✅
     // expired ⛔
-    const newTicketIsNotExpired = ticketAfter?.status !== TicketStatus.expired;
-    const newTicketIsConfirmed = ticketAfter?.status === TicketStatus.confirmed;
+    const newInvoiceIsNotExpired =
+      invoiceAfter?.status !== InvoiceStatus.expired;
+    const newInvoiceIsConfirmed =
+      invoiceAfter?.status === InvoiceStatus.confirmed;
 
-    // if any ticket besides an expired one was added
-    if (newTicketIsNotExpired) {
-      newTicketsAvailable -= 1;
+    // if any invoice besides an expired one was added
+    if (newInvoiceIsNotExpired) {
+      newTicketsAvailable -= invoiceAfter?.ticketIds.length || 0;
 
-      // if a confirmed ticket was added also do the following
-      if (newTicketIsConfirmed) {
-        newConfirmedTicketCount += 1;
-        newTotalInBTC += ticketAfter.priceBTC;
+      // if a confirmed invoice was added also do the following
+      if (newInvoiceIsConfirmed) {
+        newConfirmedTicketCount += invoiceAfter?.ticketIds.length || 0;
+        newTotalInBTC += invoiceAfter.amountBTC;
       }
     }
-  } else if (ticketWasDeleted) {
+  } else if (invoiceWasDeleted) {
     // reserved ✅
     // paymentReceived ✅
     // confirmed ✅
     // expired ⛔
-    const ticketWasNotExpired = ticketBefore?.status !== TicketStatus.expired;
-    const ticketWasConfirmed = ticketBefore?.status === TicketStatus.confirmed;
+    const ticketWasNotExpired = invoiceBefore?.status !== InvoiceStatus.expired;
+    const invoiceWasConfirmed =
+      invoiceBefore?.status === InvoiceStatus.confirmed;
 
     if (ticketWasNotExpired) {
-      newTicketsAvailable += 1;
+      newTicketsAvailable += invoiceBefore?.ticketIds.length || 0;
 
-      if (ticketWasConfirmed) {
-        newConfirmedTicketCount -= 1;
-        newTotalInBTC -= ticketBefore.priceBTC;
+      if (invoiceWasConfirmed) {
+        newConfirmedTicketCount -= invoiceBefore?.ticketIds.length || 0;
+        newTotalInBTC -= invoiceBefore.amountBTC;
       }
     }
-  } else if (ticketChanged) {
+  } else if (invoiceChanged) {
     // SUMMARY: we only act if:
-    // a ticket became confirmed/expired
-    // a ticket changed from confirmed/expired
+    // a invoice became confirmed/expired
+    // a invoice changed from confirmed/expired
     //
     // reserved => reserved ⛔
     // reserved => paymentReceived ⛔
@@ -80,38 +79,36 @@ export const getLotStats = ({
     // expired => confirmed ✅
     // expired => expired ⛔
 
-    const ticketWasConfirmed = ticketBefore.status === TicketStatus.confirmed;
-    const ticketWasExpired = ticketBefore.status === TicketStatus.expired;
-    const ticketIsConfirmed = ticketAfter.status === TicketStatus.confirmed;
-    const ticketIsExpired = ticketAfter.status === TicketStatus.expired;
-    const ticketBecameConfirmed = !ticketWasConfirmed && ticketIsConfirmed;
-    const ticketBecameExpired =
-      !ticketWasExpired && ticketAfter.status === TicketStatus.expired;
+    const invoiceWasConfirmed =
+      invoiceBefore.status === InvoiceStatus.confirmed;
+    const invoiceWasExpired = invoiceBefore.status === InvoiceStatus.expired;
+    const invoiceIsConfirmed = invoiceAfter.status === InvoiceStatus.confirmed;
+    const invoiceIsExpired = invoiceAfter.status === InvoiceStatus.expired;
+    const invoiceBecameConfirmed = !invoiceWasConfirmed && invoiceIsConfirmed;
+    const invoiceBecameExpired =
+      !invoiceWasExpired && invoiceAfter.status === InvoiceStatus.expired;
 
-    if (ticketBecameConfirmed) {
-      newConfirmedTicketCount += 1;
-      newTotalInBTC += ticketAfter.priceBTC;
+    if (invoiceBecameConfirmed) {
+      newConfirmedTicketCount += invoiceAfter?.ticketIds.length || 0;
+      newTotalInBTC += invoiceAfter.amountBTC;
 
-      if (ticketWasExpired) {
-        newTicketsAvailable -= 1;
+      if (invoiceWasExpired) {
+        newTicketsAvailable -= invoiceAfter?.ticketIds.length || 0;
       }
-    } else if (ticketBecameExpired) {
-      newTicketsAvailable += 1;
+    } else if (invoiceBecameExpired) {
+      newTicketsAvailable += invoiceAfter?.ticketIds.length || 0;
 
-      if (ticketWasConfirmed) {
-        newConfirmedTicketCount -= 1;
-        newTotalInBTC -= ticketAfter.priceBTC;
+      if (invoiceWasConfirmed) {
+        newConfirmedTicketCount -= invoiceAfter?.ticketIds.length || 0;
+        newTotalInBTC -= invoiceAfter.amountBTC;
       }
-    } else if (ticketWasConfirmed && !ticketIsConfirmed) {
-      newConfirmedTicketCount -= 1;
-      newTotalInBTC -= ticketAfter.priceBTC;
-    } else if (ticketWasExpired && !ticketIsExpired) {
-      newTicketsAvailable -= 1;
+    } else if (invoiceWasConfirmed && !invoiceIsConfirmed) {
+      newConfirmedTicketCount -= invoiceAfter?.ticketIds.length || 0;
+      newTotalInBTC -= invoiceAfter.amountBTC;
+    } else if (invoiceWasExpired && !invoiceIsExpired) {
+      newTicketsAvailable -= invoiceAfter?.ticketIds.length || 0;
     }
   }
-
-  // remove our commission from the total
-  newTotalInBTC = (newTotalInBTC * (100 - TICKET_COMMISSION_PERCENTAGE)) / 100;
 
   const newLotStats = {
     totalAvailableTickets: newTicketsAvailable,

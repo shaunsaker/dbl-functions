@@ -4,7 +4,7 @@ import { firebase } from '../services/firebase';
 import { firebaseFetchTickets } from '../services/firebase/firebaseFetchTickets';
 import { firebaseWriteBatch } from '../services/firebase/firebaseWriteBatch';
 import { FirebaseFunctionResponse } from '../services/firebase/models';
-import { TicketId, Ticket, TicketStatus } from '../store/tickets/models';
+import { TicketId, Ticket } from '../store/tickets/models';
 import { UserId } from '../store/userProfile/models';
 import { arrayFromNumber } from '../utils/arrayFromNumber';
 import { getTimeAsISOString } from '../utils/getTimeAsISOString';
@@ -100,7 +100,6 @@ export const createTickets = async ({
       lotId,
       uid,
       priceBTC: ticketPriceBTC,
-      status: TicketStatus.reserved,
       dateCreated: getTimeAsISOString(),
       invoiceId,
     };

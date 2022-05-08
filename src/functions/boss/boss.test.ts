@@ -14,22 +14,26 @@ import { arrayFromNumber } from '../../utils/arrayFromNumber';
 import { getUuid } from '../../utils/getUuid';
 import { setupBossTest } from './boss.testUtils';
 import { makeTicket } from '../../store/tickets/data';
-import { TicketStatus } from '../../store/tickets/models';
+import { makeInvoice } from '../../store/invoices/data';
 
 describe('boss', () => {
   describe('drawWinner', () => {
+    const firebaseFetchInvoices = jest.fn();
     const firebaseFetchTickets = jest.fn();
 
     it('selects a random ticket', async () => {
       const lotId = getUuid();
 
+      firebaseFetchInvoices.mockReturnValue([makeInvoice({})]);
+
       firebaseFetchTickets.mockReturnValue(
-        arrayFromNumber(100).map(() =>
-          makeTicket({ uid: getUuid(), status: TicketStatus.confirmed }),
-        ),
+        arrayFromNumber(100).map(() => makeTicket({ uid: getUuid() })),
       );
 
-      const uid = await drawWinner(lotId, { firebaseFetchTickets });
+      const uid = await drawWinner(lotId, {
+        firebaseFetchInvoices,
+        firebaseFetchTickets,
+      });
 
       // we don't test randomness, leave that to selectRandomItemFromArray
       expect(uid).toBeTruthy();

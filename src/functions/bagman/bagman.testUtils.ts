@@ -10,17 +10,13 @@ import {
   BtcPayServerInvoiceId,
   BtcPayServerStoreId,
 } from '../../services/btcPayServer/models';
-import { makeTicket } from '../../store/tickets/data';
-import { Ticket } from '../../store/tickets/models';
 import { getUuid } from '../../utils/getUuid';
-import { changeTicketsStatus } from '../changeTicketsStatus';
 
 export const setupBagmanTest = async ({
   storeId = getUuid(),
   invoiceId = getUuid(),
   invoice = makeBtcPayServerInvoice({}),
   lot = makeLot({ id: getUuid(), active: true, totalAvailableTickets: 100000 }),
-  tickets = [makeTicket({})],
   paymentAmountBTC = 0.00025,
   invoiceTotalBTC = 0.00025,
 }: {
@@ -28,7 +24,6 @@ export const setupBagmanTest = async ({
   invoiceId?: BtcPayServerInvoiceId;
   invoice?: BtcPayServerInvoice | null;
   lot?: Lot | null;
-  tickets?: Ticket[];
   paymentAmountBTC?: number;
   invoiceTotalBTC?: number;
 }) => {
@@ -36,8 +31,7 @@ export const setupBagmanTest = async ({
   const firebaseFetchLot = jest.fn();
   const getInvoicePaymentMethods = jest.fn();
   const firebaseCreatePayment = jest.fn();
-  const firebaseFetchTickets = jest.fn();
-  const firebaseSaveTickets = jest.fn();
+  const firebaseUpdateInvoice = jest.fn();
   const sendNotification = jest.fn();
 
   validateWebookEventData.mockReturnValue({
@@ -47,10 +41,6 @@ export const setupBagmanTest = async ({
 
   if (lot) {
     firebaseFetchLot.mockReturnValue(lot);
-  }
-
-  if (tickets) {
-    firebaseFetchTickets.mockReturnValue(tickets);
   }
 
   if (paymentAmountBTC) {
@@ -91,9 +81,7 @@ export const setupBagmanTest = async ({
     firebaseFetchLot,
     getInvoicePaymentMethods,
     firebaseCreatePayment,
-    firebaseFetchTickets,
-    changeTicketsStatus,
-    firebaseSaveTickets,
+    firebaseUpdateInvoice,
     sendNotification,
   };
   const response = await runBagman(eventData, dependencies);

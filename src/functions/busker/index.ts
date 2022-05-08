@@ -3,25 +3,25 @@ import { LotId } from '../../store/lots/models';
 import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
-import { Ticket } from '../../store/tickets/models';
 import { getLotStats } from './getLotStats';
+import { Invoice } from '../../store/invoices/models';
 
 type Response = FirebaseFunctionResponse<void>;
 
-// when a lot's tickets change, ie. status change, it's added, it's removed
+// when a lot's invoices change, ie. it's status changed, it's added, it's removed
 // we need to update that lot's stats, ie. totalAvailableTickets, totalConfirmedTickets, totalBTC
 export const runBusker = async ({
   lotId,
-  ticketBefore,
-  ticketAfter,
+  invoiceBefore,
+  invoiceAfter,
   dependencies = {
     firebaseFetchLot,
     firebaseUpdateLot,
   },
 }: {
   lotId: LotId;
-  ticketBefore: Ticket | undefined;
-  ticketAfter: Ticket | undefined;
+  invoiceBefore: Invoice | undefined;
+  invoiceAfter: Invoice | undefined;
   dependencies?: {
     firebaseFetchLot: typeof firebaseFetchLot;
     firebaseUpdateLot: typeof firebaseUpdateLot;
@@ -42,7 +42,7 @@ export const runBusker = async ({
     };
   }
 
-  const newLotStats = getLotStats({ lot, ticketBefore, ticketAfter });
+  const newLotStats = getLotStats({ lot, invoiceBefore, invoiceAfter });
 
   await dependencies.firebaseUpdateLot(lotId, newLotStats);
 
@@ -55,14 +55,14 @@ export const runBusker = async ({
 
 const busker = functions
   .region('europe-west1')
-  .firestore.document('lots/{lotId}/tickets/{ticketId}')
+  .firestore.document('lots/{lotId}/invoices/{invoiceId}')
   .onWrite(async (change, context): Promise<Response> => {
     const { lotId } = context.params;
 
     return await runBusker({
       lotId,
-      ticketBefore: change.before.data() as Ticket | undefined,
-      ticketAfter: change.after.data() as Ticket | undefined,
+      invoiceBefore: change.before.data() as Invoice | undefined,
+      invoiceAfter: change.after.data() as Invoice | undefined,
     });
   });
 

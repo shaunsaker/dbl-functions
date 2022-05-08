@@ -1,19 +1,19 @@
 import { runBusker } from '.';
+import { makeInvoice } from '../../store/invoices/data';
+import { Invoice } from '../../store/invoices/models';
 import { makeLot } from '../../store/lots/data';
 import { Lot } from '../../store/lots/models';
-import { makeTicket } from '../../store/tickets/data';
-import { Ticket } from '../../store/tickets/models';
 import { getUuid } from '../../utils/getUuid';
 
 export const setupBuskerTest = async ({
   lotId = getUuid(),
-  ticketBefore = makeTicket({}),
-  ticketAfter = makeTicket({}),
+  invoiceBefore = makeInvoice({}),
+  invoiceAfter = makeInvoice({}),
   lot = makeLot({ id: getUuid(), active: true, totalAvailableTickets: 100000 }),
 }: {
   lotId?: string;
-  ticketBefore?: Ticket | undefined;
-  ticketAfter?: Ticket | undefined;
+  invoiceBefore?: Invoice | undefined;
+  invoiceAfter?: Invoice | undefined;
   lot?: Lot | null;
 }) => {
   const firebaseFetchLot = jest.fn();
@@ -29,8 +29,8 @@ export const setupBuskerTest = async ({
   };
   const response = await runBusker({
     lotId,
-    ticketBefore,
-    ticketAfter,
+    invoiceBefore,
+    invoiceAfter,
     dependencies,
   });
 

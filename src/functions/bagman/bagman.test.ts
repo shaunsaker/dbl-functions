@@ -1,11 +1,9 @@
 import { getBagmanNotification } from '.';
 import { makeLot } from '../../store/lots/data';
 import { makeBtcPayServerInvoice } from '../../services/btcPayServer/data';
-import { makeTicket } from '../../store/tickets/data';
-import { TicketStatus } from '../../store/tickets/models';
 import { getUuid } from '../../utils/getUuid';
-import { changeTicketsStatus } from '../changeTicketsStatus';
 import { setupBagmanTest } from './bagman.testUtils';
+import { InvoiceStatus } from '../../store/invoices/models';
 
 describe('bagman', () => {
   it('returns an error when there is no matching lot', async () => {
@@ -17,15 +15,6 @@ describe('bagman', () => {
     });
   });
 
-  it('returns an error when there are no reserved tickets', async () => {
-    const { response } = await setupBagmanTest({ tickets: [] });
-
-    expect(response).toEqual({
-      error: true,
-      message: 'tickets missing fool.',
-    });
-  });
-
   it('handles a single exact payment', async () => {
     const lot = makeLot({
       id: getUuid(),
@@ -33,25 +22,19 @@ describe('bagman', () => {
       totalAvailableTickets: 100000,
     });
     const ticketPriceBTC = 0.00025;
-    const tickets = [
-      makeTicket({
-        priceBTC: ticketPriceBTC,
-        status: TicketStatus.reserved,
-      }),
-    ];
     const uid = getUuid();
+    const ticketIds = [getUuid(), getUuid(), getUuid()];
     const invoice = makeBtcPayServerInvoice({
       metadata: {
         lotId: lot.id,
         uid,
-        ticketIds: tickets.map((ticket) => ticket.id),
+        ticketIds,
       },
     });
     const paymentAmountBTC = ticketPriceBTC;
     const invoiceTotalBTC = paymentAmountBTC;
     const { response, dependencies } = await setupBagmanTest({
       lot,
-      tickets,
       invoice,
       paymentAmountBTC,
       invoiceTotalBTC,
@@ -77,14 +60,11 @@ describe('bagman', () => {
       },
     });
 
-    const expectedPaidTickets = changeTicketsStatus(
-      tickets,
-      TicketStatus.paymentReceived,
-    );
-    expect(dependencies.firebaseSaveTickets).toHaveBeenCalledWith(
-      lot.id,
-      expectedPaidTickets,
-    );
+    expect(dependencies.firebaseUpdateInvoice).toHaveBeenCalledWith({
+      lotId: lot.id,
+      invoiceId: invoice.id,
+      data: { status: InvoiceStatus.paymentReceived },
+    });
 
     expect(dependencies.sendNotification).toHaveBeenCalledWith({
       uid,
@@ -93,7 +73,7 @@ describe('bagman', () => {
         paymentAmountBTC,
         totalPaidBTC: paymentAmountBTC,
         invoiceTotalBTC: paymentAmountBTC,
-        paidTicketCount: tickets.length,
+        paidTicketCount: ticketIds.length,
       }),
     });
 
@@ -110,29 +90,19 @@ describe('bagman', () => {
       totalAvailableTickets: 100000,
     });
     const ticketPriceBTC = 0.00025;
-    const tickets = [
-      makeTicket({
-        priceBTC: ticketPriceBTC,
-        status: TicketStatus.reserved,
-      }),
-      makeTicket({
-        priceBTC: ticketPriceBTC,
-        status: TicketStatus.reserved,
-      }),
-    ];
+    const ticketIds = [getUuid(), getUuid(), getUuid()];
     const uid = getUuid();
     const invoice = makeBtcPayServerInvoice({
       metadata: {
         lotId: lot.id,
         uid,
-        ticketIds: tickets.map((ticket) => ticket.id),
+        ticketIds,
       },
     });
     const paymentAmountBTC = 2 * ticketPriceBTC;
     const invoiceTotalBTC = paymentAmountBTC;
     const { response, dependencies } = await setupBagmanTest({
       lot,
-      tickets,
       invoice,
       paymentAmountBTC,
       invoiceTotalBTC,
@@ -157,14 +127,12 @@ describe('bagman', () => {
         destination: expect.any(String),
       },
     });
-    const expectedPaidTickets = changeTicketsStatus(
-      tickets,
-      TicketStatus.paymentReceived,
-    );
-    expect(dependencies.firebaseSaveTickets).toHaveBeenCalledWith(
-      lot.id,
-      expectedPaidTickets,
-    );
+
+    expect(dependencies.firebaseUpdateInvoice).toHaveBeenCalledWith({
+      lotId: lot.id,
+      invoiceId: invoice.id,
+      data: { status: InvoiceStatus.paymentReceived },
+    });
 
     expect(dependencies.sendNotification).toHaveBeenCalledWith({
       uid,
@@ -173,7 +141,7 @@ describe('bagman', () => {
         paymentAmountBTC,
         totalPaidBTC: paymentAmountBTC,
         invoiceTotalBTC: paymentAmountBTC,
-        paidTicketCount: tickets.length,
+        paidTicketCount: ticketIds.length,
       }),
     });
 
@@ -190,29 +158,19 @@ describe('bagman', () => {
       totalAvailableTickets: 100000,
     });
     const ticketPriceBTC = 0.00025;
-    const tickets = [
-      makeTicket({
-        priceBTC: ticketPriceBTC,
-        status: TicketStatus.reserved,
-      }),
-      makeTicket({
-        priceBTC: ticketPriceBTC,
-        status: TicketStatus.reserved,
-      }),
-    ];
+    const ticketIds = [getUuid(), getUuid(), getUuid()];
     const uid = getUuid();
     const invoice = makeBtcPayServerInvoice({
       metadata: {
         lotId: lot.id,
         uid,
-        ticketIds: tickets.map((ticket) => ticket.id),
+        ticketIds,
       },
     });
     const paymentAmountBTC = ticketPriceBTC; // only 1 of the 2
     const invoiceTotalBTC = ticketPriceBTC * 2;
     const { dependencies } = await setupBagmanTest({
       lot,
-      tickets,
       invoice,
       paymentAmountBTC,
       invoiceTotalBTC,
@@ -238,7 +196,11 @@ describe('bagman', () => {
       },
     });
 
-    expect(dependencies.firebaseSaveTickets).not.toHaveBeenCalled();
+    expect(dependencies.firebaseUpdateInvoice).not.toHaveBeenCalledWith({
+      lotId: lot.id,
+      invoiceId: invoice.id,
+      data: { status: InvoiceStatus.paymentReceived },
+    });
 
     expect(dependencies.sendNotification).toHaveBeenCalledWith({
       uid,
@@ -247,7 +209,7 @@ describe('bagman', () => {
         paymentAmountBTC,
         totalPaidBTC: paymentAmountBTC,
         invoiceTotalBTC,
-        paidTicketCount: tickets.length,
+        paidTicketCount: ticketIds.length,
       }),
     });
   });

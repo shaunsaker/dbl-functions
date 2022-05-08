@@ -10,6 +10,7 @@ import { getTimeAsISOString } from '../../utils/getTimeAsISOString';
 import { getUuid } from '../../utils/getUuid';
 import { numberToDigits } from '../../utils/numberToDigits';
 import { setupBookieTest } from './bookie.testUtils';
+import { InvoiceStatus } from '../../store/invoices/models';
 
 describe('bookie', () => {
   it('returns an error if there is no uid', async () => {
@@ -155,6 +156,7 @@ describe('bookie', () => {
       rate: invoicePaymentRate,
       expiry: invoicePaymentExpiry,
       ticketIds,
+      status: InvoiceStatus.reserved,
     });
 
     expect(response).toEqual({

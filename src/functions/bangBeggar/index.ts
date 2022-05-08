@@ -4,30 +4,28 @@ import {
   BtcPayServerInvoiceExpiredEventData,
   BtcPayServerWebhookEvent,
 } from '../../services/btcPayServer/models';
-import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTickets';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
-import { firebaseSaveTickets } from '../../services/firebase/firebaseSaveTickets';
-import { changeTicketsStatus } from '../changeTicketsStatus';
 import { validateWebookEventData } from '../validateWebhookEventData';
 import { sendNotification } from '../sendNotification';
 import { maybePluralise } from '../../utils/maybePluralise';
 import { verifyWebhookSignature } from '../verifyWebhookSignature';
-import { Ticket, TicketStatus } from '../../store/tickets/models';
+import { InvoiceStatus } from '../../store/invoices/models';
+import { firebaseUpdateInvoice } from '../../services/firebase/firebaseUpdateInvoice';
 
 require('dotenv').config();
 
 // FIXME: improve and test this
 export const getBangBeggarNotification = ({
-  expiredTickets,
+  expiredTicketCount,
 }: {
-  expiredTickets: Ticket[];
+  expiredTicketCount: number;
 }): {
   title: string;
   body: string;
 } => {
   return {
     title: `We've just expired ${maybePluralise(
-      expiredTickets.length,
+      expiredTicketCount,
       'ticket',
     )} 😔`,
     body: "To keep things fair, if we don't receive payment within 15 minutes, we expire those tickets for other users. please try again.",
@@ -40,15 +38,11 @@ export const runBangBeggar = async (
   data: BtcPayServerInvoiceExpiredEventData,
   dependencies: {
     validateWebookEventData: typeof validateWebookEventData;
-    firebaseFetchTickets: typeof firebaseFetchTickets;
-    changeTicketsStatus: typeof changeTicketsStatus;
-    firebaseSaveTickets: typeof firebaseSaveTickets;
+    firebaseUpdateInvoice: typeof firebaseUpdateInvoice;
     sendNotification: typeof sendNotification;
   } = {
     validateWebookEventData,
-    firebaseFetchTickets,
-    changeTicketsStatus,
-    firebaseSaveTickets,
+    firebaseUpdateInvoice,
     sendNotification,
   },
 ): Promise<Response> => {
@@ -70,38 +64,16 @@ export const runBangBeggar = async (
   const invoice = validateWebhookEventDataResponse.data as BtcPayServerInvoice;
   const { uid, lotId, ticketIds } = invoice.metadata;
 
-  // fetch the reserved tickets using the ticketIds in the invoice
-  const reservedTickets = await dependencies.firebaseFetchTickets({
+  // update the invoice status in firebase
+  await dependencies.firebaseUpdateInvoice({
     lotId,
-    uid,
-    ticketIds,
-    ticketStatuses: [TicketStatus.reserved],
+    invoiceId: invoice.id,
+    data: { status: InvoiceStatus.expired },
   });
-
-  if (!reservedTickets.length) {
-    const message = 'tickets missing fool.';
-
-    console.log(`bangBeggar: ${message}`);
-
-    return {
-      error: true,
-      message,
-    };
-  }
-
-  // mark the remaining reserved tickets as expired
-  // NOTE: here we can mark all the reserved tickets as expired
-  const expiredTickets: Ticket[] = dependencies.changeTicketsStatus(
-    reservedTickets,
-    TicketStatus.expired,
-  );
-
-  // write the expired tickets to firebase
-  await dependencies.firebaseSaveTickets(lotId, expiredTickets);
 
   // notify the user that their payment was received
   const notification = getBangBeggarNotification({
-    expiredTickets,
+    expiredTicketCount: ticketIds.length,
   });
   const sendNotificationResponse = await dependencies.sendNotification({
     uid,

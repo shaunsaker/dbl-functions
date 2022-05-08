@@ -1,6 +1,6 @@
+import { makeInvoice } from '../../store/invoices/data';
+import { InvoiceStatus } from '../../store/invoices/models';
 import { makeLot } from '../../store/lots/data';
-import { makeTicket } from '../../store/tickets/data';
-import { TicketStatus } from '../../store/tickets/models';
 import { getUuid } from '../../utils/getUuid';
 import { getLotStats } from './getLotStats';
 
@@ -13,15 +13,15 @@ describe('getLotStats', () => {
     totalBTC: 0,
   });
 
-  describe('ticket added', () => {
+  describe('invoice added', () => {
     it('reserved', () => {
-      const ticketBefore = undefined;
-      const ticketAfter = makeTicket({ status: TicketStatus.reserved });
+      const invoiceBefore = undefined;
+      const invoiceAfter = makeInvoice({ status: InvoiceStatus.reserved });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets - 1);
@@ -30,15 +30,15 @@ describe('getLotStats', () => {
     });
 
     it('paymentReceived', () => {
-      const ticketBefore = undefined;
-      const ticketAfter = makeTicket({
-        status: TicketStatus.paymentReceived,
+      const invoiceBefore = undefined;
+      const invoiceAfter = makeInvoice({
+        status: InvoiceStatus.paymentReceived,
       });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets - 1);
@@ -47,28 +47,28 @@ describe('getLotStats', () => {
     });
 
     it('confirmed', () => {
-      const ticketBefore = undefined;
-      const ticketAfter = makeTicket({ status: TicketStatus.confirmed });
+      const invoiceBefore = undefined;
+      const invoiceAfter = makeInvoice({ status: InvoiceStatus.confirmed });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets - 1);
       expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets + 1);
-      expect(totalBTC).toEqual(lot.totalBTC + ticketAfter.priceBTC);
+      expect(totalBTC).toEqual(lot.totalBTC + invoiceAfter.amountBTC);
     });
 
     it('expired', () => {
-      const ticketBefore = undefined;
-      const ticketAfter = makeTicket({ status: TicketStatus.expired });
+      const invoiceBefore = undefined;
+      const invoiceAfter = makeInvoice({ status: InvoiceStatus.expired });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       // nothing should change
@@ -78,15 +78,15 @@ describe('getLotStats', () => {
     });
   });
 
-  describe('ticket deleted', () => {
+  describe('invoice deleted', () => {
     it('reserved', () => {
-      const ticketBefore = makeTicket({ status: TicketStatus.reserved });
-      const ticketAfter = undefined;
+      const invoiceBefore = makeInvoice({ status: InvoiceStatus.reserved });
+      const invoiceAfter = undefined;
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets + 1);
@@ -95,15 +95,15 @@ describe('getLotStats', () => {
     });
 
     it('paymentReceived', () => {
-      const ticketBefore = makeTicket({
-        status: TicketStatus.paymentReceived,
+      const invoiceBefore = makeInvoice({
+        status: InvoiceStatus.paymentReceived,
       });
-      const ticketAfter = undefined;
+      const invoiceAfter = undefined;
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets + 1);
@@ -112,28 +112,28 @@ describe('getLotStats', () => {
     });
 
     it('confirmed', () => {
-      const ticketBefore = makeTicket({ status: TicketStatus.confirmed });
-      const ticketAfter = undefined;
+      const invoiceBefore = makeInvoice({ status: InvoiceStatus.confirmed });
+      const invoiceAfter = undefined;
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets + 1);
       expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets - 1);
-      expect(totalBTC).toEqual(lot.totalBTC - ticketBefore.priceBTC);
+      expect(totalBTC).toEqual(lot.totalBTC - invoiceBefore.amountBTC);
     });
 
     it('expired', () => {
-      const ticketBefore = makeTicket({ status: TicketStatus.expired });
-      const ticketAfter = undefined;
+      const invoiceBefore = makeInvoice({ status: InvoiceStatus.expired });
+      const invoiceAfter = undefined;
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       // nothing should change
@@ -143,15 +143,15 @@ describe('getLotStats', () => {
     });
   });
 
-  describe('ticket changed', () => {
+  describe('invoice changed', () => {
     it('reserved => reserved', () => {
-      const ticketBefore = makeTicket({ status: TicketStatus.reserved });
-      const ticketAfter = makeTicket({ status: TicketStatus.reserved });
+      const invoiceBefore = makeInvoice({ status: InvoiceStatus.reserved });
+      const invoiceAfter = makeInvoice({ status: InvoiceStatus.reserved });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       // nothing should change
@@ -161,15 +161,15 @@ describe('getLotStats', () => {
     });
 
     it('reserved => paymentReceived', () => {
-      const ticketBefore = makeTicket({ status: TicketStatus.reserved });
-      const ticketAfter = makeTicket({
-        status: TicketStatus.paymentReceived,
+      const invoiceBefore = makeInvoice({ status: InvoiceStatus.reserved });
+      const invoiceAfter = makeInvoice({
+        status: InvoiceStatus.paymentReceived,
       });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       // nothing should change
@@ -179,32 +179,32 @@ describe('getLotStats', () => {
     });
 
     it('reserved => confirmed', () => {
-      const ticketBefore = makeTicket({ status: TicketStatus.reserved });
-      const ticketAfter = makeTicket({
-        status: TicketStatus.confirmed,
+      const invoiceBefore = makeInvoice({ status: InvoiceStatus.reserved });
+      const invoiceAfter = makeInvoice({
+        status: InvoiceStatus.confirmed,
       });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets);
       expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets + 1);
-      expect(totalBTC).toEqual(lot.totalBTC + ticketAfter.priceBTC);
+      expect(totalBTC).toEqual(lot.totalBTC + invoiceAfter.amountBTC);
     });
 
     it('reserved => expired', () => {
-      const ticketBefore = makeTicket({ status: TicketStatus.reserved });
-      const ticketAfter = makeTicket({
-        status: TicketStatus.expired,
+      const invoiceBefore = makeInvoice({ status: InvoiceStatus.reserved });
+      const invoiceAfter = makeInvoice({
+        status: InvoiceStatus.expired,
       });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets + 1);
@@ -213,17 +213,17 @@ describe('getLotStats', () => {
     });
 
     it('paymentReceived => reserved', () => {
-      const ticketBefore = makeTicket({
-        status: TicketStatus.paymentReceived,
+      const invoiceBefore = makeInvoice({
+        status: InvoiceStatus.paymentReceived,
       });
-      const ticketAfter = makeTicket({
-        status: TicketStatus.reserved,
+      const invoiceAfter = makeInvoice({
+        status: InvoiceStatus.reserved,
       });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       // nothing should change
@@ -233,17 +233,17 @@ describe('getLotStats', () => {
     });
 
     it('paymentReceived => paymentReceived', () => {
-      const ticketBefore = makeTicket({
-        status: TicketStatus.paymentReceived,
+      const invoiceBefore = makeInvoice({
+        status: InvoiceStatus.paymentReceived,
       });
-      const ticketAfter = makeTicket({
-        status: TicketStatus.paymentReceived,
+      const invoiceAfter = makeInvoice({
+        status: InvoiceStatus.paymentReceived,
       });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       // nothing should change
@@ -253,36 +253,36 @@ describe('getLotStats', () => {
     });
 
     it('paymentReceived => confirmed', () => {
-      const ticketBefore = makeTicket({
-        status: TicketStatus.paymentReceived,
+      const invoiceBefore = makeInvoice({
+        status: InvoiceStatus.paymentReceived,
       });
-      const ticketAfter = makeTicket({
-        status: TicketStatus.confirmed,
+      const invoiceAfter = makeInvoice({
+        status: InvoiceStatus.confirmed,
       });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets);
       expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets + 1);
-      expect(totalBTC).toEqual(lot.totalBTC + ticketAfter.priceBTC);
+      expect(totalBTC).toEqual(lot.totalBTC + invoiceAfter.amountBTC);
     });
 
     it('paymentReceived => expired', () => {
-      const ticketBefore = makeTicket({
-        status: TicketStatus.paymentReceived,
+      const invoiceBefore = makeInvoice({
+        status: InvoiceStatus.paymentReceived,
       });
-      const ticketAfter = makeTicket({
-        status: TicketStatus.expired,
+      const invoiceAfter = makeInvoice({
+        status: InvoiceStatus.expired,
       });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets + 1);
@@ -291,55 +291,55 @@ describe('getLotStats', () => {
     });
 
     it('confirmed => reserved', () => {
-      const ticketBefore = makeTicket({
-        status: TicketStatus.confirmed,
+      const invoiceBefore = makeInvoice({
+        status: InvoiceStatus.confirmed,
       });
-      const ticketAfter = makeTicket({
-        status: TicketStatus.reserved,
+      const invoiceAfter = makeInvoice({
+        status: InvoiceStatus.reserved,
       });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets);
       expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets - 1);
-      expect(totalBTC).toEqual(lot.totalBTC - ticketAfter.priceBTC);
+      expect(totalBTC).toEqual(lot.totalBTC - invoiceAfter.amountBTC);
     });
 
     it('confirmed => paymentReceived', () => {
-      const ticketBefore = makeTicket({
-        status: TicketStatus.confirmed,
+      const invoiceBefore = makeInvoice({
+        status: InvoiceStatus.confirmed,
       });
-      const ticketAfter = makeTicket({
-        status: TicketStatus.paymentReceived,
+      const invoiceAfter = makeInvoice({
+        status: InvoiceStatus.paymentReceived,
       });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets);
       expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets - 1);
-      expect(totalBTC).toEqual(lot.totalBTC - ticketAfter.priceBTC);
+      expect(totalBTC).toEqual(lot.totalBTC - invoiceAfter.amountBTC);
     });
 
     it('confirmed => confirmed', () => {
-      const ticketBefore = makeTicket({
-        status: TicketStatus.confirmed,
+      const invoiceBefore = makeInvoice({
+        status: InvoiceStatus.confirmed,
       });
-      const ticketAfter = makeTicket({
-        status: TicketStatus.confirmed,
+      const invoiceAfter = makeInvoice({
+        status: InvoiceStatus.confirmed,
       });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       // nothing should change
@@ -349,36 +349,36 @@ describe('getLotStats', () => {
     });
 
     it('confirmed => expired', () => {
-      const ticketBefore = makeTicket({
-        status: TicketStatus.confirmed,
+      const invoiceBefore = makeInvoice({
+        status: InvoiceStatus.confirmed,
       });
-      const ticketAfter = makeTicket({
-        status: TicketStatus.expired,
+      const invoiceAfter = makeInvoice({
+        status: InvoiceStatus.expired,
       });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets + 1);
       expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets - 1);
-      expect(totalBTC).toEqual(lot.totalBTC - ticketAfter.priceBTC);
+      expect(totalBTC).toEqual(lot.totalBTC - invoiceAfter.amountBTC);
     });
 
     it('expired => reserved', () => {
-      const ticketBefore = makeTicket({
-        status: TicketStatus.expired,
+      const invoiceBefore = makeInvoice({
+        status: InvoiceStatus.expired,
       });
-      const ticketAfter = makeTicket({
-        status: TicketStatus.reserved,
+      const invoiceAfter = makeInvoice({
+        status: InvoiceStatus.reserved,
       });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets - 1);
@@ -387,17 +387,17 @@ describe('getLotStats', () => {
     });
 
     it('expired => paymentReceived', () => {
-      const ticketBefore = makeTicket({
-        status: TicketStatus.expired,
+      const invoiceBefore = makeInvoice({
+        status: InvoiceStatus.expired,
       });
-      const ticketAfter = makeTicket({
-        status: TicketStatus.paymentReceived,
+      const invoiceAfter = makeInvoice({
+        status: InvoiceStatus.paymentReceived,
       });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets - 1);
@@ -406,36 +406,36 @@ describe('getLotStats', () => {
     });
 
     it('expired => confirmed', () => {
-      const ticketBefore = makeTicket({
-        status: TicketStatus.expired,
+      const invoiceBefore = makeInvoice({
+        status: InvoiceStatus.expired,
       });
-      const ticketAfter = makeTicket({
-        status: TicketStatus.confirmed,
+      const invoiceAfter = makeInvoice({
+        status: InvoiceStatus.confirmed,
       });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       expect(totalAvailableTickets).toEqual(lot.totalAvailableTickets - 1);
       expect(totalConfirmedTickets).toEqual(lot.totalConfirmedTickets + 1);
-      expect(totalBTC).toEqual(lot.totalBTC + ticketAfter.priceBTC);
+      expect(totalBTC).toEqual(lot.totalBTC + invoiceAfter.amountBTC);
     });
 
     it('expired => expired', () => {
-      const ticketBefore = makeTicket({
-        status: TicketStatus.expired,
+      const invoiceBefore = makeInvoice({
+        status: InvoiceStatus.expired,
       });
-      const ticketAfter = makeTicket({
-        status: TicketStatus.expired,
+      const invoiceAfter = makeInvoice({
+        status: InvoiceStatus.expired,
       });
       const { totalAvailableTickets, totalConfirmedTickets, totalBTC } =
         getLotStats({
           lot,
-          ticketBefore,
-          ticketAfter,
+          invoiceBefore,
+          invoiceAfter,
         });
 
       // nothing should change
