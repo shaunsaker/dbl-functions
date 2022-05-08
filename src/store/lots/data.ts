@@ -23,7 +23,7 @@ export const makeLot = ({
 >): Lot => {
   // get the draw time from the lotId
   // NOTE: this will not work if we're doing multiple lots on the same day
-  const drawTimeMoment = moment(id).clone().endOf('day');
+  const drawTimeMoment = moment(id).clone().startOf('day').add({ days: 1 }); // 00:00
   const drawTimeString = drawTime || getTimeAsISOString(drawTimeMoment);
 
   // get the last call time, ie. TICKET_TIMEOUT_MINUTES before 00h00 tonight

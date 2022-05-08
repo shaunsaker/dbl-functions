@@ -134,6 +134,7 @@ export const createLot = async ({
     active,
     totalAvailableTickets,
   });
+
   await dependencies.firebaseCreateLot(lot);
 
   if (!dryRun) {
