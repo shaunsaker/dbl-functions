@@ -35,8 +35,8 @@ export const runBackups = async () => {
 
 export const backups = functions
   .region('europe-west1')
-  .pubsub.schedule('0 1 * * *') // every day at 1am
-  .timeZone('Africa/Johannesburg')
+  .pubsub.schedule('0 1 * * *') // every day at 1am UTC (after the draw)
+  .timeZone('UTC')
   .onRun(async () => {
     await runBackups();
   });
