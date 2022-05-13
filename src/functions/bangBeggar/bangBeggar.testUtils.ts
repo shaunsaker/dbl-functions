@@ -21,14 +21,14 @@ export const setupBangBeggarTest = async ({
 }) => {
   const validateWebookEventData = jest.fn();
   const firebaseUpdateInvoice = jest.fn();
-  const sendNotification = jest.fn();
+  const notifyUser = jest.fn();
 
   validateWebookEventData.mockReturnValue({
     error: false,
     data: invoice,
   });
 
-  sendNotification.mockReturnValue({
+  notifyUser.mockReturnValue({
     error: false,
   });
 
@@ -41,7 +41,7 @@ export const setupBangBeggarTest = async ({
   const dependencies = {
     validateWebookEventData,
     firebaseUpdateInvoice,
-    sendNotification,
+    notifyUser,
   };
   const response = await runBangBeggar(eventData, dependencies);
 

@@ -14,22 +14,22 @@ const transporter = nodemailer.createTransport({
 });
 
 interface MailerOptions {
-  to: string;
+  email: string;
   subject: string;
-  text: string;
+  body: string;
 }
 
 export const sendEmail = async ({
-  to,
+  email,
   subject,
-  text,
+  body,
 }: MailerOptions): Promise<void> => {
   return new Promise((resolve, reject) => {
     const mailOptions = {
       from: `${process.env.APP_NAME} <${process.env.EMAIL_USERNAME}>`,
-      to,
+      to: email,
       subject,
-      text,
+      body,
     };
 
     transporter.sendMail(mailOptions, (error) => {

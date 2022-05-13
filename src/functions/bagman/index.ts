@@ -9,7 +9,7 @@ import { firebaseFetchLot } from '../../services/firebase/firebaseFetchLot';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { maybePluralise } from '../../utils/maybePluralise';
 import { validateWebookEventData } from '../validateWebhookEventData';
-import { sendNotification } from '../sendNotification';
+import { notifyUser } from '../notifyUser';
 import { verifyWebhookSignature } from '../verifyWebhookSignature';
 import { numberToDigits } from '../../utils/numberToDigits';
 import { getInvoicePaymentMethods } from '../../services/btcPayServer/getInvoicePaymentMethods';
@@ -66,14 +66,14 @@ export const runBagman = async (
     getInvoicePaymentMethods: typeof getInvoicePaymentMethods;
     firebaseCreatePayment: typeof firebaseCreatePayment;
     firebaseUpdateInvoice: typeof firebaseUpdateInvoice;
-    sendNotification: typeof sendNotification;
+    notifyUser: typeof notifyUser;
   } = {
     validateWebookEventData,
     firebaseFetchLot,
     getInvoicePaymentMethods,
     firebaseCreatePayment,
     firebaseUpdateInvoice,
-    sendNotification,
+    notifyUser,
   },
 ): Promise<BagmanResponse> => {
   const validateWebhookEventDataResponse =
@@ -152,7 +152,7 @@ export const runBagman = async (
       invoiceTotalBTC,
       paidTicketCount: 0,
     });
-    const sendNotificationResponse = await dependencies.sendNotification({
+    const sendNotificationResponse = await dependencies.notifyUser({
       uid,
       notification,
     });
@@ -179,7 +179,7 @@ export const runBagman = async (
     invoiceTotalBTC,
     paidTicketCount: ticketIds.length,
   });
-  const sendNotificationResponse = await dependencies.sendNotification({
+  const sendNotificationResponse = await dependencies.notifyUser({
     uid,
     notification,
   });

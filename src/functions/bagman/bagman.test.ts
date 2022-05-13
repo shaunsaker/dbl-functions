@@ -66,7 +66,7 @@ describe('bagman', () => {
       data: { status: InvoiceStatus.paymentReceived },
     });
 
-    expect(dependencies.sendNotification).toHaveBeenCalledWith({
+    expect(dependencies.notifyUser).toHaveBeenCalledWith({
       uid,
       notification: getBagmanNotification({
         hasPaidInFull: true,
@@ -134,7 +134,7 @@ describe('bagman', () => {
       data: { status: InvoiceStatus.paymentReceived },
     });
 
-    expect(dependencies.sendNotification).toHaveBeenCalledWith({
+    expect(dependencies.notifyUser).toHaveBeenCalledWith({
       uid,
       notification: getBagmanNotification({
         hasPaidInFull: true,
@@ -202,7 +202,7 @@ describe('bagman', () => {
       data: { status: InvoiceStatus.paymentReceived },
     });
 
-    expect(dependencies.sendNotification).toHaveBeenCalledWith({
+    expect(dependencies.notifyUser).toHaveBeenCalledWith({
       uid,
       notification: getBagmanNotification({
         hasPaidInFull: false,

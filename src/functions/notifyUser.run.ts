@@ -1,15 +1,15 @@
-import { sendNotification } from './sendNotification';
+import { notifyUser } from './notifyUser';
 
 const doAsync = async () => {
   const uid = process.argv[2];
 
   try {
-    await sendNotification({
+    await notifyUser({
       uid,
       notification: { title: 'Test', body: 'Hello Gov!' },
     });
   } catch (error) {
-    console.log('sendNotification.run: ', (error as Error).message);
+    console.log('notifyUser.run: ', (error as Error).message);
   }
 };
 

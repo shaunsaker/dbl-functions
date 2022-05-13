@@ -16,11 +16,7 @@ import { firebaseFetchActiveLot } from '../../services/firebase/firebaseFetchAct
 import { firebaseFetchTickets } from '../../services/firebase/firebaseFetchTickets';
 import { firebaseFetchUserProfile } from '../../services/firebase/firebaseFetchUserProfile';
 import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
-import {
-  FirebaseFunctionResponse,
-  FirebaseMessagingTopics,
-} from '../../services/firebase/models';
-import { firebaseSendNotification } from '../../services/firebase/firebaseSendNotification';
+import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { UserId, Username } from '../../store/userProfile/models';
 import { selectRandomItemFromArray } from '../../utils/selectRandomItemFromArray';
 import { createLot } from '../createLot';
@@ -146,7 +142,6 @@ export const runBoss = async (
     firebaseFetchUserProfile: typeof firebaseFetchUserProfile;
     firebaseCreateLotWinner: typeof firebaseCreateLotWinner;
     createWinnerPullPayment: typeof createWinnerPullPayment;
-    firebaseSendNotification: typeof firebaseSendNotification;
     createAdminPullPayment: typeof createAdminPullPayment;
     firebaseUpdateLot: typeof firebaseUpdateLot;
     createLot: typeof createLot;
@@ -159,7 +154,6 @@ export const runBoss = async (
     firebaseFetchUserProfile,
     firebaseCreateLotWinner,
     createWinnerPullPayment,
-    firebaseSendNotification,
     createAdminPullPayment,
     firebaseUpdateLot,
     createLot,
@@ -265,13 +259,6 @@ export const runBoss = async (
     };
     await dependencies.firebaseUpdateUserProfile(winnerUid, {
       winnings: existingUserWinnings,
-    });
-
-    // notify the users
-    await dependencies.firebaseSendNotification({
-      topic: FirebaseMessagingTopics.winner,
-      title: 'We have a new Winner 👑🎉',
-      body: 'Open the app for more info 😎',
     });
   }
 

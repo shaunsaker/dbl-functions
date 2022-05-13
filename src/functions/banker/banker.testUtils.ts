@@ -21,14 +21,14 @@ export const setupBankerTest = async ({
 }) => {
   const validateWebookEventData = jest.fn();
   const firebaseUpdateInvoice = jest.fn();
-  const sendNotification = jest.fn();
+  const notifyUser = jest.fn();
 
   validateWebookEventData.mockReturnValue({
     error: false,
     data: invoice,
   });
 
-  sendNotification.mockReturnValue({
+  notifyUser.mockReturnValue({
     error: false,
   });
 
@@ -42,7 +42,7 @@ export const setupBankerTest = async ({
   const dependencies = {
     validateWebookEventData,
     firebaseUpdateInvoice,
-    sendNotification,
+    notifyUser,
   };
   const response = await runBanker(eventData, dependencies);
 

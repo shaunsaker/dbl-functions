@@ -1,9 +1,9 @@
 import { makeUserProfileData } from '../store/userProfile/data';
 import { UserId, UserProfileData } from '../store/userProfile/models';
 import { getUuid } from '../utils/getUuid';
-import { sendNotification } from './sendNotification';
+import { notifyUser } from './notifyUser';
 
-export const setupSendNotificationTest = async ({
+export const setupNotifyUserTest = async ({
   userProfileData = makeUserProfileData({}),
   uid = getUuid(),
   notification = {
@@ -19,19 +19,19 @@ export const setupSendNotificationTest = async ({
   };
 }) => {
   const firebaseFetchUserProfile = jest.fn();
-  const firebaseSendNotification = jest.fn();
+  const sendEmail = jest.fn();
 
   if (userProfileData) {
     firebaseFetchUserProfile.mockReturnValue(userProfileData);
   }
 
-  const response = await sendNotification(
+  const response = await notifyUser(
     { uid, notification },
     {
       firebaseFetchUserProfile,
-      firebaseSendNotification,
+      sendEmail,
     },
   );
 
-  return { response, firebaseSendNotification };
+  return { response, sendEmail };
 };

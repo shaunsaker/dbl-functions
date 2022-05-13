@@ -6,7 +6,7 @@ import {
 } from '../../services/btcPayServer/models';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { validateWebookEventData } from '../validateWebhookEventData';
-import { sendNotification } from '../sendNotification';
+import { notifyUser } from '../notifyUser';
 import { maybePluralise } from '../../utils/maybePluralise';
 import { verifyWebhookSignature } from '../verifyWebhookSignature';
 import { InvoiceStatus } from '../../store/invoices/models';
@@ -39,11 +39,11 @@ export const runBangBeggar = async (
   dependencies: {
     validateWebookEventData: typeof validateWebookEventData;
     firebaseUpdateInvoice: typeof firebaseUpdateInvoice;
-    sendNotification: typeof sendNotification;
+    notifyUser: typeof notifyUser;
   } = {
     validateWebookEventData,
     firebaseUpdateInvoice,
-    sendNotification,
+    notifyUser,
   },
 ): Promise<Response> => {
   const validateWebhookEventDataResponse =
@@ -75,7 +75,7 @@ export const runBangBeggar = async (
   const notification = getBangBeggarNotification({
     expiredTicketCount: ticketIds.length,
   });
-  const sendNotificationResponse = await dependencies.sendNotification({
+  const sendNotificationResponse = await dependencies.notifyUser({
     uid,
     notification,
   });

@@ -1,9 +1,9 @@
 import { firebaseFetchUserProfile } from '../services/firebase/firebaseFetchUserProfile';
-import { firebaseSendNotification } from '../services/firebase/firebaseSendNotification';
 import { FirebaseFunctionResponse } from '../services/firebase/models';
+import { sendEmail } from '../services/mailer';
 import { UserId } from '../store/userProfile/models';
 
-export const sendNotification = async (
+export const notifyUser = async (
   {
     uid,
     notification,
@@ -16,10 +16,10 @@ export const sendNotification = async (
   },
   dependencies: {
     firebaseFetchUserProfile: typeof firebaseFetchUserProfile;
-    firebaseSendNotification: typeof firebaseSendNotification;
+    sendEmail: typeof sendEmail;
   } = {
     firebaseFetchUserProfile,
-    firebaseSendNotification,
+    sendEmail,
   },
 ): Promise<FirebaseFunctionResponse<void>> => {
   // fetch the user profile
@@ -28,7 +28,7 @@ export const sendNotification = async (
   if (!userProfileData) {
     const message = `user data missing for ${uid} fool.`;
 
-    console.log(`sendNotification: ${message}`);
+    console.log(`notifyUser: ${message}`);
 
     return {
       error: true,
@@ -36,10 +36,10 @@ export const sendNotification = async (
     };
   }
 
-  if (!userProfileData.fcmTokens) {
-    const message = `user fcm tokens missing for ${uid} fool.`;
+  if (!userProfileData.email) {
+    const message = `user email missing for ${uid} fool.`;
 
-    console.log(`sendNotification: ${message}`);
+    console.log(`notifyUser: ${message}`);
 
     return {
       error: true,
@@ -47,20 +47,17 @@ export const sendNotification = async (
     };
   }
 
-  // send notification(s)
-  // NOTE: the user may have multiple devices/fcmToken's
-  for await (const fcmToken of userProfileData.fcmTokens) {
-    // we use a try catch to allow this to continue in case on the tokens fail
-    try {
-      await dependencies.firebaseSendNotification({
-        ...notification,
-        token: fcmToken,
-      });
-    } catch (error) {
-      const message = (error as Error).message;
+  // send an email
+  try {
+    await dependencies.sendEmail({
+      email: userProfileData.email,
+      subject: notification.title,
+      body: notification.body,
+    });
+  } catch (error) {
+    const message = (error as Error).message;
 
-      console.log(`sendNotification: ${message}`);
-    }
+    console.log(`notifyUser: ${message}`);
   }
 
   return {

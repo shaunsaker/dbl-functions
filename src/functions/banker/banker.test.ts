@@ -31,7 +31,7 @@ describe('banker', () => {
       data: { status: InvoiceStatus.confirmed },
     });
 
-    expect(dependencies.sendNotification).toHaveBeenCalledWith({
+    expect(dependencies.notifyUser).toHaveBeenCalledWith({
       uid,
       notification: getBankerNotification({
         confirmedTicketCount: ticketIds.length,

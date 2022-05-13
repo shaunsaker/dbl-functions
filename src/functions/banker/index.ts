@@ -7,7 +7,7 @@ import {
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { maybePluralise } from '../../utils/maybePluralise';
 import { validateWebookEventData } from '../validateWebhookEventData';
-import { sendNotification } from '../sendNotification';
+import { notifyUser } from '../notifyUser';
 import { verifyWebhookSignature } from '../verifyWebhookSignature';
 import { firebaseUpdateInvoice } from '../../services/firebase/firebaseUpdateInvoice';
 import { InvoiceStatus } from '../../store/invoices/models';
@@ -39,11 +39,11 @@ export const runBanker = async (
   dependencies: {
     validateWebookEventData: typeof validateWebookEventData;
     firebaseUpdateInvoice: typeof firebaseUpdateInvoice;
-    sendNotification: typeof sendNotification;
+    notifyUser: typeof notifyUser;
   } = {
     validateWebookEventData,
     firebaseUpdateInvoice,
-    sendNotification,
+    notifyUser,
   },
 ): Promise<Response> => {
   const validateWebhookEventDataResponse =
@@ -75,7 +75,7 @@ export const runBanker = async (
   const notification = getBankerNotification({
     confirmedTicketCount: ticketIds.length,
   });
-  const sendNotificationResponse = await dependencies.sendNotification({
+  const sendNotificationResponse = await dependencies.notifyUser({
     uid,
     notification,
   });

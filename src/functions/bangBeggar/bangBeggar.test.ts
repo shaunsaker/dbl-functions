@@ -31,7 +31,7 @@ describe('bangBeggar', () => {
       data: { status: InvoiceStatus.expired },
     });
 
-    expect(dependencies.sendNotification).toHaveBeenCalledWith({
+    expect(dependencies.notifyUser).toHaveBeenCalledWith({
       uid,
       notification: getBangBeggarNotification({
         expiredTicketCount: ticketIds.length,

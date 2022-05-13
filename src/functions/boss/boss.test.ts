@@ -7,7 +7,6 @@ import {
 } from '.';
 import { makeLot } from '../../store/lots/data';
 import { makeBtcPayServerPullPayment } from '../../services/btcPayServer/data';
-import { FirebaseMessagingTopics } from '../../services/firebase/models';
 import { makeBtcPayServerStore } from '../../services/btcPayServer/data';
 import { makeUserProfileData } from '../../store/userProfile/data';
 import { arrayFromNumber } from '../../utils/arrayFromNumber';
@@ -171,7 +170,6 @@ describe('boss', () => {
       expect(dependencies.firebaseFetchUserProfile).not.toHaveBeenCalled();
       expect(dependencies.firebaseCreateLotWinner).not.toHaveBeenCalled();
       expect(dependencies.createWinnerPullPayment).not.toHaveBeenCalled();
-      expect(dependencies.firebaseSendNotification).not.toHaveBeenCalled();
       expect(dependencies.createAdminPullPayment).not.toHaveBeenCalled();
       expect(dependencies.firebaseCreateLotWinner).not.toHaveBeenCalled();
       expect(dependencies.firebaseUpdateLot).toHaveBeenCalledWith(lot.id, {
@@ -222,11 +220,6 @@ describe('boss', () => {
         storeId: store.id,
         username: winnerUserProfileData.username,
         lot,
-      });
-      expect(dependencies.firebaseSendNotification).toHaveBeenCalledWith({
-        topic: FirebaseMessagingTopics.winner,
-        title: 'We have a new Winner 👑🎉',
-        body: 'Open the app for more info 😎',
       });
       expect(dependencies.createAdminPullPayment).toHaveBeenCalledWith({
         storeId: store.id,

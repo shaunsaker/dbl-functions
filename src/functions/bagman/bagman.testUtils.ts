@@ -32,7 +32,7 @@ export const setupBagmanTest = async ({
   const getInvoicePaymentMethods = jest.fn();
   const firebaseCreatePayment = jest.fn();
   const firebaseUpdateInvoice = jest.fn();
-  const sendNotification = jest.fn();
+  const notifyUser = jest.fn();
 
   validateWebookEventData.mockReturnValue({
     error: false,
@@ -65,7 +65,7 @@ export const setupBagmanTest = async ({
     ]);
   }
 
-  sendNotification.mockReturnValue({
+  notifyUser.mockReturnValue({
     error: false,
   });
 
@@ -82,7 +82,7 @@ export const setupBagmanTest = async ({
     getInvoicePaymentMethods,
     firebaseCreatePayment,
     firebaseUpdateInvoice,
-    sendNotification,
+    notifyUser,
   };
   const response = await runBagman(eventData, dependencies);
 

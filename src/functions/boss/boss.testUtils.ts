@@ -33,7 +33,6 @@ export const setupBossTest = async ({
   const firebaseFetchUserProfile = jest.fn();
   const firebaseCreateLotWinner = jest.fn();
   const createWinnerPullPayment = jest.fn();
-  const firebaseSendNotification = jest.fn();
   const createAdminPullPayment = jest.fn();
   const firebaseUpdateLot = jest.fn();
   const createLot = jest.fn();
@@ -74,7 +73,6 @@ export const setupBossTest = async ({
     firebaseFetchUserProfile,
     firebaseCreateLotWinner,
     createWinnerPullPayment,
-    firebaseSendNotification,
     createAdminPullPayment,
     firebaseUpdateLot,
     createLot,
