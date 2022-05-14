@@ -83,6 +83,7 @@ describe('createLot', () => {
         ...getInvoiceExpiredWebhook(),
         id: expect.any(String),
       });
+      expect(dependencies.blockCypherGetBlockchain).toHaveBeenCalled();
       expect(dependencies.firebaseCreateLot).toHaveBeenCalledWith({
         ...makeLot({
           id: lotId,
@@ -91,6 +92,8 @@ describe('createLot', () => {
           drawTime: expect.any(String),
           totalAvailableTickets: expect.any(Number),
           totalTickets: expect.any(Number),
+          initialTicketIdBlockHeight: expect.any(Number),
+          latestTicketIdBlockHeight: expect.any(Number),
         }),
       });
     });

@@ -13,6 +13,8 @@ declare global {
       EMAIL_USERNAME: string;
       EMAIL_PASSWORD: string;
       APP_NAME: string;
+      BLOCK_CYPHER_TOKEN: string;
+      BLOCK_CYPHER_API: string;
       PORT?: string;
       PWD: string;
     }

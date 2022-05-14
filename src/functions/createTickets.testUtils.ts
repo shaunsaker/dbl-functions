@@ -22,14 +22,20 @@ export const setupCreateTicketsTests = async ({
   invoiceId?: InvoiceId;
 }) => {
   const firebaseFetchTickets = jest.fn();
+  const blockCypherGetBlockByHeight = jest.fn();
+  const firebaseUpdateLot = jest.fn();
   const firebaseWriteBatch = jest.fn();
 
   if (existingTickets) {
     firebaseFetchTickets.mockReturnValue(existingTickets);
   }
 
+  blockCypherGetBlockByHeight.mockReturnValue({ hash: getUuid() });
+
   const dependencies = {
     firebaseFetchTickets,
+    blockCypherGetBlockByHeight,
+    firebaseUpdateLot,
     firebaseWriteBatch,
   };
   const response = await createTickets({

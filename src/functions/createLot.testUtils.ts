@@ -19,6 +19,7 @@ export const setupCreateLotTest = async ({
   const createStoreWallet = jest.fn();
   const firebaseCreateLotStoreWalletKey = jest.fn();
   const createWebhook = jest.fn();
+  const blockCypherGetBlockchain = jest.fn();
   const firebaseCreateLot = jest.fn();
 
   if (lotExists) {
@@ -29,12 +30,15 @@ export const setupCreateLotTest = async ({
     createStore.mockReturnValue({ id: storeId });
   }
 
+  blockCypherGetBlockchain.mockReturnValue({ height: 100000 });
+
   const dependencies = {
     firebaseFetchLot,
     createStore,
     createStoreWallet,
     firebaseCreateLotStoreWalletKey,
     createWebhook,
+    blockCypherGetBlockchain,
     firebaseCreateLot,
   };
   const response = await createLot({ lotId, active, dependencies });

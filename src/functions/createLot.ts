@@ -19,6 +19,7 @@ import { makeLot } from '../store/lots/data';
 import { BtcPayServerWebhookEvent } from '../services/btcPayServer/models';
 import { firebaseFetchLot } from '../services/firebase/firebaseFetchLot';
 import { FirebaseFunctionResponse } from '../services/firebase/models';
+import { blockCypherGetBlockchain } from '../services/blockCypher/blockCypherGetBlockchain';
 
 require('dotenv').config();
 
@@ -89,6 +90,7 @@ export const createLot = async ({
     createStoreWallet,
     firebaseCreateLotStoreWalletKey,
     createWebhook,
+    blockCypherGetBlockchain,
     firebaseCreateLot,
   },
 }: {
@@ -101,6 +103,7 @@ export const createLot = async ({
     createStoreWallet: typeof createStoreWallet;
     firebaseCreateLotStoreWalletKey: typeof firebaseCreateLotStoreWalletKey;
     createWebhook: typeof createWebhook;
+    blockCypherGetBlockchain: typeof blockCypherGetBlockchain;
     firebaseCreateLot: typeof firebaseCreateLot;
   };
 }): Promise<Response> => {
@@ -128,11 +131,18 @@ export const createLot = async ({
     avgBTCDailyFluctuationPercentage: 2, // FIXME: in the future we could make this dynamic
   });
 
+  // get the latest block height
+  const latestTicketIdBlockHeight = (
+    await dependencies.blockCypherGetBlockchain()
+  ).height;
+
   // create the lot
   const lot = makeLot({
     id: lotId,
     active,
     totalAvailableTickets,
+    initialTicketIdBlockHeight: latestTicketIdBlockHeight,
+    latestTicketIdBlockHeight: latestTicketIdBlockHeight, // this will be updated with new ticket purchases
   });
 
   await dependencies.firebaseCreateLot(lot);

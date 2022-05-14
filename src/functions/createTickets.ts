@@ -8,7 +8,8 @@ import { TicketId, Ticket } from '../store/tickets/models';
 import { UserId } from '../store/userProfile/models';
 import { arrayFromNumber } from '../utils/arrayFromNumber';
 import { getTimeAsISOString } from '../utils/getTimeAsISOString';
-import { getUuid } from '../utils/getUuid';
+import { blockCypherGetBlockByHeight } from '../services/blockCypher/blockCypherGetBlockByHeight';
+import { firebaseUpdateLot } from '../services/firebase/firebaseUpdateLot';
 
 export const getNotEnoughTicketsAvailableResponseMessage = ({
   ticketCount,
@@ -43,6 +44,8 @@ export const createTickets = async ({
   invoiceId,
   dependencies = {
     firebaseFetchTickets,
+    blockCypherGetBlockByHeight,
+    firebaseUpdateLot,
     firebaseWriteBatch,
   },
 }: {
@@ -53,6 +56,8 @@ export const createTickets = async ({
   invoiceId: InvoiceId;
   dependencies?: {
     firebaseFetchTickets: typeof firebaseFetchTickets;
+    blockCypherGetBlockByHeight: typeof blockCypherGetBlockByHeight;
+    firebaseUpdateLot: typeof firebaseUpdateLot;
     firebaseWriteBatch: typeof firebaseWriteBatch;
   };
 }): Promise<FirebaseFunctionResponse<TicketId[]>> => {
@@ -93,10 +98,20 @@ export const createTickets = async ({
     };
   }
 
-  const tickets = arrayFromNumber(ticketCount).map(() => {
-    const id = getUuid();
+  // get the n -1 block hash as the ticket id for each ticket
+  let latestTicketIdBlockHeight = lot.latestTicketIdBlockHeight;
+  const tickets: Ticket[] = [];
+
+  // we iterate in an ordered loop to make sure that the latestTicketIdBlockHeight is updated correctly
+  for await (const _ of arrayFromNumber(ticketCount)) {
+    // get the previous block hash using the latestTicketIdBlockHeight
+    const previousBlockHeight = latestTicketIdBlockHeight - 1;
+    const previousBlockHash = (
+      await dependencies.blockCypherGetBlockByHeight(previousBlockHeight)
+    ).hash;
+
     const ticket: Ticket = {
-      id,
+      id: previousBlockHash,
       lotId,
       uid,
       priceBTC: ticketPriceBTC,
@@ -104,8 +119,10 @@ export const createTickets = async ({
       invoiceId,
     };
 
-    return ticket;
-  });
+    tickets.push(ticket);
+    latestTicketIdBlockHeight = previousBlockHeight;
+  }
+
   const ticketDocs = tickets.map((ticket) => ({
     ref: firebase
       .firestore()
@@ -117,6 +134,9 @@ export const createTickets = async ({
   }));
 
   await dependencies.firebaseWriteBatch(ticketDocs);
+
+  // save the latestTicketIdBlockHeight to the lot
+  await dependencies.firebaseUpdateLot(lotId, { latestTicketIdBlockHeight });
 
   return {
     error: false,

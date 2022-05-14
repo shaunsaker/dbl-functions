@@ -66,6 +66,10 @@ describe('createTickets', () => {
       ticketCount,
     });
 
+    expect(dependencies.firebaseUpdateLot).toHaveBeenCalledWith(lot.id, {
+      latestTicketIdBlockHeight: expect.any(Number),
+    });
+
     expect(dependencies.firebaseWriteBatch).toHaveBeenCalledWith([
       {
         ref: expect.any(Object), // let's not test firebase ref internals

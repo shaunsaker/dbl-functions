@@ -18,6 +18,8 @@ export const makeLot = ({
   totalConfirmedTickets = 0,
   perUserTicketLimit = PER_USER_TICKET_LIMIT,
   ticketPriceUSD = TARGET_TICKET_VALUE_USD,
+  initialTicketIdBlockHeight = 0,
+  latestTicketIdBlockHeight = 0,
 }: { id: LotId; active: boolean; totalAvailableTickets: number } & Partial<
   Omit<Lot, 'id' | 'active' | 'totalAvailableTickets'>
 >): Lot => {
@@ -43,5 +45,7 @@ export const makeLot = ({
     totalConfirmedTickets,
     perUserTicketLimit,
     ticketPriceUSD,
+    initialTicketIdBlockHeight,
+    latestTicketIdBlockHeight,
   };
 };
