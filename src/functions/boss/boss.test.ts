@@ -14,28 +14,44 @@ import { getUuid } from '../../utils/getUuid';
 import { setupBossTest } from './boss.testUtils';
 import { makeTicket } from '../../store/tickets/data';
 import { makeInvoice } from '../../store/invoices/data';
+import { blockHashToRandomNumber } from '../../utils/blockHashToRandomNumber';
+import { selectRandomItemFromArray } from '../../utils/selectRandomItemFromArray';
 
 describe('boss', () => {
   describe('drawWinner', () => {
     const firebaseFetchInvoices = jest.fn();
     const firebaseFetchTickets = jest.fn();
+    const blockCypherGetBlockchain = jest.fn();
 
     it('selects a random ticket', async () => {
       const lotId = getUuid();
 
       firebaseFetchInvoices.mockReturnValue([makeInvoice({})]);
 
-      firebaseFetchTickets.mockReturnValue(
-        arrayFromNumber(100).map(() => makeTicket({ uid: getUuid() })),
+      const confirmedTickets = arrayFromNumber(100).map(() =>
+        makeTicket({ uid: getUuid() }),
       );
+      firebaseFetchTickets.mockReturnValue(confirmedTickets);
 
-      const uid = await drawWinner(lotId, {
-        firebaseFetchInvoices,
-        firebaseFetchTickets,
+      const latestBlockHash =
+        '0xacda89251071dce30f60ff41146f1a4d231acbab7ec76c072af04797198d2eed';
+      blockCypherGetBlockchain.mockReturnValue({
+        hash: latestBlockHash,
       });
 
-      // we don't test randomness, leave that to selectRandomItemFromArray
-      expect(uid).toBeTruthy();
+      const { winnerUid, winningBlockHash } = await drawWinner(lotId, {
+        firebaseFetchInvoices,
+        firebaseFetchTickets,
+        blockCypherGetBlockchain,
+      });
+
+      expect(winnerUid).toEqual(
+        selectRandomItemFromArray(
+          confirmedTickets,
+          blockHashToRandomNumber(latestBlockHash),
+        )?.uid,
+      );
+      expect(latestBlockHash).toEqual(winningBlockHash);
     });
   });
 
@@ -234,6 +250,7 @@ describe('boss', () => {
       expect(dependencies.firebaseUpdateLot).toHaveBeenCalledWith(lot.id, {
         active: false,
         winnerUsername: winnerUserProfileData.username,
+        winningBlockHash: expect.any(String),
       });
 
       expect(dependencies.firebaseUpdateUserProfile).toHaveBeenCalledWith(

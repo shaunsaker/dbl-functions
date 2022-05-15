@@ -1,3 +1,6 @@
-export const selectRandomItemFromArray = <T>(items: T[]): T | undefined => {
-  return items[Math.floor(Math.random() * items.length)];
+export const selectRandomItemFromArray = <T>(
+  items: T[],
+  randomNumber: number = Math.random(),
+): T | undefined => {
+  return items[Math.floor(randomNumber * items.length)];
 };

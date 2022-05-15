@@ -29,4 +29,5 @@ export interface Lot {
   initialTicketIdBlockHeight: number; // set when the lot is created
   latestTicketIdBlockHeight: number; // updated with each ticket that is issued
   winnerUsername?: Username;
+  winningBlockHash?: string;
 }
