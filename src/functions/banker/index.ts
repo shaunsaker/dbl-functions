@@ -21,14 +21,14 @@ export const getBankerNotification = ({
   confirmedTicketCount: number;
 }): {
   title: string;
-  body: string;
+  description: string;
 } => {
   return {
     title: `We've just confirmed ${maybePluralise(
       confirmedTicketCount,
       'ticket',
     )} 🎉`,
-    body: "You're officially in today's draw 🤞",
+    description: "You're officially in today's draw 🤞",
   };
 };
 

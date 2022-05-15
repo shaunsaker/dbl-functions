@@ -8,14 +8,14 @@ export const setupNotifyUserTest = async ({
   uid = getUuid(),
   notification = {
     title: '',
-    body: '',
+    description: '',
   },
 }: {
   userProfileData?: UserProfileData | null;
   uid?: UserId;
   notification?: {
     title: string;
-    body: string;
+    description: string;
   };
 }) => {
   const firebaseFetchUserProfile = jest.fn();

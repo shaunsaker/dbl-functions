@@ -38,11 +38,11 @@ export const getBagmanNotification = ({
   paidTicketCount: number;
 }): {
   title: string;
-  body: string;
+  description: string;
 } => {
   return {
     title: `We've just received a payment from you 😎`,
-    body: hasPaidInFull
+    description: hasPaidInFull
       ? `You paid ${paymentAmountBTC} BTC. Once your transaction has received 6 confirmations on the blockchain, we'll enter your ${maybePluralise(
           paidTicketCount,
           'ticket',

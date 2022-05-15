@@ -1,5 +1,6 @@
 import * as nodemailer from 'nodemailer';
 import * as cors from 'cors';
+import Mail = require('nodemailer/lib/mailer');
 
 require('dotenv').config();
 
@@ -13,23 +14,17 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-interface MailerOptions {
-  email: string;
-  subject: string;
-  body: string;
-}
-
 export const sendEmail = async ({
-  email,
+  to,
   subject,
-  body,
-}: MailerOptions): Promise<void> => {
+  text,
+}: Mail.Options): Promise<void> => {
   return new Promise((resolve, reject) => {
-    const mailOptions = {
+    const mailOptions: Mail.Options = {
       from: `${process.env.APP_NAME} <${process.env.EMAIL_USERNAME}>`,
-      to: email,
+      to,
       subject,
-      body,
+      text,
     };
 
     transporter.sendMail(mailOptions, (error) => {

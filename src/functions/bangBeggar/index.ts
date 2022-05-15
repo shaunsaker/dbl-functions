@@ -21,14 +21,15 @@ export const getBangBeggarNotification = ({
   expiredTicketCount: number;
 }): {
   title: string;
-  body: string;
+  description: string;
 } => {
   return {
     title: `We've just expired ${maybePluralise(
       expiredTicketCount,
       'ticket',
     )} 😔`,
-    body: "To keep things fair, if we don't receive payment within 15 minutes, we expire those tickets for other users. please try again.",
+    description:
+      "To keep things fair, if we don't receive payment within 15 minutes, we expire those tickets for other users. please try again.",
   };
 };
 

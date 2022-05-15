@@ -11,7 +11,7 @@ export const notifyUser = async (
     uid: UserId;
     notification: {
       title: string;
-      body: string;
+      description: string;
     };
   },
   dependencies: {
@@ -50,9 +50,9 @@ export const notifyUser = async (
   // send an email
   try {
     await dependencies.sendEmail({
-      email: userProfileData.email,
+      to: userProfileData.email,
       subject: notification.title,
-      body: notification.body,
+      text: notification.description,
     });
   } catch (error) {
     const message = (error as Error).message;

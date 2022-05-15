@@ -36,7 +36,7 @@ describe('notifyUser', () => {
   it('sends notifications', async () => {
     const notification = {
       title: 'Yay',
-      body: 'You won!',
+      description: 'You won!',
     };
     const userProfileData = makeUserProfileData({});
     const { response, sendEmail } = await setupNotifyUserTest({
@@ -45,9 +45,9 @@ describe('notifyUser', () => {
     });
 
     expect(sendEmail).toHaveBeenCalledWith({
-      email: userProfileData.email,
+      to: userProfileData.email,
       subject: notification.title,
-      body: notification.body,
+      text: notification.description,
     });
 
     expect(response).toEqual({

@@ -6,7 +6,7 @@ const doAsync = async () => {
   try {
     await notifyUser({
       uid,
-      notification: { title: 'Test', body: 'Hello Gov!' },
+      notification: { title: 'Test', description: 'Hello Gov!' },
     });
   } catch (error) {
     console.log('notifyUser.run: ', (error as Error).message);
