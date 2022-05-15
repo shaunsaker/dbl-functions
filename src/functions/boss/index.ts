@@ -31,6 +31,7 @@ import { firebaseFetchInvoices } from '../../services/firebase/firebaseFetchInvo
 import { InvoiceStatus } from '../../store/invoices/models';
 import { blockCypherGetBlockchain } from '../../services/blockCypher/blockCypherGetBlockchain';
 import { blockHashToRandomNumber } from '../../utils/blockHashToRandomNumber';
+import { notifyUser } from '../notifyUser';
 
 export const drawWinner = async (
   lotId: LotId,
@@ -164,6 +165,7 @@ export const runBoss = async (
     firebaseUpdateLot: typeof firebaseUpdateLot;
     createLot: typeof createLot;
     firebaseUpdateUserProfile: typeof firebaseUpdateUserProfile;
+    notifyUser: typeof notifyUser;
   } = {
     firebaseFetchActiveLot,
     getStoreByStoreName,
@@ -176,6 +178,7 @@ export const runBoss = async (
     firebaseUpdateLot,
     createLot,
     firebaseUpdateUserProfile,
+    notifyUser,
   },
 ): Promise<Response> => {
   // get the active lot id (in the future there may be a few)
@@ -278,6 +281,14 @@ export const runBoss = async (
     };
     await dependencies.firebaseUpdateUserProfile(winnerUid, {
       winnings: existingUserWinnings,
+    });
+
+    await dependencies.notifyUser({
+      uid: winnerUid,
+      notification: {
+        title: 'Congrats 🎉',
+        description: 'You just won!',
+      },
     });
   }
 

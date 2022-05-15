@@ -37,6 +37,7 @@ export const setupBossTest = async ({
   const firebaseUpdateLot = jest.fn();
   const createLot = jest.fn();
   const firebaseUpdateUserProfile = jest.fn();
+  const notifyUser = jest.fn();
 
   if (lot) {
     firebaseFetchActiveLot.mockReturnValue(lot);
@@ -77,6 +78,7 @@ export const setupBossTest = async ({
     firebaseUpdateLot,
     createLot,
     firebaseUpdateUserProfile,
+    notifyUser,
   };
   const response = await runBoss(dependencies);
 

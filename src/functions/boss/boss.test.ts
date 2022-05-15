@@ -192,6 +192,7 @@ describe('boss', () => {
         active: false,
         winnerUsername: '', // no winner, this should be empty
       });
+      expect(dependencies.notifyUser).not.toHaveBeenCalled();
       expect(dependencies.createLot).toHaveBeenCalled();
       expect(response).toEqual({
         error: false,
@@ -261,6 +262,7 @@ describe('boss', () => {
           },
         },
       );
+      expect(dependencies.notifyUser).toHaveBeenCalled();
       expect(dependencies.createLot).toHaveBeenCalled();
       expect(response).toEqual({
         error: false,
