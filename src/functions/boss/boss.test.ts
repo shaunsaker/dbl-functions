@@ -15,7 +15,7 @@ import { setupBossTest } from './boss.testUtils';
 import { makeTicket } from '../../store/tickets/data';
 import { makeInvoice } from '../../store/invoices/data';
 import { blockHashToRandomNumber } from '../../utils/blockHashToRandomNumber';
-import { selectRandomItemFromArray } from '../../utils/selectRandomItemFromArray';
+import { floatToIndex } from '../../utils/floatToIndex';
 
 describe('boss', () => {
   describe('drawWinner', () => {
@@ -45,12 +45,13 @@ describe('boss', () => {
         blockCypherGetBlockchain,
       });
 
-      expect(winnerUid).toEqual(
-        selectRandomItemFromArray(
-          confirmedTickets,
-          blockHashToRandomNumber(latestBlockHash),
-        )?.uid,
-      );
+      const randomNumber = blockHashToRandomNumber(latestBlockHash);
+      const index = floatToIndex({
+        float: randomNumber,
+        count: confirmedTickets.length,
+      });
+      const winningTicket = confirmedTickets[index];
+      expect(winnerUid).toEqual(winningTicket.uid);
       expect(latestBlockHash).toEqual(winningBlockHash);
     });
   });
@@ -252,6 +253,8 @@ describe('boss', () => {
         active: false,
         winnerUsername: winnerUserProfileData.username,
         winningBlockHash: expect.any(String),
+        latestBlockHashAtDrawTime: expect.any(String),
+        winningTicketIndex: expect.any(Number),
       });
 
       expect(dependencies.firebaseUpdateUserProfile).toHaveBeenCalledWith(

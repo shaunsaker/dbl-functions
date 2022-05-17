@@ -18,7 +18,6 @@ import { firebaseFetchUserProfile } from '../../services/firebase/firebaseFetchU
 import { firebaseUpdateLot } from '../../services/firebase/firebaseUpdateLot';
 import { FirebaseFunctionResponse } from '../../services/firebase/models';
 import { UserId, Username } from '../../store/userProfile/models';
-import { selectRandomItemFromArray } from '../../utils/selectRandomItemFromArray';
 import { createLot } from '../createLot';
 import { numberToDigits } from '../../utils/numberToDigits';
 import { firebaseCreateLotWinner } from '../../services/firebase/firebaseCreateLotWinner';
@@ -32,6 +31,7 @@ import { InvoiceStatus } from '../../store/invoices/models';
 import { blockCypherGetBlockchain } from '../../services/blockCypher/blockCypherGetBlockchain';
 import { blockHashToRandomNumber } from '../../utils/blockHashToRandomNumber';
 import { notifyUser } from '../notifyUser';
+import { floatToIndex } from '../../utils/floatToIndex';
 
 export const drawWinner = async (
   lotId: LotId,
@@ -47,6 +47,8 @@ export const drawWinner = async (
 ): Promise<{
   winnerUid: UserId | undefined;
   winningBlockHash: string;
+  winningTicketIndex: number;
+  latestBlockHashAtDrawTime: string;
 }> => {
   // fetch the lot's confirmed invoices
   const confirmedInvoices = await dependencies.firebaseFetchInvoices({
@@ -70,16 +72,19 @@ export const drawWinner = async (
   const { hash: latestBlockHash } =
     await dependencies.blockCypherGetBlockchain();
   const randomNumber = blockHashToRandomNumber(latestBlockHash);
+  const ticketIndex = floatToIndex({
+    float: randomNumber,
+    count: confirmedTickets.length,
+  });
 
   // here come's a new millionaire 🎉
-  const winningTicket = selectRandomItemFromArray(
-    confirmedTickets,
-    randomNumber,
-  );
+  const winningTicket = confirmedTickets[ticketIndex];
 
   return {
     winnerUid: winningTicket?.uid,
     winningBlockHash: latestBlockHash,
+    winningTicketIndex: ticketIndex,
+    latestBlockHashAtDrawTime: latestBlockHash,
   };
 };
 
@@ -227,8 +232,12 @@ export const runBoss = async (
   }
 
   // draw the winner
-  const { winnerUid, winningBlockHash } =
-    (await dependencies.drawWinner(activeLot.id)) || '';
+  const {
+    winnerUid,
+    winningBlockHash,
+    latestBlockHashAtDrawTime,
+    winningTicketIndex,
+  } = (await dependencies.drawWinner(activeLot.id)) || '';
   let winnerUsername = '';
 
   if (!winnerUid) {
@@ -297,8 +306,10 @@ export const runBoss = async (
   // but we still want to mark the lot as inactive
   await dependencies.firebaseUpdateLot(activeLot.id, {
     active: false,
+    latestBlockHashAtDrawTime,
     winnerUsername,
     winningBlockHash,
+    winningTicketIndex,
   });
 
   // create a new lot

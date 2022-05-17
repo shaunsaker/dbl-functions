@@ -28,6 +28,8 @@ export interface Lot {
   drawTime: string;
   initialTicketIdBlockHeight: number; // set when the lot is created
   latestTicketIdBlockHeight: number; // updated with each ticket that is issued
+  latestBlockHashAtDrawTime?: string;
   winnerUsername?: Username;
   winningBlockHash?: string;
+  winningTicketIndex?: number;
 }

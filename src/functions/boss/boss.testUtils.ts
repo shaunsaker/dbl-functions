@@ -55,7 +55,12 @@ export const setupBossTest = async ({
   }
 
   if (winnerUid) {
-    drawWinner.mockReturnValue({ winnerUid, winningBlockHash: '123456789' });
+    drawWinner.mockReturnValue({
+      winnerUid,
+      winningBlockHash: '123456789',
+      latestBlockHashAtDrawTime: '123456789',
+      winningTicketIndex: 2,
+    });
   }
 
   if (winnerUserProfileData) {
