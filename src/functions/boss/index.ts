@@ -48,7 +48,7 @@ export const drawWinner = async (
   },
 ): Promise<{
   winnerUid: UserId | undefined;
-  winningBlockHash: string;
+  winningTicketId: string;
   winningTicketIndex: number;
   latestBlockHashAtDrawTime: string;
 }> => {
@@ -71,22 +71,22 @@ export const drawWinner = async (
   }
 
   // get the random number using the blockchain
-  const { hash: latestBlockHash } =
+  const { hash: latestBlockHashAtDrawTime } =
     await dependencies.blockCypherGetBlockchain();
-  const randomNumber = blockHashToRandomNumber(latestBlockHash);
-  const ticketIndex = floatToIndex({
+  const randomNumber = blockHashToRandomNumber(latestBlockHashAtDrawTime);
+  const winningTicketIndex = floatToIndex({
     float: randomNumber,
     count: confirmedTickets.length,
   });
 
   // here come's a new millionaire 🎉
-  const winningTicket = confirmedTickets[ticketIndex];
+  const winningTicket = confirmedTickets[winningTicketIndex];
 
   return {
-    winnerUid: winningTicket?.uid,
-    winningBlockHash: latestBlockHash,
-    winningTicketIndex: ticketIndex,
-    latestBlockHashAtDrawTime: latestBlockHash,
+    winnerUid: winningTicket?.uid || '',
+    winningTicketId: winningTicket?.id || '',
+    winningTicketIndex,
+    latestBlockHashAtDrawTime,
   };
 };
 
@@ -240,7 +240,7 @@ export const runBoss = async (
   // draw the winner
   const {
     winnerUid,
-    winningBlockHash,
+    winningTicketId,
     latestBlockHashAtDrawTime,
     winningTicketIndex,
   } = (await dependencies.drawWinner(activeLot.id)) || '';
@@ -314,7 +314,7 @@ export const runBoss = async (
     active: false,
     latestBlockHashAtDrawTime,
     winnerUsername,
-    winningBlockHash,
+    winningTicketId,
     winningTicketIndex,
   });
 

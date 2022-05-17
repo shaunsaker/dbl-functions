@@ -33,26 +33,26 @@ describe('boss', () => {
       );
       firebaseFetchTickets.mockReturnValue(confirmedTickets);
 
-      const latestBlockHash =
+      const latestBlockHashAtDrawTime =
         '0xacda89251071dce30f60ff41146f1a4d231acbab7ec76c072af04797198d2eed';
       blockCypherGetBlockchain.mockReturnValue({
-        hash: latestBlockHash,
+        hash: latestBlockHashAtDrawTime,
       });
 
-      const { winnerUid, winningBlockHash } = await drawWinner(lotId, {
+      const { winnerUid, winningTicketId } = await drawWinner(lotId, {
         firebaseFetchInvoices,
         firebaseFetchTickets,
         blockCypherGetBlockchain,
       });
 
-      const randomNumber = blockHashToRandomNumber(latestBlockHash);
+      const randomNumber = blockHashToRandomNumber(latestBlockHashAtDrawTime);
       const index = floatToIndex({
         float: randomNumber,
         count: confirmedTickets.length,
       });
       const winningTicket = confirmedTickets[index];
       expect(winnerUid).toEqual(winningTicket.uid);
-      expect(latestBlockHash).toEqual(winningBlockHash);
+      expect(winningTicketId).toEqual(winningTicket.id);
     });
   });
 
@@ -256,7 +256,7 @@ describe('boss', () => {
       expect(dependencies.firebaseUpdateLot).toHaveBeenCalledWith(lot.id, {
         active: false,
         winnerUsername: winnerUserProfileData.username,
-        winningBlockHash: expect.any(String),
+        winningTicketId: expect.any(String),
         latestBlockHashAtDrawTime: expect.any(String),
         winningTicketIndex: expect.any(Number),
       });

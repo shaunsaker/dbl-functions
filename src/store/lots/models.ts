@@ -30,6 +30,6 @@ export interface Lot {
   latestTicketIdBlockHeight: number; // updated with each ticket that is issued
   latestBlockHashAtDrawTime?: string;
   winnerUsername?: Username;
-  winningBlockHash?: string;
+  winningTicketId?: string;
   winningTicketIndex?: number;
 }
