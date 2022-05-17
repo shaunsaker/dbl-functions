@@ -32,6 +32,8 @@ import { blockCypherGetBlockchain } from '../../services/blockCypher/blockCypher
 import { blockHashToRandomNumber } from '../../utils/blockHashToRandomNumber';
 import { notifyUser } from '../notifyUser';
 import { floatToIndex } from '../../utils/floatToIndex';
+import { firebaseFetchStats } from '../../services/firebase/firebaseFetchStats';
+import { firebaseUpdateStats } from '../../services/firebase/firebaseUpdateStats';
 
 export const drawWinner = async (
   lotId: LotId,
@@ -171,6 +173,8 @@ export const runBoss = async (
     createLot: typeof createLot;
     firebaseUpdateUserProfile: typeof firebaseUpdateUserProfile;
     notifyUser: typeof notifyUser;
+    firebaseFetchStats: typeof firebaseFetchStats;
+    firebaseUpdateStats: typeof firebaseUpdateStats;
   } = {
     firebaseFetchActiveLot,
     getStoreByStoreName,
@@ -184,6 +188,8 @@ export const runBoss = async (
     createLot,
     firebaseUpdateUserProfile,
     notifyUser,
+    firebaseFetchStats,
+    firebaseUpdateStats,
   },
 ): Promise<Response> => {
   // get the active lot id (in the future there may be a few)
@@ -311,6 +317,11 @@ export const runBoss = async (
     winningBlockHash,
     winningTicketIndex,
   });
+
+  // update stats with the result
+  const currentStats = await dependencies.firebaseFetchStats();
+  const newResultsCount = (currentStats.resultsCount || 0) + 1;
+  await dependencies.firebaseUpdateStats({ resultsCount: newResultsCount });
 
   // create a new lot
   const lotId = getLotIdFromDate(moment(activeLot.id).add({ days: 1 }));

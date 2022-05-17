@@ -195,6 +195,10 @@ describe('boss', () => {
       });
       expect(dependencies.notifyUser).not.toHaveBeenCalled();
       expect(dependencies.createLot).toHaveBeenCalled();
+      expect(dependencies.firebaseFetchStats).toHaveBeenCalled();
+      expect(dependencies.firebaseUpdateStats).toHaveBeenCalledWith({
+        resultsCount: 11,
+      });
       expect(response).toEqual({
         error: false,
         message: 'great success!',
@@ -267,6 +271,10 @@ describe('boss', () => {
       );
       expect(dependencies.notifyUser).toHaveBeenCalled();
       expect(dependencies.createLot).toHaveBeenCalled();
+      expect(dependencies.firebaseFetchStats).toHaveBeenCalled();
+      expect(dependencies.firebaseUpdateStats).toHaveBeenCalledWith({
+        resultsCount: 11,
+      });
       expect(response).toEqual({
         error: false,
         message: 'great success!',

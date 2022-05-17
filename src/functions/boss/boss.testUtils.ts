@@ -38,6 +38,8 @@ export const setupBossTest = async ({
   const createLot = jest.fn();
   const firebaseUpdateUserProfile = jest.fn();
   const notifyUser = jest.fn();
+  const firebaseFetchStats = jest.fn();
+  const firebaseUpdateStats = jest.fn();
 
   if (lot) {
     firebaseFetchActiveLot.mockReturnValue(lot);
@@ -71,6 +73,10 @@ export const setupBossTest = async ({
     createWinnerPullPayment.mockReturnValue(winnerPullPayment);
   }
 
+  firebaseFetchStats.mockReturnValue({
+    resultsCount: 10,
+  });
+
   const dependencies = {
     firebaseFetchActiveLot,
     getStoreByStoreName,
@@ -84,6 +90,8 @@ export const setupBossTest = async ({
     createLot,
     firebaseUpdateUserProfile,
     notifyUser,
+    firebaseFetchStats,
+    firebaseUpdateStats,
   };
   const response = await runBoss(dependencies);
 
